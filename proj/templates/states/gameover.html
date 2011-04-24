@@ -1,0 +1,150 @@
+<div class='gameover'>
+    <div class='popup-loading' style='display:none'></div>
+    {% if message.win %}
+        <h1 class='gotitle'>You Win!!</h1>
+        <div class="msgdisp">
+            Congratulations {% if user.is_authenticated %}{{ user.username }},{% endif %} you completed the border race in 
+
+            {% if message.min %}
+                {{ message.min }} minute{{ message.min|pluralize}} and 
+            {% endif %} 
+            
+            {{ message.sec }} second{{message.sec|pluralize}}.
+            
+            You used {{ message.states }} states
+            totalling {{ message.points }}  points.
+            <div class="statedisp">
+            {% for filename,dispname,pointvalue in pathdata %}
+                <div class="pathdisp">
+                    <img  alt=""
+                    src="{{ MEDIA_URL }}images/seals/small_60/trans_50/{{ filename }}.png"/>
+                    <div class="pathname">
+                        {{ dispname }}
+                        <br />
+                        <span style="font-size:9px">{{ pointvalue }}pt{{ pointvalue|pluralize}}</span>
+                    </div>
+                </div>
+            {% endfor %}
+
+            </div>
+
+        </div> 
+
+    {% else %}
+
+        <h1 class='gotitle'>Game Over</h1>
+        <div class="msgdisp">
+            Sorry, you didn't complete the border race in time.
+            Here is one solution :  
+        </div>
+        <div class="statedisp">
+            {% for filename,dispname,pointvalue in pathdata %}
+                <div class="pathdisp">
+                    <img  alt=""
+                    src="{{ MEDIA_URL }}images/seals/small_60/trans_50/{{ filename }}.png"/>
+                    <div class="pathname">
+                        {{ dispname }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+
+
+    {% if user.is_authenticated %}
+        <div style="clear:both;"></div>
+        <div class="stats">
+            <table>
+                {% if stats.wins > 0 %}
+                <tr>
+                    <td>Best time</td> 
+                    <td><b>
+                {% if stats.min_tm %}
+                    {{ stats.min_tm }} minute{{ stats.min_tm|pluralize}} and
+                {% endif %}
+
+                {{ stats.min_ts }} second{{stats.min_ts|pluralize}}
+                    </b>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Best score</td>
+                    <td> <b>
+                        {{ stats.max_points }} points
+                        </b>
+                    </td> 
+                </tr>
+                <tr>
+                    <td>Longest path</td>
+                    <td><b>
+                        {{ stats.max_states }} states
+                        </b>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Shortest path</td>
+                    <td><b>
+                        {{ stats.min_states }} states
+                        </b>
+                    </td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Number of wins</td>
+                    <td><b>
+                        {{ stats.wins }}
+                        </b>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Number of losses</td>
+                    <td><b>
+                        {{ stats.losses }}
+                        </b>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    {% else %}
+        <div style="clear:both;width=100%;padding:10px;">         
+            <span style="font-size:12px">
+                To save your score please login or register. 
+                Providing your email address is optional and you will never receive an email from this site unless you request a password reset.
+            </span>
+            <div style="clear:both"></div>
+            <div class='popup-loading' style='display:none'></div>
+            <div class='popup-logmessage' 
+                style='display:none;clear:both;'></div>
+            <div class='popup-regmessage' 
+                style='display:none;clear:both;'></div>
+            <div id="logform" 
+                style="float:left;margin-right:10px;margin-top:10px;">
+                <form action="{% url loginform %}" method="post">
+                    {% csrf_token %}
+                    {{ form1.as_p }}
+                    <input name="type" value="login" type="hidden" />
+                    <button style="font-size:14px;float:right;" id="log_button" class="button" type="submit">
+                            login</button>
+                </form> 
+
+            </div>
+            <div id="regform" 
+                style="float:left; border-left:2px solid black;
+                            margin-left:10px;margin-top:10px;">
+                <form action="{% url loginform %}" method="post">
+                    {% csrf_token %}
+                    {{ form2.as_p }}
+                    <input name="type" value="register" type="hidden" />
+                    <button style="font-size:14px;float:right;" id="reg_button" class="button" type="submit">
+                        create account</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="playagain">
+        <a href="#" class="popup-playagain">Play Again</a>
+    </div>
+</div>

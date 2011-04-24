@@ -1,0 +1,109 @@
+body {
+    background-color: #ffffef;
+}
+
+.buttons {
+    height:45px;
+    width:100%;
+}
+#newgame_b button{
+    float:left;
+    margin-left:10px;
+    width:130px;
+}
+#game_b button {
+    margin-left:120px; 
+    width:220px;
+}
+.buttons button {
+    font-size:18px;
+    height:45px;
+}
+
+a:link {color:#082e58;  text-decoration: none; font-weight:bolder;}
+a:visited {color:#082e58; font-weight:normal; text-decoration:none;}
+a:hover {color:#de7606;}
+#pathdisp {
+    height:32px;
+}
+
+#points {
+    width: 130px;
+    height: 120px;
+    text-align: center;
+    font-size: 45px;
+    color: #525252;
+    margin-top: -120px;
+    border: 1px solid #ffffef;
+}
+
+#points p {
+    text-align: center;
+    margin-top: 30px;
+}
+
+#message {
+    font-size: 10px;
+}
+#clock {
+    font-size: 42px;
+    text-align: right;
+    padding-right: 55px;
+    padding-top: 5px;
+    float: right;
+
+}
+
+/* default class for all cards */ 
+.statecard {
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #fff0f1;
+    position:relative;
+    float: left;
+    cursor : pointer;
+    height : 80px;
+    width : 80px; 
+    border : 2px solid #585858;
+    z-index: 500;
+    margin: 1px;
+   -moz-border-radius : 15px;
+    border-radius: 15px;
+}
+.endstate {
+    border : 2px solid #00ffff;
+}
+.wildcardholder {
+    margin-top:200px;
+    width: 70px;
+    height: 85px;
+} 
+
+.state {
+    background-position: center center;
+    background-repeat: no-repeat;
+    margin: -5px;
+    background-color: transparent;
+    z-index: 0;
+} 
+
+
+.cardtext {
+    text-align: center;
+    width:100%;
+    margin-right: auto;
+    margin-left: auto;
+    position: absolute;
+    top:20px;
+    font-size: 28px;
+    font-weight: bold;
+}
+ 
+.labeltext {
+    clear: both;
+    margin-top: 50px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    /*background-image: url('{{MEDIA_URL}}images/white_50.png'); */
+}

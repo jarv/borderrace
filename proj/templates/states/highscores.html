@@ -1,0 +1,60 @@
+<div class='highscores'>
+    <div class='popup-loading' style='display:none'></div>
+    <div class="hstables">
+        <div class="seconds">
+            <h2>Best by time completed (seconds)</h2>
+            <table>
+            {% for entry in hs.seconds %}
+                <tr>
+                    <td><span style="color:gray">{{ forloop.counter }})</span> <span style="color:#000000">{{ entry.user }}</span></td>
+                    <td><b>{{ entry.seconds }} secs</b> <span style="font-size:10px">( {{entry.points}} pts - {{ entry.created|date:"SHORT_DATE_FORMAT"}})</span> </td>
+                </tr>
+
+            {% endfor %}
+            </table>
+        </div>
+
+        <div class="points">
+
+            <h2>Best by point value</h2>
+            <table>
+            {% for entry in hs.points %}
+                <tr>
+                    <td><span style="color:gray">{{ forloop.counter }})</span> <span style="color:#000000"> {{ entry.user }}</span></td>
+                    <td><b>{{ entry.points }} pts</b> <span style="font-size:10px">( {{entry.seconds}} secs - {{ entry.created|date:"SHORT_DATE_FORMAT"}})</span> </td>
+                </tr>
+
+            {% endfor %}
+            </table>
+
+        </div>
+    </div> 
+    <div class="stats" >
+        <h2>Overall Stats</h2>
+
+        <table>
+            <tr>
+                <td>Total wins</td><td><b>{{ stats.wins }} games</b></td>
+            </tr>
+
+            <tr>
+                <td>Total losses</td><td><b>{{ stats.losses }} games</b></td>
+            </tr>
+            {% if stats.wins > 0 %}
+            <tr>
+                <td>Best Time</td><td><b>{{ stats.sec_min }} secs</b></td>
+            </tr>
+            <tr>
+                <td>Average Time</td><td><b>{{ stats.sec_avg }} secs</b></td>
+            </tr>
+            <tr>
+                <td>Highest Score</td><td><b>{{ stats.pts_max }} pts</b></td>
+            </tr>
+            <tr>
+                <td>Average Score</td><td><b>{{ stats.pts_avg }} pts</b></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+</div>

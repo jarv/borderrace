@@ -1,0 +1,1 @@
+perl -ne '/top: (\d+)px.*left: (\d+)px/ && do {$t=$1+1; $l=$2+1;  s/top: \d+.*left: \d+/top: ${t}px\; left: $l/;};print;' map.bak > map.html

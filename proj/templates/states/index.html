@@ -1,0 +1,144 @@
+{% extends 'states/base.html' %}
+
+{% block head %}
+<script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script>
+<script type="text/javascript">
+    /* copyright info@borderrace.com 2011 */
+    //<![CDATA[
+    $(document).ready(function() {
+    {% include 'states/states-min.js' %}
+    {% include 'states/popup-min.js' %}
+    });
+    //]]>
+</script>
+
+
+<style type="text/css">
+    {% include 'states/states.css' %}               
+</style>
+{% endblock %}
+
+{% block container %}
+<noscript>
+    <span style="font-size:24px">You must enable javascript to use this site</span>
+</noscript>
+    
+<div class="span-24 last ">
+    <div style="height:30px;padding-top:5px;">
+        <fb:like href="http://borderrace.com" show_faces="false" width="450" font=""></fb:like>
+        <div style="float:right;">
+            {% if user.is_authenticated %}
+                Welcome back {{ user.username }} <a href=
+                  "{% url logout_user %}?page={{request.path}}">(logout)</a>
+            {% else %}
+                <a class="logreg" href="#">login/register</a>
+                {% endif %}
+        </div>
+    </div>
+    <div style="width:100%;clear:both;text-align:center;">
+        <a href="/"><img alt="" 
+            src="{{MEDIA_URL}}images/borderrace2.png" /></a>
+    </div>
+
+    <div id="header-explain" style="padding-bottom:10px;font-size:14px;clear:both;text-align:center;
+        margin-right:50px;margin-left:50px;">
+        Click the states on the left to connect the east to the west coast of the United States. To remove states from the path click them again. (you can also click them on the map)
+        <b>All games can be won without using the wildcard.</b> <br />
+        Press "New Game" to begin the race!
+
+    </div>
+</div>
+<!-- Card deck area -->
+<div class="span-11 clear">
+        <div class="statecard 0"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 1"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 2"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 3"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 4"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div style="clear:both"> </div>
+        <div class="statecard 5"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 6"><div class="cardtext"></div><div class="labeltext"></div></div> 
+        <div class="statecard 7"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 8"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 9"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div style="clear:both"> </div>
+        <div class="statecard 10"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 11"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 12"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 13"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 14"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div style="clear:both"></div>
+        <div class="statecard 15"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 16"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 17"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 18"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 19"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div style="clear:both"></div>
+        <div class="statecard 20"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 21"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 22"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard 23"><div class="cardtext"></div><div class="labeltext"></div></div>
+        <div class="statecard statewild" id="wild" ></div>
+
+</div>
+<!-- end card deck area -->
+<div class="span-12 last"> 
+
+    <!-- MAP Area -->
+    <div class="span-12 last">
+        {% include 'states/map.html' %}
+    </div>
+    <!-- message area -->
+    <div class="span-12 last"  >
+        <div class="span-4">
+            <div id="points"><p></p></div>
+        </div>
+        <div class="span-12  ">
+            <div id="pathdisp"></div>
+        </div>
+    </div>
+
+    <div class="span-12 last" style="background-color:#ecf6ff;">
+        <div class="span-12 last">
+            <div class="buttons" id="newgame_b" >
+                <button type="submit" class="button" id="normal">
+                    New Game
+                </button>
+               <button type="submit" class="button" id="advanced">
+                    Advanced
+                </button>
+               <button type="submit" class="button" id="practice">
+                    Practice
+                </button>
+            </div>
+            <div class="buttons" id="game_b" style="display:none">
+                <button type="submit" class="button" id="gameover">
+                </button>
+            </div>
+
+        </div>
+        <div class="span-12 last ">
+            <div style="width:100%;text-align:center">
+                <a href="#" id="highscores">Highscores</a> &nbsp; | &nbsp; 
+                <a href="#" id="highscores-adv">Highscores (advanced)</a> &nbsp; | &nbsp; 
+                <a href="#" id="help">How to play</a> 
+            </div>
+        </div>
+        <div class="span-12 last">
+        </div>
+    </div>
+</div> 
+    
+
+
+<div class="span-24 clear">
+    <div style="text-align:center;margin:10px;">
+        <a href="mailto:info@borderrace.com">BorderRace</a> - 2011(c)
+    </div>
+    <div style="text-align:left;margin:10px;">
+    </div>
+</div>
+
+
+{% endblock %}
+

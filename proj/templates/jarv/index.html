@@ -1,0 +1,37 @@
+{% extends 'jarv/base.html' %}
+{% load markup %}
+{% load syntax %}
+{% load messages %}
+
+{% block script %}
+<script type="text/javascript" charset="utf=8">
+    {% include 'jarv/popup.js' %}
+</script>
+{% endblock %}
+
+{% block title %} all posts {% endblock %}
+
+{% block container %}
+{% render_messages messages %}
+<a href="#" class="logreq">Login</a>
+{% if user.is_authenticated %}
+    Welcome back {{ user.username }} <a href=
+    "{% url logout_view %}?page={{request.path}}">(logout)</a>
+{% endif %}
+
+
+
+{% for post in post_list %}
+
+    <h1> {{ post.title }} </h1>
+    {{ post.created }}  <br />
+    <h2>Summary</h2> {{ post.summary|render|safe}}  <br />
+    <h2>Descriptions</h2>
+    {% for entry in post.desc_set.all %}
+        {{ entry.description|render|safe }} 
+    {% endfor %}
+
+{% endfor %}
+
+{% endblock %}
+

@@ -1,0 +1,24 @@
+<div class='popup'>
+    <h1 class='popup-logtitle'>Login</h1>
+    <div class='popup-loading' style='display:none'></div>
+    <div class='popup-logmessage' style='display:none'</div>
+    <div id="logform">
+        <form action="{% url loginform %}" method="post">
+            {% csrf_token %}
+            {{ form1.as_p }}
+            <input name="type" value="login" type="hidden" />
+            <button id="log_button" class="button" type="submit">login</button>
+        </form> 
+    </div>
+    <div id="regform" style="clear:both">
+        <h1 class='popup-regtitle'>Create a New Account</h1>
+        <div class='popup-regmessage' style='display:none'</div>
+ 
+        <form action="{% url loginform %}" method="post">
+            {% csrf_token %}
+            {{ form2.as_p }}
+            <input name="type" value="register" type="hidden" />
+            <button id="reg_button" class="button" type="submit">create account</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+/* login/reg and defaults */
+
+#popup-overlay {background-color:#000; cursor:wait;}
+#popup-container {font: 16px/22px 'Trebuchet MS', Verdana, Arial; text-align:left; width:450px;}
+#popup-container .popup{background-color:#ecf6ff; color:black;padding:25px;padding-bottom:80px; border: 2px solid #585858; -moz-border-radius: 15px; }
+#popup-container .popup  input {margin:2px;}
+#popup-container .popup  p {margin:2px;}
+#popup-container .popup label {clear:left; display:block; float:left; font-weight:bold; padding-right:4px; text-align:right; width:100px;font-size:14px}
+#popup-container .login-input {background:#eee; border:1px solid #fff; font-family:'Trebuchet MS', Verdana, Arial; float:left; padding:2px; margin:2px; width:300px;}
+.popup-message {text-align:center;}
+.popup-error {background:#FFF; border:2px solid #ccc; font-size:14px; font-weight:bold; line-height:18px; margin:0 auto; padding:2px; width:92%;color:red;}
+.popup-logtitle {color:#6066bc; font-size:18px; line-height:18px; margin:0; padding:10px 0 6px 16px; text-align:left;}
+.popup-regtitle {color:#6066bc; font-size:18px; line-height:18px; margin:0; padding:10px 0 6px 16px; text-align:left;}
+.popup-loading {background:url(../images/loading.gif) no-repeat; height:55px; margin:-14px 0 0 190px; padding:0; position:absolute; width:54px; z-index:8000;}
+
+/* gameover */
+#popup-container-go {font: 16px/22px 'Trebuchet MS', Verdana, Arial; text-align:left; width:600px;}
+#popup-container-go .gameover input {margin:2px; width:100px;}
+#popup-container-go .gameover p {margin:2px;}
+#popup-container-go .gameover label {clear:left; display:block; float:left; font-weight:bold; padding-right:4px; text-align:right; width:100px;font-size:14px}
+#popup-container-go .gameover{background-color:#ecf6ff; color:black;padding:20px; border: 2px solid #585858; -moz-border-radius: 15px; border-radius: 15px; }
+
+#popup-container-go .pathdisp {float: left;margin-left:2px;margin-right:2px;height:60px;width:60px;position:relative;}
+#popup-container-go .pathdisp .pathname {position:absolute; color: black; text-align:center; padding-top:17px; left:0px;top:0px; width:100%;font-size:20px;font-weight:bold;}
+#popup-container-go .gotitle  { font-size:24px; text-align:center; line-height:24px;color:black; width:100%;}
+#popup-container-go .statedisp { clear: both;padding:15px;margin-left:20px; }
+#popup-container-go .msgdisp{ padding:10px; clear: both; text-align:center;}
+
+#popup-container-go .stats {clear:both;margin-top:20px;}
+#popup-container-go table {font-size:12px;line-height:14px; padding:5px;width:400px;margin-left:80px; background-color: #ffffef;border:1px solid #E0E0E0;}
+#popup-container-go .stats td { }
+
+#popup-container-go .regdisp{ margin-top:10px; padding:10px; clear: both; }
+#popup-container-go .playagain{ width:100%;text-align:center;clear: both; padding:10px}
+
+
+/* highscore */
+
+#popup-container-hs {font: 16px/22px 'Trebuchet MS', Verdana, Arial; text-align:left; width:700px;}
+#popup-container-hs .highscores {background-color:#ecf6ff; color:black;padding:20px; border: 2px solid #585858; -moz-border-radius: 15px; border-radius: 15px;
+font-size:12px;}
+#popup-container-hs h2 { font-size:14px ; font-weight:bold;}
+
+#popup-container-hs .hstables{ margin-right:auto; margin-left:auto;width:600px; }
+#popup-container-hs .seconds { text-align:center;width:300px; float:left }
+#popup-container-hs .points { text-align:center;width:300px; float:left }
+#popup-container-hs .stats { text-align:center;width:300px; clear:both;margin-right:auto; margin-left:auto; }
+#popup-container-hs table { background-color: #ffffef; border:1px solid #E0E0E0;padding:5px;} 
+
+
+/* explain */
+
+#popup-container-ex {font: 14px/16px 'Trebuchet MS', Verdana, Arial; text-align:left; width:700px;}
+#popup-container-ex .explain {background-color:#ecf6ff; color:black;padding:20px; border: 2px solid #585858; font-size:12px;}
+#popup-container-ex table { background-color: #ffffef; border:1px solid #E0E0E0;padding:5px;height:100px;} 

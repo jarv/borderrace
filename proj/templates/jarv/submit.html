@@ -1,0 +1,226 @@
+{% extends 'jarv/base.html' %}
+{% load messages %}
+{% block style %}
+<style type="text/css">
+
+#submit {
+    margin: 50px;
+}
+form.submit {
+    padding: 0 20px 20px 0px;
+}
+
+form.submit p { position:relative; margin: 10px 0; }
+
+form.submit p input {
+    font-family: Helvetica, Arial;
+    display: block;
+    border: solid 1px #ccc;
+}
+
+#submitTitle {
+    float: left;
+    width: 100%;
+}
+
+
+
+#submitTitleLeft {
+    width: 520px;
+    border: 0px;
+
+}
+
+#submitTitleRight {
+    border: 0px;
+}
+
+#postTitleLabel  { 
+    position:absolute; 
+    top:0; 
+    left:0;
+    color: #777;
+    padding: 10px 6px 15px 6px;
+    font-size:18pt;
+}
+
+
+#postSummaryLabel  { 
+    position:absolute; 
+    top:0; 
+    left:0;
+    color: #777;
+    padding: 10px 5px 5px 6px;
+}
+
+#postTitle {
+
+    font-size:18pt;
+    width: 500px;
+    padding: 5px;
+
+}
+
+#postSummary {
+
+    font-size:12pt;
+    width: 500px;
+    padding: 5px;
+}
+
+/* Left and right pane for markdown and preview */
+
+#submitDesc {
+    float: left;
+    width: 100%;
+    margin: 10px;
+
+
+}
+textarea {
+        font-family: monospace;
+}
+#leftContainer {
+    width: 45%;
+    float: left;
+    background : #c8fc98;
+}
+
+#rightContainer {
+    width: 45%;
+    float: right;
+}
+
+#rightContainer > * {
+        float: right;
+}
+
+
+.pane {
+        margin: 0;
+        padding: 0;
+        padding-left: 4px; /* pane padding */
+        width: 100%;
+        border: none;
+        display: block;
+
+        /* note: the panes get their height set with
+       javascript; see sizeTextAreas(). */
+
+        /* for now, set a height so things look nice
+           if the user has javascript disabled */
+        height: 400px;
+}
+
+
+#previewPane {
+        background-color: #f3eeee;
+        padding: 10px;
+        border: 1px solid #888;
+}
+
+
+div.pane {
+        overflow: auto;
+}
+
+#inputPane {
+        padding: 10px;
+        border: 1px solid #888;
+        background-color: #fff;
+}
+
+
+#previewPane > * {
+        margin-left: 0px;
+        margin-right: 0px;
+}
+
+#previewPane > blockquote {
+        margin-left: 0em;
+}
+
+#previewPane > :first-child {
+        margin-top: 4px; /* pane padding */
+}
+
+#previewPane * {
+        line-height: 1.4em;
+}
+
+#previewPane code {
+        font-size: 1.3em;
+}
+
+
+</style>
+{% endblock %}
+
+{% block script %}
+<script src="{{ MEDIA_URL }}js/jquery.infieldlabel.min.js"
+    type="text/javascript" charset="utf-8"></script>
+<script src="{{ MEDIA_URL }}js/showdown.js"
+    type="text/javascript" charset="utf-8"></script>
+<script src="{{ MEDIA_URL }}js/showdown-gui.js"
+    type="text/javascript" charset="utf-8"></script>
+
+
+<script type="text/javascript" charset="utf=8">
+    {% include 'jarv/popup.js' %}
+    $(function(){
+        $("label").inFieldLabels();
+        $("input").attr("autocomplete", "off");
+    });
+</script>
+
+{% endblock %}
+
+{% block title %} submit a new entry {%endblock %}
+{% block container %}
+{% if user.is_authenticated %}
+    Welcome back {{ user.username }} <a href=
+    "{% url logout_view %}?page={{ request.path }}">(logout)</a>
+{% endif %}
+
+<button value="submit" class="submitBtn logreq">
+    <span>Add a new Entry</span></button>
+<form class="submit" method="post" action="{% url jarv.views.submit %}">
+    <div id="submit">
+        <div id="submitTitle">
+
+            <div id="submitTitleLeft">
+                {% csrf_token %}
+                <p>
+                <label for="postTitle" id="postTitleLabel" >Post Title</label>
+                <input type="text" name="post_title" id="postTitle" class="logreq" />
+                </p>
+                <p>
+                <label for="postSummary" id="postSummaryLabel">
+                    Post Summary</label>
+                <textarea rows="5" cols="50" name="post_summary"
+                    id="postSummary" class="logreq"></textarea>
+                </p>
+            </div>
+            <div id="submitTitleRight">
+            </div>    
+                
+            {% render_messages messages %} 
+
+        </div>
+        <div id="submitDesc">
+            
+            <div id="leftContainer">
+                <textarea rows="20" cols="80" id="inputPane" name="desc_content" class="pane logreq"></textarea>
+            </div>
+
+            <div id="rightContainer">
+                <div id="previewPane" class="pane"><noscript><h2>You will need
+                            to enable javascript to use this site</h2></noscript>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</form>
+{% endblock %}
