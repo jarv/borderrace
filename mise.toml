@@ -1,0 +1,62 @@
+[tools]
+node = "24.16.0"
+
+[tasks.install]
+description = "Install the pinned frontend dependencies"
+sources = ["package.json", "package-lock.json"]
+outputs = ["node_modules/.package-lock.json"]
+run = "npm ci"
+
+[tasks.dev]
+description = "Start the development server at http://localhost:4173"
+depends = ["install"]
+run = "node build.js --serve"
+
+[tasks.build]
+description = "Build the static Caddy site in dist/"
+depends = ["install"]
+run = "node build.js"
+
+[tasks.test]
+description = "Run deterministic game and persistence tests"
+depends = ["install"]
+run = "node --test"
+
+[tasks.check]
+description = "Check formatting, test, and build the frontend"
+depends = ["format:check", "test", "build"]
+
+[tasks.format]
+description = "Format application, tests, and documentation"
+depends = ["install"]
+run = "npx prettier --write ."
+
+[tasks."format:check"]
+description = "Check source formatting"
+depends = ["install"]
+run = "npx prettier --check ."
+
+[tasks."browser:install"]
+description = "Install Chromium for desktop and mobile browser tests"
+depends = ["install"]
+run = "npx playwright install chromium"
+
+[tasks."test:browser"]
+description = "Test real desktop and touch-enabled phone layouts"
+depends = ["install"]
+run = "npx playwright test"
+
+[tasks.build-release]
+description = "Build the versioned static release archive and checksum"
+depends = ["install"]
+run = "node release.js"
+
+[tasks."test:release"]
+description = "Verify release contents, checksums, and reproducible packaging"
+depends = ["install"]
+run = "node verify-release.js"
+
+[tasks.release]
+description = "Publish a semantic release (CI on master)"
+depends = ["install"]
+run = "npx semantic-release"

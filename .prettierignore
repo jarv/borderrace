@@ -1,0 +1,9 @@
+node_modules/
+dist/
+release/
+CHANGELOG.md
+assets/us.svg
+package-lock.json
+.playwright-mcp/
+test-results/
+playwright-report/

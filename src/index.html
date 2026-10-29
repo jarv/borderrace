@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101320" />
+    <meta
+      name="description"
+      content="Connect the Atlantic and Pacific coasts using 24 state cards."
+    />
+    <title>Border Race</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./app.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Border Race home"
+        ><span class="brand-icon" aria-hidden="true">ϟ</span> border<span>race</span></a
+      >
+      <nav aria-label="Information">
+        <button
+          class="text-button sound-button"
+          id="sound-button"
+          aria-pressed="true"
+          aria-label="Sound on, click to mute"
+        >
+          Sound on
+        </button>
+        <button class="text-button" id="records-button">
+          Your scores <span aria-hidden="true">↗</span></button
+        ><button class="text-button" id="help-button">
+          How to play <span class="question-icon" aria-hidden="true">?</span>
+        </button>
+      </nav>
+    </header>
+    <main>
+      <section class="game-shell" aria-label="Border Race game">
+        <div class="game-toolbar">
+          <div class="hint-controls">
+            <button id="hint-button" class="secondary-button">Hint</button
+            ><span id="hint-cost" hidden>Next card: 0 pts</span>
+          </div>
+          <div class="trip-stats">
+            <div>
+              <span class="stat-label">SCORE</span><strong id="score">0 <small>pts</small></strong>
+            </div>
+          </div>
+        </div>
+        <div class="board-layout">
+          <section class="hand" aria-labelledby="hand-heading">
+            <div class="section-label">
+              <h2 id="hand-heading">Your cards</h2>
+              <span>24 STATES</span>
+            </div>
+            <div id="cards" class="cards"></div>
+          </section>
+          <section class="map-panel" aria-label="Map">
+            <div class="map-controls"></div>
+            <div class="map-wrap">
+              <div id="map"></div>
+            </div>
+          </section>
+        </div>
+        <div class="game-bottom">
+          <div class="message-wrap" hidden>
+            <span class="message-icon" aria-hidden="true">↗</span>
+            <p id="message" role="status" aria-live="polite"></p>
+          </div>
+          <div class="game-actions">
+            <button id="new-game" class="secondary-button">
+              New game <span aria-hidden="true">⤨</span></button
+            ><button id="end-game" class="primary-button">End game</button>
+          </div>
+        </div>
+      </section>
+      <p id="storage-warning" class="storage-warning" hidden>
+        Storage unavailable. Progress won't be saved.
+      </p>
+    </main>
+    <dialog id="help-dialog">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Close help">×</button>
+      </div>
+      <h2>How to play</h2>
+      <p>
+        Connect an Atlantic state to a Pacific state — or the other way around — with the 24 cards
+        in your deck.
+      </p>
+      <ol class="guide">
+        <li>
+          <strong>Start on a coast.</strong> Choose a card marked COAST. Gulf-only states don't
+          count.
+        </li>
+        <li>
+          <strong>Follow the borders.</strong> Click a neighboring card to extend your route. Click
+          a played card in your hand or on the map to remove it and everything after it.
+        </li>
+        <li>
+          <strong>Reach the other coast.</strong> The game ends automatically. Cards are worth 1–4
+          points.
+        </li>
+      </ol>
+      <p>
+        Hint highlights the next card, or a card to remove if the route is blocked. After using
+        Hint, the next card you add scores 0, even if you choose a different card. That card stays
+        at 0 if removed and replayed. There is no time limit.
+      </p>
+      <p class="fine-print">
+        Every deal is solvable. Borders include AZ–CO, NM–UT, MI–MN and NY–RI.
+      </p>
+      <button class="primary-button full-width" data-close>Close</button>
+    </dialog>
+    <dialog id="result-dialog">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Close results">×</button>
+      </div>
+      <h2 id="result-title"></h2>
+      <div id="result-route"></div>
+      <div id="solutions" aria-live="polite"></div>
+      <button id="play-again" class="primary-button full-width">Play again</button>
+    </dialog>
+    <dialog id="records-dialog">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Close scores">×</button>
+      </div>
+      <h2>Your scores</h2>
+      <p id="record-summary"></p>
+      <div id="record-list"></div>
+      <p class="fine-print">Top 10 wins, ranked by points.</p>
+      <button id="clear-scores" class="secondary-button">Clear</button>
+    </dialog>
+    <dialog id="confirm-dialog">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Cancel">×</button>
+      </div>
+      <h2 id="confirm-title">New game?</h2>
+      <p id="confirm-copy">Replace the current game?</p>
+      <div class="confirm-actions">
+        <button class="secondary-button" data-close>Cancel</button
+        ><button id="confirm-action" class="primary-button">New game</button>
+      </div>
+    </dialog>
+    <canvas id="confetti" aria-hidden="true"></canvas>
+    <noscript
+      ><p class="noscript">
+        Enable JavaScript to play Border Race. All gameplay happens in your browser.
+      </p></noscript
+    >
+  </body>
+</html>

@@ -1,0 +1,333 @@
+import { test, expect } from '@playwright/test';
+import { CODES, STATES } from '../src/data.js';
+import { STORAGE_KEY, emptySave } from '../src/storage.js';
+import { findSolution, findLongestRoute } from '../src/game.js';
+
+const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
+const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
+const fixture = (overrides = {}) => ({
+  id: 'test-game',
+  deal,
+  route: [],
+  zeroCards: [],
+  hintPending: false,
+  status: 'playing',
+  ...overrides,
+});
+
+async function seed(page, game = fixture()) {
+  await page.addInitScript(
+    ({ key, data }) => {
+      if (!sessionStorage.getItem('test-seeded')) {
+        localStorage.setItem(key, JSON.stringify(data));
+        sessionStorage.setItem('test-seeded', '1');
+      }
+    },
+    { key: STORAGE_KEY, data: { ...emptySave(), game } },
+  );
+  await page.goto('/');
+  await expect(page.locator('.state-card')).toHaveCount(24);
+}
+async function press(locator, mobile) {
+  if (mobile) await locator.tap();
+  else await locator.click();
+}
+async function saved(page) {
+  return page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY);
+}
+
+test('games are playable immediately with no wildcard, timer, start, or finish controls', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  await expect(page.locator('#wild, #clock, #time-fill, #finish, #start')).toHaveCount(0);
+  await expect(page.locator('#message')).toBeEmpty();
+  await expect(page.locator('body')).not.toContainText('Start with a coastal card.');
+  await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  expect((await saved(page)).game.status).toBe('playing');
+  await page.reload();
+  await expect(page.locator('[data-chain]')).toHaveCount(1);
+  const game = (await saved(page)).game;
+  expect(game).not.toHaveProperty('startedAt');
+  expect(game).not.toHaveProperty('finishedAt');
+});
+
+test('connecting the coasts wins automatically and saves the result exactly once', async ({
+  page,
+  isMobile,
+}) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await seed(page);
+  for (const code of route) await press(page.locator(`[data-card="${code}"]`), isMobile);
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  await expect(page.locator('#result-title')).toHaveText('You win');
+  await expect(page.locator('#result-route .solution-card')).toHaveCount(route.length);
+  expect(await page.locator('#result-route .solution-card').allTextContents()).toEqual(route);
+  await expect(page.locator('#result-route h3')).toHaveText('Your route 11 pts');
+  expect((await saved(page)).records).toEqual([{ id: 'test-game', points: 11 }]);
+  expect((await saved(page)).wins).toBe(1);
+  await page.reload();
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  expect((await saved(page)).wins).toBe(1);
+  expect(errors).toEqual([]);
+});
+
+test('invalid cards are rejected and undo removes a suffix', async ({ page, isMobile }) => {
+  await seed(page);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Choose a coastal card.');
+  await expect(page.locator('[data-chain]')).toHaveCount(0);
+  for (const code of route.slice(0, 3))
+    await press(page.locator(`[data-card="${code}"]`), isMobile);
+  await press(page.locator('[data-card="NC"]'), isMobile);
+  await expect(page.locator('#message')).toContainText('doesn’t border');
+  await expect(page.locator('[data-chain]')).toHaveCount(3);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  await expect(page.locator('[data-chain]')).toHaveCount(1);
+  await expect(page.locator('#score')).toContainText('1');
+});
+
+test('map states highlight and translucent cards retain solid borders and text', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  const initialFill = await page
+    .locator('.map-state[data-code="CA"] path')
+    .evaluate((p) => getComputedStyle(p).fill);
+  for (const code of ['CA', 'AZ']) await press(page.locator(`[data-card="${code}"]`), isMobile);
+  await expect(page.locator('[data-chain="AZ"]')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.map-state.on-route')).toHaveCount(2);
+  expect(
+    await page.locator('.map-state[data-code="CA"] path').evaluate((p) => getComputedStyle(p).fill),
+  ).not.toBe(initialFill);
+  const style = await page.locator('[data-chain="AZ"]').evaluate((card) => {
+    const css = getComputedStyle(card);
+    return {
+      background: css.backgroundImage,
+      border: css.borderTopStyle,
+      borderColor: css.borderTopColor,
+      text: css.color,
+      opacity: css.opacity,
+    };
+  });
+  expect(style.background).toMatch(/rgba\([^)]*, 0\./);
+  expect(style.border).toBe('solid');
+  expect(style.borderColor).toMatch(/^rgb\(/);
+  expect(style.text).toMatch(/^rgb\(/);
+  expect(style.opacity).toBe('1');
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  await expect(page.locator('.map-state.on-route')).toHaveCount(1);
+  await expect(page.locator('.map-state[data-code="AZ"]')).not.toHaveClass(/on-route/);
+});
+
+test('a hint zeros any next chosen card and the penalty survives undo and reload', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('.state-card.hinted')).toHaveCount(1);
+  await expect(page.locator('#hint-cost')).toBeVisible();
+  expect((await saved(page)).game.hintPending).toBe(true);
+  await page.reload();
+  await expect(page.locator('#hint-cost')).toBeVisible();
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('#score')).toContainText('0');
+  expect((await saved(page)).game.zeroCards).toEqual(['CA']);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  await expect(page.locator('#score')).toContainText('2');
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('#score')).toContainText('0');
+  await expect(page.locator('[data-chain="CA"] small')).toHaveText('0 PTS');
+});
+
+test('a backtracking hint charges the next added card, not the removal', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ route: ['ME'] }));
+  await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('[data-card="ME"]')).toHaveClass(/hinted/);
+  await press(page.locator('[data-card="ME"]'), isMobile);
+  expect((await saved(page)).game.hintPending).toBe(true);
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  expect((await saved(page)).game.zeroCards).toEqual(['CA']);
+});
+
+test('automatic results and records include the final hinted card penalty', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ route: route.slice(0, -1) }));
+  await press(page.locator('#hint-button'), isMobile);
+  await press(page.locator('[data-card="NC"]'), isMobile);
+  await expect(page.locator('#result-title')).toHaveText('You win');
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  expect((await saved(page)).records[0].points).toBe(10);
+  expect((await saved(page)).game.zeroCards).toEqual(['NC']);
+  await expect(page.locator('#result-route h3')).toHaveText('Your route 10 pts');
+  await expect(page.locator('.solution-chain[aria-label="Longest"]')).toHaveCount(1);
+  for (const [label, path] of [
+    ['Shortest', findSolution(deal)],
+    ['Longest', findLongestRoute(deal)],
+  ]) {
+    const total = path.reduce(
+      (points, code) => points + (code === 'NC' ? 0 : STATES[code].points),
+      0,
+    );
+    await expect(
+      page
+        .locator('#solutions .solution-section')
+        .filter({ has: page.locator(`ol[aria-label="${label}"]`) })
+        .locator('h3'),
+    ).toHaveText(`${label} ${total} pts`);
+  }
+});
+
+test('solutions are linked, compact state abbreviations only', async ({ page }) => {
+  await seed(page, fixture({ status: 'lost' }));
+  await expect(page.locator('.solution-chain[aria-label="Longest"]')).toHaveCount(1);
+  for (const [label, expected] of [
+    ['Shortest', findSolution(deal)],
+    ['Longest', findLongestRoute(deal)],
+  ]) {
+    const cards = page.locator(`.solution-chain[aria-label="${label}"] .solution-card`);
+    expect(await cards.allTextContents()).toEqual(expected);
+    expect(
+      await cards.evaluateAll((elements) =>
+        elements.every((e) => e.childElementCount === 0 && e.getBoundingClientRect().width <= 40),
+      ),
+    ).toBe(true);
+  }
+  expect(
+    await page
+      .locator('#result-dialog')
+      .evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth),
+  ).toBe(true);
+});
+
+test('help, scores, ending a game, and clearing scores work', async ({ page, isMobile }) => {
+  await seed(page);
+  await press(page.locator('#help-button'), isMobile);
+  await expect(page.locator('#help-dialog')).toContainText('next card you add scores 0');
+  await expect(page.locator('#help-dialog')).not.toContainText(/wildcard|Explorer|five minutes/);
+  await press(page.locator('#help-dialog [data-close]').first(), isMobile);
+  await press(page.locator('#end-game'), isMobile);
+  await press(page.locator('#confirm-action'), isMobile);
+  await expect(page.locator('#result-title')).toHaveText('Game over');
+  await press(page.locator('#result-dialog [data-close]'), isMobile);
+  await press(page.locator('#records-button'), isMobile);
+  await expect(page.locator('#record-summary')).toHaveText('0 wins · 1 game');
+  await expect(page.locator('#records-dialog h2')).toHaveText('Your scores');
+  await press(page.locator('#clear-scores'), isMobile);
+  await press(page.locator('#confirm-action'), isMobile);
+  await expect(page.locator('#record-summary')).toHaveText('No games yet.');
+  await expect(page.locator('#record-list')).toContainText('No scores yet.');
+});
+
+test('clearing scores preserves the current route, hint penalties, and sound setting', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ route: ['CA'], zeroCards: ['CA'], hintPending: true }));
+  await press(page.locator('#sound-button'), isMobile);
+  await page.evaluate((key) => {
+    const data = JSON.parse(localStorage.getItem(key));
+    data.records = [{ id: 'previous', points: 8 }];
+    data.wins = 1;
+    data.played = 3;
+    localStorage.setItem(key, JSON.stringify(data));
+  }, STORAGE_KEY);
+  await page.reload();
+  const before = await saved(page);
+  await expect(page.locator('#new-game')).toContainText('New game');
+  await expect(page.locator('#privacy-button, #privacy-dialog')).toHaveCount(0);
+  await press(page.getByRole('button', { name: 'Your scores' }), isMobile);
+  await press(page.locator('#clear-scores'), isMobile);
+  await press(page.locator('#confirm-dialog [data-close]').last(), isMobile);
+  expect((await saved(page)).records).toEqual(before.records);
+  await press(page.locator('#records-button'), isMobile);
+  await press(page.locator('#clear-scores'), isMobile);
+  await press(page.locator('#confirm-action'), isMobile);
+  const after = await saved(page);
+  expect(after.records).toEqual([]);
+  expect(after.wins).toBe(0);
+  expect(after.played).toBe(0);
+  expect(after.game).toEqual(before.game);
+  expect(after.soundEnabled).toBe(false);
+  await page.reload();
+  expect((await saved(page)).game).toEqual(before.game);
+  await expect(page.locator('#sound-button')).toHaveText('Sound off');
+});
+
+test('sound preference persists and blocked audio does not prevent keyboard play', async ({
+  page,
+  isMobile,
+}) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() =>
+    Object.defineProperty(window, 'AudioContext', {
+      value: class {
+        constructor() {
+          throw new Error('Blocked');
+        }
+      },
+    }),
+  );
+  await seed(page);
+  await press(page.locator('#sound-button'), isMobile);
+  await page.reload();
+  await expect(page.locator('#sound-button')).toHaveText('Sound off');
+  await press(page.locator('#sound-button'), isMobile);
+  await page.locator('[data-card="CA"]').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-chain]')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+test('blocked storage and reduced motion still permit play', async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() =>
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        throw new Error('Blocked');
+      },
+    }),
+  );
+  await page.goto('/');
+  await expect(page.locator('#storage-warning')).toBeVisible();
+  await press(page.locator('.state-card.coastal').first(), isMobile);
+  await expect(page.locator('[data-chain]')).toHaveCount(1);
+  await expect(page.locator('.flying-card')).toHaveCount(0);
+});
+
+test('phone and desktop layouts fit, with usable touch targets and map controls', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  for (const width of isMobile ? [320, 375, 390, 430, 650] : [768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const box = await page.locator('.state-card').first().boundingBox();
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  if (isMobile) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await press(page.locator('#map-toggle'), true);
+    await expect(page.locator('#map')).toBeHidden();
+    await press(page.locator('#map-toggle'), true);
+    await expect(page.locator('#map')).toBeVisible();
+    const actions = await page.locator('.game-actions').boundingBox();
+    expect(actions.y + actions.height).toBeLessThanOrEqual(845);
+  }
+});
