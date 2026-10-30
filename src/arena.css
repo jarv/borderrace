@@ -584,7 +584,8 @@
     height: 23px;
   }
 }
-@media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+@media (pointer: coarse) and (max-width: 650px),
+  (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
   body {
     height: 100dvh;
     min-height: 0;
@@ -736,6 +737,68 @@
   }
   .dialog-top {
     margin-bottom: 4px;
+  }
+}
+@media (pointer: coarse) and (max-width: 650px) and (orientation: portrait) {
+  .game-toolbar {
+    gap: 4px;
+    padding-inline: 4px;
+  }
+  .game-toolbar button {
+    font-size: 10px;
+    padding-inline: 4px;
+  }
+  .game-toolbar nav,
+  .game-actions {
+    gap: 2px;
+  }
+  .game-actions {
+    margin-left: auto;
+  }
+  #sound-button {
+    font-size: 0;
+  }
+  #sound-button::before {
+    content: '♪';
+    font-size: 22px;
+  }
+  #sound-button[aria-pressed='false']::before {
+    text-decoration: line-through;
+  }
+  .trip-stats {
+    position: absolute;
+    top: 62px;
+    right: 12px;
+    z-index: 5;
+    padding: 5px 8px;
+    background: #171d2fe6;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+  .board-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .map-panel {
+    order: -1;
+    flex: 1;
+    min-height: 120px;
+  }
+  #map {
+    width: min(100%, calc((100dvh - 420px) * 1000 / 610));
+    min-width: min(100%, 240px);
+  }
+  .hand {
+    flex: 0 1 auto;
+    max-height: 52dvh;
+    border-right: 0;
+    border-top: 1px solid #2e3c56;
+  }
+  .cards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .state-card {
+    height: clamp(48px, 8.5dvh, 72px);
   }
 }
 @media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) and (max-width: 740px) {

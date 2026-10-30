@@ -119,16 +119,6 @@ $$('dialog').forEach((dialog) => {
   dialog.addEventListener('close', () => previousFocus?.focus());
 });
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
-const portraitPhone = window.matchMedia(
-  '(pointer: coarse) and (max-width: 650px) and (orientation: portrait)',
-);
-function syncOrientation() {
-  $$('.site-header, main, dialog').forEach((element) => {
-    element.inert = portraitPhone.matches;
-  });
-}
-portraitPhone.addEventListener('change', syncOrientation);
-syncOrientation();
 
 function confirmAction(action, title, copy, label) {
   pendingAction = action;

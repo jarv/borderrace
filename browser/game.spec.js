@@ -355,8 +355,13 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
     if (isMobile) {
       const hand = await page.locator('.hand').boundingBox();
       const map = await page.locator('.map-panel').boundingBox();
-      expect(hand.x + hand.width).toBeLessThanOrEqual(map.x + 1);
-      expect(Math.abs(hand.y - map.y)).toBeLessThan(1);
+      if (width > height) {
+        expect(hand.x + hand.width).toBeLessThanOrEqual(map.x + 1);
+        expect(Math.abs(hand.y - map.y)).toBeLessThan(1);
+      } else {
+        expect(map.y + map.height).toBeLessThanOrEqual(hand.y + 1);
+        expect(hand.y + hand.height).toBeLessThanOrEqual(height);
+      }
       expect(map.y + map.height).toBeLessThanOrEqual(height);
       const controls = await page
         .locator('#hint-button, #sound-button, #records-button, #help-button, #new-game, #end-game')
@@ -381,9 +386,9 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
   }
   if (isMobile) {
     await page.setViewportSize({ width: 915, height: 412 });
-    expect(
-      await page.locator('.hand').evaluate((hand) => hand.scrollHeight <= hand.clientHeight),
-    ).toBe(true);
+    await expect
+      .poll(() => page.locator('.hand').evaluate((hand) => hand.scrollHeight <= hand.clientHeight))
+      .toBe(true);
     await press(page.locator('[data-card="CA"]'), true);
     await expect(page.locator('[data-chain="CA"]')).toBeVisible();
     await press(page.locator('[data-chain="CA"]'), true);
@@ -391,30 +396,58 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
   }
 });
 
-test('portrait phones require rotation without losing the current game', async ({
+test('portrait phones fit the map above the cards and keep play usable after rotation', async ({
   page,
   isMobile,
 }) => {
-  test.skip(!isMobile, 'Phone orientation requirement');
+  test.skip(!isMobile, 'Compact phone layout');
   await seed(page, fixture({ route: ['CA'] }));
-  for (const width of [320, 375, 390, 430, 650]) {
-    await page.setViewportSize({ width, height: 844 });
-    await expect(page.locator('.rotate-prompt')).toBeVisible();
-    await expect(page.locator('main')).toHaveAttribute('inert', '');
-    await expect(page.locator('#cards')).toBeHidden();
+  for (const [width, height] of [
+    [320, 568],
+    [360, 640],
+    [360, 780],
+    [375, 812],
+    [412, 915],
+    [430, 844],
+    [650, 844],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(page.locator('#cards')).toBeVisible();
+    const hand = await page.locator('.hand').boundingBox();
+    const map = await page.locator('.map-panel').boundingBox();
+    expect(map.y + map.height).toBeLessThanOrEqual(hand.y + 1);
+    expect(hand.y + hand.height).toBeLessThanOrEqual(height);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(
+      true,
+    );
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
+    await expect
+      .poll(() => page.locator('.hand').evaluate((hand) => hand.scrollHeight <= hand.clientHeight))
+      .toBe(true);
+    const controls = await page.locator('.game-toolbar button').evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const { x, y, width, height } = button.getBoundingClientRect();
+        return { x, y, width, height };
+      }),
+    );
+    expect(new Set(controls.map((button) => button.y)).size).toBe(1);
+    for (const button of controls) {
+      expect(button.width).toBeGreaterThanOrEqual(44);
+      expect(button.height).toBeGreaterThanOrEqual(44);
+      expect(button.x + button.width).toBeLessThanOrEqual(width);
+    }
+    const card = await page.locator('.state-card').first().boundingBox();
+    expect(card.width).toBeGreaterThanOrEqual(44);
+    expect(card.height).toBeGreaterThanOrEqual(44);
   }
+  await press(page.locator('[data-chain="CA"]'), true);
+  await press(page.locator('[data-card="CA"]'), true);
   await page.setViewportSize({ width: 915, height: 412 });
-  await expect(page.locator('.rotate-prompt')).toBeHidden();
-  await expect(page.locator('main')).not.toHaveAttribute('inert', '');
   await expect(page.locator('[data-chain="CA"]')).toBeVisible();
   expect((await saved(page)).game.route).toEqual(['CA']);
   await press(page.locator('#help-button'), true);
   await page.setViewportSize({ width: 412, height: 915 });
-  await expect(page.locator('.rotate-prompt')).toBeVisible();
-  await expect(page.locator('#help-dialog')).toHaveAttribute('inert', '');
-  await page.setViewportSize({ width: 915, height: 412 });
   await expect(page.locator('#help-dialog')).toBeVisible();
 });

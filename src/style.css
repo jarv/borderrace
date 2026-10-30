@@ -512,42 +512,6 @@ dialog .fine-print {
     font-size: 9px;
   }
 }
-.rotate-prompt {
-  display: none;
-}
-@media (pointer: coarse) and (max-width: 650px) and (orientation: portrait) {
-  body {
-    height: 100dvh;
-    overflow: hidden;
-  }
-  .site-header,
-  main,
-  dialog[open] {
-    visibility: hidden;
-  }
-  .rotate-prompt {
-    position: fixed;
-    inset: 0;
-    display: grid;
-    place-content: center;
-    text-align: center;
-    padding: 24px;
-  }
-  .rotate-prompt > span {
-    font-size: 64px;
-    color: var(--cyan);
-  }
-  .rotate-prompt h1 {
-    font-size: 24px;
-    margin: 16px 0 0;
-  }
-  .rotate-prompt p {
-    color: var(--muted);
-  }
-  dialog::backdrop {
-    visibility: hidden;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

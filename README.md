@@ -40,10 +40,10 @@ Alaska, Hawaii, and DC are excluded. See [third-party credits](THIRD_PARTY.md).
 
 ## Made for phones, too
 
-Phones require landscape; portrait shows a rotate-phone prompt. The compact layout
-puts smaller, touch-sized cards on the left and the map on the right, with Hint,
-sound, scores, **?** (help), New game, and End game in one row. The board fits the
-Galaxy S25's landscape viewport, with an independently scrolling hand on shorter
+The compact phone layout puts the map above smaller, touch-sized cards in portrait,
+or beside them in landscape. Hint, sound, scores, **?** (help), New game, and End game
+share one row; portrait uses a music-note sound toggle. The board fits Galaxy S25-sized
+viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.

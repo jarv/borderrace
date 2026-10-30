@@ -15,7 +15,7 @@ export default defineConfig({
       name: 'phone',
       use: {
         ...devices['Galaxy S9+'],
-        viewport: { width: 915, height: 412 },
+        viewport: { width: 360, height: 780 },
         defaultBrowserType: 'chromium',
       },
     },
