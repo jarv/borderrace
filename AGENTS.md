@@ -98,11 +98,14 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   including undo/replay. Invalid clicks/removals do not consume the penalty.
   Hint text uses abbreviations (`Play XX` or `Remove XX, play YY`), with the
   zero-point reminder shown only once in its separate label.
-- End results show compact linked cards with abbreviations only for the exact
-  shortest route by card count and most-points route using frozen values and
-  zeroCards, preferring fewer cards on score ties. Show one combined solution only
-  when the shortest route maximizes points. Mobile reference cards stay smaller
-  than the player's route cards.
+- Win results show only the exact most-points reference route using frozen values
+  and zeroCards, preferring fewer cards on score ties. No shortest reference.
+  Mobile reference cards stay smaller than the player's route cards.
+- End game records a loss immediately, then animates removal of the minimum
+  blocked suffix and adds a shortest continuation on the map. Preserve the actual
+  player route, score, and penalties in the save; never record an assisted win.
+  No loss dialog. Only New game is enabled during/after completion; it cancels
+  pending steps. Reduced motion and reloaded losses show completion immediately.
 - Show the player's actual route and its score above solutions, not a points/states
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
 - Save schema version 2 has no active time/mode fields. Archive old data and

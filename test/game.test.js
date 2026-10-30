@@ -6,6 +6,7 @@ import {
   findSolution,
   findLongestRoute,
   findMostPointsRoute,
+  planCompletion,
   getHint,
   canAdd,
   isComplete,
@@ -219,6 +220,24 @@ test('most-points routes match exhaustive search with zero cards and shorter sco
     }
   }
   assert.equal(findMostPointsRoute(['CA', 'ME']), null);
+});
+
+test('completion preserves the longest solvable prefix without mutating the player route', () => {
+  for (const path of [
+    [],
+    ['CA'],
+    ['ME'],
+    ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'],
+    route,
+  ]) {
+    const before = [...path];
+    const plan = planCompletion(deal, path);
+    assert.ok(isComplete(deal, plan.route));
+    assert.deepEqual(plan.route.slice(0, plan.keep), path.slice(0, plan.keep));
+    for (let keep = plan.keep + 1; keep <= path.length; keep++)
+      assert.equal(planCompletion(deal, path.slice(0, keep)).keep < keep, true);
+    assert.deepEqual(path, before);
+  }
 });
 
 test('a shorter gold route can score more than the longest route', () => {

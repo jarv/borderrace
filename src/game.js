@@ -42,6 +42,15 @@ export function findContinuation(deal, route) {
   return null;
 }
 
+// Preserve the longest possible prefix, then use its shortest continuation.
+export function planCompletion(deal, route) {
+  for (let keep = route.length; keep >= 0; keep--) {
+    const solution = findContinuation(deal, route.slice(0, keep));
+    if (solution) return { keep, route: solution };
+  }
+  return null;
+}
+
 export function getHint(deal, route) {
   if (isComplete(deal, route)) return { type: 'complete' };
   for (let keep = route.length; keep >= 0; keep--) {

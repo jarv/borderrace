@@ -2,10 +2,10 @@ import { test, expect } from '@playwright/test';
 import { CODES, STATES } from '../src/data.js';
 import { STORAGE_KEY, emptySave } from '../src/storage.js';
 import {
-  findSolution,
   findLongestRoute,
   findMostPointsRoute,
   findContinuation,
+  planCompletion,
   createDeal,
   score,
 } from '../src/game.js';
@@ -216,7 +216,6 @@ test('hard-card values apply to results, reference solutions, and saved scores',
     path.filter((code) => hardPoints[code] === 3).length,
   );
   for (const [label, solution] of [
-    ['Shortest', findSolution(hardDeal)],
     ['Most points', findMostPointsRoute(hardDeal, hardPoints, ['OR'])],
   ]) {
     await expect(
@@ -543,7 +542,6 @@ test('mobile modal close controls are visually compact without losing touch targ
     for (const [trigger, id] of [
       ['#help-button', '#help-dialog'],
       ['#records-button', '#records-dialog'],
-      ['#end-game', '#result-dialog'],
     ]) {
       await press(page.locator(trigger), true);
       const dialog = page.locator(id);
@@ -588,10 +586,7 @@ test('automatic results and records include the final hinted card penalty', asyn
   expect((await saved(page)).game.zeroCards).toEqual(['NC']);
   await expect(page.locator('#result-route h3')).toHaveText('Your route 10 pts');
   await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
-  for (const [label, path] of [
-    ['Shortest', findSolution(deal)],
-    ['Most points', findMostPointsRoute(deal, undefined, ['NC'])],
-  ]) {
+  for (const [label, path] of [['Most points', findMostPointsRoute(deal, undefined, ['NC'])]]) {
     const total = path.reduce(
       (points, code) => points + (code === 'NC' ? 0 : STATES[code].points),
       0,
@@ -606,12 +601,9 @@ test('automatic results and records include the final hinted card penalty', asyn
 });
 
 test('solutions are linked, compact state abbreviations only', async ({ page }) => {
-  await seed(page, fixture({ status: 'lost' }));
+  await seed(page, fixture({ status: 'won', route }));
   await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
-  for (const [label, expected] of [
-    ['Shortest', findSolution(deal)],
-    ['Most points', findMostPointsRoute(deal)],
-  ]) {
+  for (const [label, expected] of [['Most points', findMostPointsRoute(deal)]]) {
     const cards = page.locator(`.solution-chain[aria-label="${label}"] .solution-card`);
     expect(await cards.allTextContents()).toEqual(expected);
     expect(
@@ -627,21 +619,22 @@ test('solutions are linked, compact state abbreviations only', async ({ page }) 
   ).toBe(true);
 });
 
-test('equal-length references stay separate when their scores differ', async ({ page }) => {
-  await seed(page, fixture({ status: 'lost', zeroCards: deal.filter((code) => code !== 'GA') }));
+test('wins show only the most-points reference', async ({ page }) => {
+  await seed(
+    page,
+    fixture({ status: 'won', route, zeroCards: deal.filter((code) => code !== 'GA') }),
+  );
   await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
-  const shortest = page.locator('.solution-chain[aria-label="Shortest"] .solution-card');
-  const best = page.locator('.solution-chain[aria-label="Most points"] .solution-card');
-  expect(await shortest.count()).toBe(await best.count());
-  await expect(page.locator('#solutions h3')).toHaveText(['Shortest 0 pts', 'Most points 1 pts']);
+  await expect(page.locator('#solutions h3')).toHaveText(['Most points 1 pts']);
+  await expect(page.locator('#solutions')).not.toContainText('Shortest');
 });
 
-test('all-zero solutions combine and mobile reference cards stay smaller than your route', async ({
+test('all-zero wins show most points and mobile reference cards stay smaller than your route', async ({
   page,
   isMobile,
 }) => {
   await seed(page, fixture({ status: 'won', route, zeroCards: deal }));
-  await expect(page.locator('#solutions h3')).toHaveText('Shortest / most points 0 pts');
+  await expect(page.locator('#solutions h3')).toHaveText('Most points 0 pts');
   if (isMobile) {
     for (const width of [320, 360, 650]) {
       await page.setViewportSize({ width, height: 780 });
@@ -661,6 +654,67 @@ test('all-zero solutions combine and mobile reference cards stay smaller than yo
   }
 });
 
+for (const motion of ['reduce', 'no-preference']) {
+  test(`End game completes the map without a win or modal, motion=${motion}`, async ({
+    page,
+    isMobile,
+  }) => {
+    const blocked = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'];
+    await page.emulateMedia({ reducedMotion: motion });
+    await page.clock.install();
+    await seed(
+      page,
+      fixture({ route: blocked, hintPending: true, zeroCards: ['CA'], mistakePoints: 2 }),
+    );
+    await page.clock.runFor(1000);
+    await press(page.locator('#end-game'), isMobile);
+    if (motion === 'no-preference') {
+      await expect(page.locator('#message')).toHaveText('Completing route…');
+      await page.clock.runFor(401);
+      await expect(page.locator('[data-chain="MI"]')).toHaveCount(0);
+    }
+    await page.clock.runFor(15000);
+    await expect(page.locator('#message')).toHaveText('Route completed. Select New game.');
+    const expected = planCompletion(deal, blocked).route;
+    expect(
+      await page
+        .locator('[data-chain]')
+        .evaluateAll((cards) => cards.map((card) => card.dataset.chain)),
+    ).toEqual(expected);
+    await expect(page.locator('#result-dialog')).not.toBeVisible();
+    await expect(page.locator('.game-toolbar button:enabled')).toHaveCount(1);
+    await expect(page.locator('#new-game')).toBeEnabled();
+    const data = await saved(page);
+    expect(data.game.route).toEqual(blocked);
+    expect(data.game.zeroCards).toEqual(['CA']);
+    expect(data.game.hintPending).toBe(true);
+    expect(data.game.mistakePoints).toBe(2);
+    expect(data.played).toBe(1);
+    expect(data.wins).toBe(0);
+    expect(data.records).toEqual([]);
+    await page.reload();
+    await expect(page.locator('#message')).toHaveText('Route completed. Select New game.');
+    expect((await saved(page)).played).toBe(1);
+    await press(page.locator('#new-game'), isMobile);
+    await page.clock.runFor(15000);
+    expect((await saved(page)).game.route).toEqual([]);
+    await expect(page.locator('[data-chain]')).toHaveCount(0);
+  });
+}
+
+test('New game cancels an assisted completion in progress', async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.install();
+  await seed(page, fixture({ route: ['ME'] }));
+  await page.clock.runFor(1000);
+  await press(page.locator('#end-game'), isMobile);
+  await press(page.locator('#new-game'), isMobile);
+  await page.clock.runFor(15000);
+  expect((await saved(page)).game.route).toEqual([]);
+  await expect(page.locator('[data-chain]')).toHaveCount(0);
+  await expect(page.locator('#result-dialog')).not.toBeVisible();
+});
+
 test('help, scores, ending a game, and clearing scores work', async ({ page, isMobile }) => {
   await seed(page);
   await press(page.locator('#help-button'), isMobile);
@@ -669,8 +723,11 @@ test('help, scores, ending a game, and clearing scores work', async ({ page, isM
   await press(page.locator('#help-dialog [data-close]').first(), isMobile);
   await press(page.locator('#end-game'), isMobile);
   await expect(page.locator('#confirm-dialog')).not.toBeVisible();
-  await expect(page.locator('#result-title')).toHaveText('Game over');
-  await press(page.locator('#result-dialog [data-close]'), isMobile);
+  await expect(page.locator('#result-dialog')).not.toBeVisible();
+  await expect(page.locator('#message')).toHaveText('Route completed. Select New game.', {
+    timeout: 15000,
+  });
+  await press(page.locator('#new-game'), isMobile);
   await press(page.locator('#records-button'), isMobile);
   await expect(page.locator('#record-summary')).toHaveText('0 wins · 1 game');
   await expect(page.locator('#records-dialog h2')).toHaveText('Your scores');

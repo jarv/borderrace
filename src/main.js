@@ -12,7 +12,7 @@ import {
   isComplete,
   score,
   pointsFor,
-  findSolution,
+  planCompletion,
   getHint,
   validGame,
 } from './game.js';
@@ -34,6 +34,8 @@ let save = loadSave(storage);
 let game = save.game ?? newGame();
 let previousFocus;
 let resultTimeout;
+let completionTimeout;
+let completionRoute = null;
 let confettiFrame;
 let hint = null;
 let solutionWorker;
@@ -123,6 +125,8 @@ $$('dialog').forEach((dialog) => {
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
 
 function fresh() {
+  clearTimeout(completionTimeout);
+  completionRoute = null;
   clearTimeout(resultTimeout);
   solutionWorker?.terminate();
   solutionWorker = null;
@@ -219,16 +223,16 @@ function play(code) {
     animate($('#score'), { scale: [1, 1.25, 1], rotate: [0, -4, 0] }, { duration: 0.4 });
   if (isComplete(game.deal, game.route)) {
     arena.complete();
-    finish(false, true);
+    finish(true);
   } else {
     message('');
   }
 }
 
-function finish(forceLoss = false, delayed = false) {
-  if (game.status !== 'playing' || game.cardPoints === null) return;
-  const won = !forceLoss && isComplete(game.deal, game.route);
-  game = { ...game, status: won ? 'won' : 'lost' };
+function finish(delayed = false) {
+  if (game.status !== 'playing' || game.cardPoints === null || !isComplete(game.deal, game.route))
+    return;
+  game = { ...game, status: 'won' };
   save = recordResult(save, game);
   persist();
   render();
@@ -238,13 +242,68 @@ function finish(forceLoss = false, delayed = false) {
       if (game.id === gameId) showResult();
     }, 2000);
   } else showResult();
-  audio.play(won ? 'win' : 'loss');
-  if (won) celebrate();
+  audio.play('win');
+  celebrate();
+}
+
+function completeMap(animateRoute = true) {
+  const plan = planCompletion(game.deal, game.route);
+  if (!plan) {
+    render();
+    message('No solution. Select New game.');
+    return;
+  }
+  completionRoute = [...game.route];
+  const gameId = game.id;
+  const step = () => {
+    if (game.id !== gameId || game.status !== 'lost') return;
+    let arrival;
+    if (
+      completionRoute.length > plan.keep &&
+      completionRoute.some((code, index) => code !== plan.route[index])
+    ) {
+      completionRoute = completionRoute.slice(0, -1);
+      audio.play('undo');
+    } else if (completionRoute.length < plan.route.length) {
+      const code = plan.route[completionRoute.length];
+      const card = $(`[data-card="${code}"]`);
+      arrival = {
+        code,
+        source: { rect: card.getBoundingClientRect(), node: card.cloneNode(true) },
+      };
+      completionRoute = [...completionRoute, code];
+      audio.play('place', completionRoute.length);
+    }
+    render(false, arrival);
+    if (
+      completionRoute.length === plan.route.length &&
+      completionRoute.every((code, index) => code === plan.route[index])
+    ) {
+      message('Route completed. Select New game.');
+      return;
+    }
+    completionTimeout = setTimeout(step, 400);
+  };
+  if (!animateRoute || reducedMotion.matches) {
+    completionRoute = plan.route;
+    render();
+    message('Route completed. Select New game.');
+  } else {
+    render();
+    message('Completing route…');
+    completionTimeout = setTimeout(step, 400);
+  }
 }
 
 $('#end-game').addEventListener('click', () => {
-  if (['won', 'lost'].includes(game.status)) showResult();
-  else finish(true);
+  if (game.status === 'won') return showResult();
+  if (game.status !== 'playing' || game.cardPoints === null) return;
+  hint = null;
+  game = { ...game, status: 'lost' };
+  save = recordResult(save, game);
+  persist();
+  completeMap();
+  $('#new-game').focus({ preventScroll: true });
 });
 $('#hint-button').addEventListener('click', () => {
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
@@ -267,6 +326,8 @@ $('#hint-button').addEventListener('click', () => {
 function render(dealAnimation = false, arrival) {
   const ended = ['won', 'lost'].includes(game.status);
   const pending = game.cardPoints === null;
+  const lost = game.status === 'lost';
+  const visibleRoute = completionRoute ?? game.route;
   $('.game-shell').classList.toggle('trip-ended', ended);
   $('.game-shell').classList.toggle('loading', pending);
   $('.board-layout').setAttribute('aria-busy', String(pending));
@@ -277,7 +338,7 @@ function render(dealAnimation = false, arrival) {
   $('#cards').innerHTML = game.deal
     .map((code) => {
       const state = STATES[code];
-      const placed = game.route.includes(code);
+      const placed = visibleRoute.includes(code);
       const hard = game.cardPoints?.[code] === 3;
       const value = pending
         ? '…'
@@ -292,20 +353,21 @@ function render(dealAnimation = false, arrival) {
   );
   if (focusCode) $(`[data-card="${focusCode}"]`)?.focus({ preventScroll: true });
   $('#hint-button').disabled = ended || pending;
-  $('#end-game').disabled = pending;
-  arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
-  $('#end-game').textContent = ended ? 'Results' : 'End game';
+  $('#end-game').disabled = pending || lost;
+  for (const id of ['#sound-button', '#records-button', '#help-button']) $(id).disabled = lost;
+  arena.sync(visibleRoute, ended, arrival, game.zeroCards, game.cardPoints);
+  $('#end-game').textContent = game.status === 'won' ? 'Results' : 'End game';
   if (dealAnimation) arena.deal();
 }
 
 function showResult() {
+  if (game.status !== 'won') return;
   clearTimeout(resultTimeout);
-  const won = game.status === 'won';
-  $('#result-title').textContent = won ? 'You win' : 'Game over';
+  $('#result-title').textContent = 'You win';
   $('#result-route').hidden = false;
   $('#result-route').innerHTML = solutionCards(game.route, 'Your route', game.mistakePoints);
   showSolutions();
-  message(won ? 'You win.' : 'Game over.');
+  message('You win.');
   openDialog('#result-dialog');
 }
 
@@ -314,27 +376,14 @@ function solutionCards(path, label, mistakePoints = 0) {
 }
 
 function showSolutions() {
-  const shortest = findSolution(game.deal);
-  if (!shortest) {
-    $('#solutions').textContent = 'No solution.';
-    return;
-  }
   if (solutionCache?.gameId === game.id) {
     const mostPoints = solutionCache.mostPoints;
-    $('#solutions').innerHTML =
-      mostPoints &&
-      score(shortest, game.zeroCards, 0, game.cardPoints) ===
-        score(mostPoints, game.zeroCards, 0, game.cardPoints)
-        ? solutionCards(shortest, 'Shortest / most points')
-        : solutionCards(shortest, 'Shortest') +
-          (mostPoints
-            ? solutionCards(mostPoints, 'Most points')
-            : '<p class="fine-print">Most points unavailable.</p>');
+    $('#solutions').innerHTML = mostPoints
+      ? solutionCards(mostPoints, 'Most points')
+      : '<p class="fine-print">Most points unavailable.</p>';
     return;
   }
-  $('#solutions').innerHTML =
-    solutionCards(shortest, 'Shortest') +
-    '<p class="fine-print" role="status">Finding most points…</p>';
+  $('#solutions').innerHTML = '<p class="fine-print" role="status">Finding most points…</p>';
   if (solutionWorker) return;
   const gameId = game.id;
   try {
@@ -434,6 +483,7 @@ function celebrate() {
 persist();
 render(game.cardPoints !== null);
 if (game.cardPoints === null) prepareScoring(true);
-else if (['won', 'lost'].includes(game.status)) showResult();
+else if (game.status === 'lost') completeMap(false);
+else if (game.status === 'won') showResult();
 else if (isComplete(game.deal, game.route)) finish();
 else if (!game.route.length) message(startMessage);

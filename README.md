@@ -117,10 +117,9 @@ with solid text and borders. Unplayed states have no gameplay coloring.
 **Hint** highlights the next playable card, or a card to remove when backtracking
 is needed. After a hint, the next added card scores zero, even if a different card
 is chosen. That card stays at zero after undo/replay. Results show small linked
-abbreviations for the shortest route by card count and the most-points route using
+abbreviations for the most-points route using
 frozen values and hint penalties. Score ties prefer fewer cards. The exact
-most-points search runs in a worker; when the shortest route also maximizes points,
-one combined solution is shown. Reference cards are smaller on mobile while your
+most-points search runs in a worker. Reference cards are smaller on mobile while your
 route stays larger.
 Hint messages use abbreviations: `Play NC` or `Remove KY, play GA`. The zero-point
 reminder appears once. A win celebrates for two seconds before results appear;
@@ -152,7 +151,12 @@ Use **Your scores → Clear** to clear scores and game counts without resetting 
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls
 vertically on shorter screens.
-New game and End game act immediately without confirmation. Closing the You win
+End game records a loss immediately, then animates the map to a solution, keeping
+as much of your route as possible and removing its blocked suffix if needed.
+Assisted cards do not change your score, penalties, or winning records. Reduced
+motion shows the completed map immediately. Only New game remains enabled;
+reloading restores the completed map without recording another game.
+New game cancels completion immediately. Neither action asks for confirmation. Closing the You win
 dialog starts the next game. Scores show each winning path alongside its points;
 older records without a saved path show a dash.
 Older saves are archived; compatible games and point records are migrated without

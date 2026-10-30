@@ -8,7 +8,7 @@ import { join, extname } from 'node:path';
 import { createServer } from 'node:http';
 import { chromium } from '@playwright/test';
 import { extract, list } from 'tar';
-import { createDeal } from './src/game.js';
+import { createDeal, findSolution } from './src/game.js';
 import { SCORING_VERSION } from './src/scoring.js';
 import { STORAGE_KEY, emptySave } from './src/storage.js';
 
@@ -120,8 +120,12 @@ try {
     await page.waitForFunction(
       () => document.querySelector('.board-layout')?.getAttribute('aria-busy') === 'false',
     );
-    await page.locator('[data-card="CA"]').click();
-    await page.locator('#end-game').click();
+    const ready = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)).game,
+      STORAGE_KEY,
+    );
+    for (const code of findSolution(ready.deal))
+      await page.locator(`[data-card="${code}"]`).click();
     await page.locator('.solution-chain[aria-label="Most points"]').waitFor();
     for (const worker of ['scoring-worker', 'solution-worker'])
       assert.ok(requests.includes(`/game/${asset(worker, 'js')}`));
