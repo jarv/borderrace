@@ -13,7 +13,7 @@ depends = ["install"]
 run = "node build.js --serve"
 
 [tasks.build]
-description = "Build the static Caddy site in dist/"
+description = "Build the static site in dist/"
 depends = ["install"]
 run = "node build.js"
 

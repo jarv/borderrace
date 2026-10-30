@@ -109,12 +109,11 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Keep asset URLs relative so both domain roots and subpaths work.
 - `dist/` is generated, ignored, and the only deployment artifact. Never publish
   `node_modules/`, source, test artifacts, or local configuration as the site.
-  Releases package its contents plus version metadata for Ansible/Caddy.
+  Releases package its contents plus version metadata as a portable static archive.
 - Corrupt, unavailable, or full local storage must not prevent gameplay.
 - Local scores are personal records, not a trustworthy global leaderboard.
 - Update `README.md`, `RULES.md`, and tests when changing relevant behavior.
 
 Before finishing work, run `mise run check` and, for UI/interaction changes,
 `mise run test:browser`. Report blockers honestly. Semantic-release publishes
-artifacts; live deployment requires the separate config-mgmt Terraform/Ansible
-workflow, not GitHub Pages.
+artifacts; hosting configuration is outside this repository.

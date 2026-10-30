@@ -10,7 +10,7 @@
       "@semantic-release/github",
       {
         "assets": [
-          { "path": "release/borderrace.tar.gz", "label": "Static site for Caddy" },
+          { "path": "release/borderrace.tar.gz", "label": "Static site archive" },
           { "path": "release/borderrace.tar.gz.sha256", "label": "SHA-256 checksum" }
         ]
       }
