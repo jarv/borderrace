@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/jarv/borderrace/compare/v1.2.1...v1.3.0) (2026-10-30)
+
+
+### Features
+
+* award gold hard-card bonuses from exact deal analysis ([60b8cb6](https://github.com/jarv/borderrace/commit/60b8cb64f5b12814d334f0e1f19422e6b21fb78d))
+
 ## [1.2.1](https://github.com/jarv/borderrace/compare/v1.2.0...v1.2.1) (2026-10-30)
 
 
