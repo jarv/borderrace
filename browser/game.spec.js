@@ -69,7 +69,7 @@ test('connecting the coasts wins automatically and saves the result exactly once
   await expect(page.locator('#result-route .solution-card')).toHaveCount(route.length);
   expect(await page.locator('#result-route .solution-card').allTextContents()).toEqual(route);
   await expect(page.locator('#result-route h3')).toHaveText('Your route 11 pts');
-  expect((await saved(page)).records).toEqual([{ id: 'test-game', points: 11 }]);
+  expect((await saved(page)).records).toEqual([{ id: 'test-game', points: 11, route }]);
   expect((await saved(page)).wins).toBe(1);
   await page.reload();
   await expect(page.locator('#result-dialog')).toBeVisible();
@@ -149,7 +149,7 @@ test('map messages never move the board and new games restore the starting promp
     await expect(page.locator('#message')).toContainText('doesn’t border');
     expect(await bounds()).toEqual(before);
     await press(page.locator('#new-game'), isMobile);
-    await press(page.locator('#confirm-action'), isMobile);
+    await expect(page.locator('#confirm-dialog')).not.toBeVisible();
     await expect(page.locator('#message')).toContainText('Start with a green coastal card.');
   }
 });
@@ -188,7 +188,7 @@ test('map states highlight and translucent cards retain solid borders and text',
   await expect(page.locator('.map-state[data-code="AZ"]')).not.toHaveClass(/on-route/);
 });
 
-test('the map fills and centers its artwork while route cards and lines stay aligned', async ({
+test('the map fills and centers its artwork while cards form a horizontal route row', async ({
   page,
   isMobile,
 }) => {
@@ -219,12 +219,10 @@ test('the map fills and centers its artwork while route cards and lines stay ali
   }
   for (const code of ['CA', 'AZ']) await press(page.locator(`[data-card="${code}"]`), isMobile);
   const alignment = await page.evaluate(() => {
-    const line = document.querySelector('.route-line');
-    return ['CA', 'AZ'].map((code, index) => {
-      const point = line.points.getItem(index);
-      const screen = new DOMPoint(point.x, point.y).matrixTransform(line.getScreenCTM());
+    const line = document.querySelector('.row-line').getBoundingClientRect();
+    return ['CA', 'AZ'].map((code) => {
       const card = document.querySelector(`[data-chain="${code}"]`).getBoundingClientRect();
-      return Math.hypot(screen.x - card.x - card.width / 2, screen.y - card.y - card.height / 2);
+      return Math.abs(line.y - card.y - card.height / 2);
     });
   });
   for (const distance of alignment) expect(distance).toBeLessThan(1);
@@ -345,7 +343,7 @@ test('help, scores, ending a game, and clearing scores work', async ({ page, isM
   await expect(page.locator('#help-dialog')).not.toContainText(/wildcard|Explorer|five minutes/);
   await press(page.locator('#help-dialog [data-close]').first(), isMobile);
   await press(page.locator('#end-game'), isMobile);
-  await press(page.locator('#confirm-action'), isMobile);
+  await expect(page.locator('#confirm-dialog')).not.toBeVisible();
   await expect(page.locator('#result-title')).toHaveText('Game over');
   await press(page.locator('#result-dialog [data-close]'), isMobile);
   await press(page.locator('#records-button'), isMobile);
@@ -355,6 +353,87 @@ test('help, scores, ending a game, and clearing scores work', async ({ page, isM
   await press(page.locator('#confirm-action'), isMobile);
   await expect(page.locator('#record-summary')).toHaveText('No games yet.');
   await expect(page.locator('#record-list')).toContainText('No scores yet.');
+});
+
+test('new game replaces an active route immediately without confirmation', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ route: ['CA'], mistakePoints: 4 }));
+  await press(page.locator('#new-game'), isMobile);
+  await expect(page.locator('#confirm-dialog')).not.toBeVisible();
+  const data = await saved(page);
+  expect(data.game.id).not.toBe('test-game');
+  expect(data.game.route).toEqual([]);
+  expect(data.game.mistakePoints).toBe(0);
+  expect(data.played).toBe(0);
+});
+
+test('all win dialog dismissal controls start a new game and scores show the winning path', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  for (const method of ['close', 'escape', 'play-again']) {
+    await page.evaluate(
+      ({ key, game }) => {
+        const data = JSON.parse(localStorage.getItem(key));
+        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+      },
+      { key: STORAGE_KEY, game: fixture({ id: `win-${method}`, route: route.slice(0, -1) }) },
+    );
+    await page.reload();
+    await press(page.locator('[data-card="NC"]'), isMobile);
+    await expect(page.locator('#result-dialog')).toBeVisible();
+    if (method === 'escape') await page.keyboard.press('Escape');
+    else
+      await press(
+        page.locator(method === 'close' ? '#result-dialog [data-close]' : '#play-again'),
+        isMobile,
+      );
+    await expect.poll(async () => (await saved(page)).game.status).toBe('playing');
+    expect((await saved(page)).game.route).toEqual([]);
+    expect(
+      (await saved(page)).records.find((record) => record.id === `win-${method}`).route,
+    ).toEqual(route);
+  }
+  await page.reload();
+  await press(page.locator('#records-button'), isMobile);
+  await expect(page.locator('#record-list th').first()).toHaveText('PATH');
+  await expect(page.locator('.record-path').first()).toHaveText(route.join(' → '));
+  await expect(page.locator('#record-list tbody tr').first()).toContainText('11 pts');
+  expect(
+    await page
+      .locator('#records-dialog')
+      .evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth),
+  ).toBe(true);
+});
+
+test('long route rows scroll inside the map and remain keyboard accessible', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Small-screen row scrolling');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 320, height: 568 });
+  await seed(page, fixture({ route: route.slice(0, -1) }));
+  const cards = await page
+    .locator('[data-chain]')
+    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
+  expect(new Set(cards).size).toBe(1);
+  const map = await page.locator('#map').boundingBox();
+  const card = await page.locator('[data-chain="CA"]').boundingBox();
+  expect(card.y).toBeGreaterThan(map.y + map.height * 0.4);
+  expect(card.y + card.height).toBeLessThanOrEqual(map.y + map.height);
+  const messages = await page.locator('.map-messages').boundingBox();
+  const us = await page.locator('#state-shapes').boundingBox();
+  expect(messages.y).toBeGreaterThanOrEqual(us.y + us.height);
+  expect(messages.y + messages.height).toBeLessThanOrEqual(568 / 2);
+  await page.locator('[data-chain="TN"]').focus();
+  expect(await page.locator('#map-chain').evaluate((layer) => layer.scrollLeft)).toBeGreaterThan(0);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-chain]')).toHaveCount(5);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test('clearing scores preserves the current route, hint penalties, and sound setting', async ({

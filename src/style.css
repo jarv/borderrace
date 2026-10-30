@@ -442,6 +442,13 @@ dialog .fine-print {
 .record-section td {
   border-top: 1px solid #35425d;
 }
+.record-path {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.record-section td:last-child {
+  white-space: nowrap;
+}
 .record-section th:last-child,
 .record-section td:last-child {
   text-align: right;

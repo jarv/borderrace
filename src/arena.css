@@ -260,27 +260,23 @@
   fill: #347e80;
   stroke: #79c5c4;
 }
-.route-line {
-  fill: none;
-  stroke: var(--cyan);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 9 5;
-  animation: link-flow 1.5s linear infinite;
-  filter: drop-shadow(0 0 4px #68e9ef70);
-  pointer-events: none;
-}
-.route-shadow {
-  fill: none;
-  stroke: #68e9ef22;
-  stroke-width: 12;
-  stroke-linejoin: round;
-  pointer-events: none;
-}
 #map-chain {
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #547b94 transparent;
+}
+#map-chain:has([data-chain]) {
+  pointer-events: auto;
+  touch-action: pan-x;
+}
+.row-line {
+  position: absolute;
+  border-top: 3px dashed var(--cyan);
   pointer-events: none;
 }
 .map-card {
@@ -467,11 +463,6 @@
   color: var(--cyan);
   font-style: normal;
   margin-top: 7px;
-}
-@keyframes link-flow {
-  to {
-    stroke-dashoffset: -56;
-  }
 }
 @media (min-width: 1500px) {
   .state-card {
@@ -741,16 +732,15 @@
   }
   .map-panel {
     order: -1;
-    flex: 1;
+    flex: 0 0 calc(50dvh - 52px);
     min-height: 120px;
   }
   #map {
-    width: min(100%, calc((100dvh - 492px) * 870 / 560));
-    min-width: min(100%, 240px);
+    width: min(100%, calc((50dvh - 144px) * 870 / 560));
   }
   .hand {
-    flex: 0 1 auto;
-    max-height: 52dvh;
+    flex: 1;
+    max-height: none;
     border-right: 0;
     border-top: 1px solid #2e3c56;
   }

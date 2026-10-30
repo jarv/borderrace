@@ -35,7 +35,7 @@ for build/test tools), and commit both package files. No global npm packages.
 - `src/storage.js`: versioned local save, defensive loading, personal records.
 - `src/main.js`: interaction, SVG map, rendering, dialogs, Motion animations,
   canvas celebration. No API requests.
-- `src/chain.js`: geographic anchors and crowd-aware, touch-sized card placement.
+- `src/chain.js`: left-to-right, touch-sized route-row placement; long rows scroll.
 - `src/arena.js`: keyed map-card chain, flying cards, energy bursts, score pops,
   and completion payoff. Bound and clean up transient effects; never block gameplay on animation.
 - `src/audio.js`: lazy, gesture-unlocked Web Audio effects; no audio downloads,
@@ -59,6 +59,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Start at either coast, append bordering states, finish at the opposite coast.
 - Validate the actual submitted sequence, not just connectivity of the deck.
 - Clicking a played card in the hand or map removes it and its suffix.
+- New game and End game act immediately, without confirmation. Dismissing the
+  You win dialog starts a new game. Keep score clearing confirmed.
 - Keep the original point values and unusual connections (AZ–CO, NM–UT, MI–MN,
   NY–RI). Gulf-only states are not valid coastal endpoints.
 - New games are immediately `playing`. No start/finish button, countdown,
@@ -70,6 +72,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   but opaque text and solid opaque borders; do not set whole-card opacity.
 - Finished games are recorded once. Preserve compatible records and keep old
   discontinued-mode saves in the local archive rather than deleting them.
+  New winning records include their actual route; show paths and points in scores,
+  and a dash for older records without paths.
 - Hints highlight a legal next card, or a card to remove when backtracking is
   needed. Set `hintPending` until the next valid added card; it scores zero even
   if it differs from the hint. Persist its code in `zeroCards` for the whole game,
@@ -87,8 +91,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 ## UI and deployment requirements
 
 - Mobile is a first-class target. Check 320px–650px phones, tablets, and desktop.
-  Preserve 44px+ primary touch targets, the collapsible phone map, fixed mobile
-  trip controls, safe-area padding, and lack of horizontal overflow.
+  Preserve 44px+ primary touch targets, the always-visible phone map, single-row
+  controls, safe-area padding, and lack of page-level horizontal overflow.
 - The phone hand scrolls independently. Don't cover it with a sticky map;
   both the deck and map-chain cards must be usable by touch and keyboard.
 - Cards on the hand and map must remain keyboard-accessible buttons. Dialogs use
@@ -104,6 +108,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   Hint, End game, Game over, Play again, and Your scores. Show a short initial
   coastal-card prompt in the map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.
+- The map's route cards form a horizontally scrolling row about two-thirds down,
+  not geographic anchors. In portrait, messages stay below the US in the upper
+  half of the screen, above overlapping route cards.
 - Effects and audio never grant bonuses or change game rules. Respect reduced
   motion, provide a persistent mute control, and degrade safely without Web Audio.
 - Bundle assets; no external fonts, map tiles, scripts, or runtime CDN calls.

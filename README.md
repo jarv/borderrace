@@ -2,7 +2,7 @@
 
 A frontend-only geography game. Connect the Atlantic and Pacific coasts with
 24 state cards. Games start immediately and finish automatically when connected.
-Cards fly into a geographic chain across an unlabeled SVG map. A compact,
+Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
 gems, and a canvas celebration — not a literal casino table.
 No Python, backend, accounts, tracking, or remote game state.
@@ -69,6 +69,9 @@ with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 Instructions and error messages appear below the map's states without shifting
 the board. The starting prompt fades after the first valid card.
+In portrait, messages stay below the US in the upper half of the screen. The
+route row sits about two-thirds down the map, overlaps Texas slightly, and scrolls
+horizontally for long routes. Messages remain above the cards.
 
 ## Rules and local data
 
@@ -96,6 +99,9 @@ Reloading resumes the game and preserves hint penalties. Blocked/full storage
 falls back to in-memory play. There is no shared leaderboard or cross-device sync.
 Use **Your scores → Clear** to clear scores and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
+New game and End game act immediately without confirmation. Closing the You win
+dialog starts the next game. Scores show each winning path alongside its points;
+older records without a saved path show a dash.
 Older saves are archived; compatible games and point records are migrated without
 time fields. New games and records do not track any time.
 

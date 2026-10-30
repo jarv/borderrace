@@ -9,8 +9,9 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 - Each state can appear only once in the route.
 - Clicking a played card in the hand or on the map removes it and all following cards.
 - Reaching the opposite coast **ends the game automatically**. You cannot extend
-  a route past that coast. **End game** gives up and shows the solutions.
-- **New game** replaces the current game. Abandoned games are not counted.
+  a route past that coast. **End game** immediately gives up and shows the solutions.
+- **New game** immediately replaces the current game. Abandoned games are not counted.
+- Dismissing the **You win** dialog starts a new game automatically.
 
 Pacific endpoints: **CA, OR, WA**.
 
@@ -22,8 +23,9 @@ and NY–RI**, as in the original game, even where there is no land border.
 
 ## Map
 
-Played states are highlighted. Their cards form a linked route near the states'
-locations. Cards have translucent backgrounds with opaque borders and text.
+Played states are highlighted. Their cards form a left-to-right row about two-thirds
+down the map, independent of the states' locations. Long rows scroll horizontally.
+Cards have translucent backgrounds with opaque borders and text.
 Undoing cards also removes their state highlights. Unplayed states have no
 deck or next-move coloring. The map has no state labels.
 
@@ -32,6 +34,8 @@ landscape. Controls share one row, with a music-note sound toggle in portrait.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
 changing the board height. The starting prompt fades after your first valid card.
+In portrait this area stays below the US in the screen's upper half. Messages
+appear above any overlapping route cards.
 
 ## Hints
 
@@ -64,6 +68,7 @@ and personal records include them; example solution scores do not include mistak
 Personal records keep the top 10 wins by points. Equal scores put the most recent
 game first. No countdown, elapsed duration, or completion time is tracked or stored
 for new games or records.
+Each score shows its winning path and points. Older records without paths show a dash.
 
 ## Solutions
 

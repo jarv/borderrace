@@ -40,7 +40,6 @@ let solutionCache;
 let messageAnimation;
 let messageRevision = 0;
 const startMessage = 'Select cards to cross the map. Start with a green coastal card.';
-const mapCenters = {};
 const audio = createAudio({ enabled: save.soundEnabled });
 document.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 document.addEventListener('keydown', () => audio.unlock(), { once: true });
@@ -63,29 +62,9 @@ $('#sound-button').addEventListener('click', () => {
 renderSound();
 
 $('#map').innerHTML = mapSvg;
-const mapViewBox = $('#map svg').viewBox.baseVal;
 // Also strip labels from an already-running dev server's older virtual SVG.
 $$('.map-state text, .map-state title').forEach((label) => label.remove());
-$$('.map-state').forEach((group) => {
-  const box = group.querySelector('path').getBBox();
-  const code = group.dataset.code;
-  // A few multi-part states need a more natural label/route anchor.
-  const adjustments = {
-    MI: [680, 174],
-    FL: [810, 474],
-    MA: [944, 138],
-    RI: [953, 157],
-    CT: [926, 166],
-    DE: [906, 230],
-  };
-  const [x, y] = adjustments[code] ?? [box.x + box.width / 2, box.y + box.height / 2];
-  // Chain layout uses normalized coordinates, independent of the SVG crop.
-  mapCenters[code] = [
-    ((x - mapViewBox.x) / mapViewBox.width) * 1000,
-    ((y - mapViewBox.y) / mapViewBox.height) * 610,
-  ];
-});
-const arena = createArena({ map: $('#map'), centers: mapCenters, onPlay: play, reducedMotion });
+const arena = createArena({ map: $('#map'), onPlay: play, reducedMotion });
 
 function persist() {
   save = { ...save, game };
@@ -166,12 +145,10 @@ function fresh() {
   message(startMessage);
 }
 
-function requestNew() {
-  if (game.status === 'playing' && game.route.length) {
-    confirmAction(() => fresh(), 'New game?', 'Replace the current game?', 'New game');
-  } else fresh();
-}
-$('#new-game').addEventListener('click', () => requestNew());
+$('#new-game').addEventListener('click', () => fresh());
+$('#result-dialog').addEventListener('close', () => {
+  if (game.status === 'won') fresh();
+});
 $('#play-again').addEventListener('click', () => {
   $('#result-dialog').close();
   fresh();
@@ -238,8 +215,7 @@ function finish(forceLoss = false, delayed = false) {
 
 $('#end-game').addEventListener('click', () => {
   if (['won', 'lost'].includes(game.status)) showResult();
-  else
-    confirmAction(() => finish(true), 'End game?', 'End the game and show solutions?', 'End game');
+  else finish(true);
 });
 $('#hint-button').addEventListener('click', () => {
   if (['won', 'lost'].includes(game.status)) return;
@@ -357,7 +333,7 @@ function showScores() {
     : 'No games yet.';
   const records = save.records;
   $('#record-list').innerHTML =
-    `<section class="record-section">${records.length ? `<table><caption class="sr-only">Personal bests</caption><thead><tr><th>GAME</th><th>POINTS</th></tr></thead><tbody>${records.map((r, i) => `<tr><td>${String(i + 1).padStart(2, '0')}</td><td>${r.points} pts</td></tr>`).join('')}</tbody></table>` : '<p class="fine-print">No scores yet.</p>'}</section>`;
+    `<section class="record-section">${records.length ? `<table><caption class="sr-only">Personal bests</caption><thead><tr><th>PATH</th><th>POINTS</th></tr></thead><tbody>${records.map((r) => `<tr><td class="record-path">${r.route ? r.route.join(' → ') : '—'}</td><td>${r.points} pts</td></tr>`).join('')}</tbody></table>` : '<p class="fine-print">No scores yet.</p>'}</section>`;
   openDialog('#records-dialog');
 }
 $('#records-button').addEventListener('click', showScores);

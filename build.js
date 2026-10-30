@@ -13,7 +13,7 @@ async function makeMap() {
     return [`<g class="map-state" data-code="${code}"><path d="${d}"/></g>`];
   });
   if (shapes.length !== 48) throw new Error('Expected all 48 contiguous states');
-  return `<svg viewBox="130 0 870 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of the contiguous United States"><!-- Map copyright 2017 Pareto Software, LLC DBA Simplemaps.com. https://simplemaps.com/resources/svg-license --><g id="state-shapes">${shapes.join('')}</g><g id="route-lines" aria-hidden="true"></g></svg>`;
+  return `<svg viewBox="130 0 870 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of the contiguous United States"><!-- Map copyright 2017 Pareto Software, LLC DBA Simplemaps.com. https://simplemaps.com/resources/svg-license --><g id="state-shapes">${shapes.join('')}</g></svg>`;
 }
 
 // dist is generated only. A production build must not retain dev source maps.

@@ -218,7 +218,7 @@ test('records use penalized points only, and results are recorded once', () => {
   let save = emptySave();
   const won = fixture({ status: 'won', route, zeroCards: ['NC'] });
   save = recordResult(save, won);
-  assert.deepEqual(save.records, [{ id: won.id, points: 10 }]);
+  assert.deepEqual(save.records, [{ id: won.id, points: 10, route }]);
   assert.deepEqual(recordResult(save, won), save);
   assert.equal(save.played, 1);
   for (let i = 0; i < 14; i++)
@@ -231,20 +231,38 @@ test('records use penalized points only, and results are recorded once', () => {
   assert.equal(save.played, 16);
 });
 
-test('geographic card chains stay on the map and remain touch-sized', () => {
-  const centers = Object.fromEntries(route.map((code, i) => [code, [120 + i * 120, 300 + i * 10]]));
+test('route rows stay touch-sized and scroll horizontally instead of stacking', () => {
   for (const width of [288, 328, 600, 900]) {
     const height = width * 0.61;
-    const chain = layoutChain(route, centers, width, height);
+    const chain = layoutChain(route, width, height);
     assert.deepEqual(
       chain.map((p) => p.code),
       route,
     );
     for (const card of chain) {
       assert.ok(card.width >= 44 && card.height >= 44);
-      assert.ok(card.x >= card.width / 2 && card.x <= width - card.width / 2);
+      assert.ok(card.x >= card.width / 2);
       assert.ok(card.y >= card.height / 2 && card.y <= height - card.height / 2);
+      assert.equal(card.y, chain[0].y);
     }
     assert.ok(chain[0].x < chain.at(-1).x);
+    const long = layoutChain(CODES.slice(0, 24), width, height);
+    assert.ok(long.at(-1).x > width);
   }
+});
+
+test('score paths survive loading while legacy records and malformed paths remain safe', () => {
+  const save = {
+    ...emptySave(),
+    records: [
+      { id: 'path', points: 11, route },
+      { id: 'legacy', points: 8 },
+      { id: 'bad', points: 4, route: ['<script>'] },
+    ],
+  };
+  assert.deepEqual(loadSave({ getItem: () => JSON.stringify(save) }).records, [
+    { id: 'path', points: 11, route },
+    { id: 'legacy', points: 8 },
+    { id: 'bad', points: 4 },
+  ]);
 });
