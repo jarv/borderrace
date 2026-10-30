@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/jarv/borderrace/compare/v1.1.2...v1.2.0) (2026-10-30)
+
+
+### Bug Fixes
+
+* enlarge and center the map and improve message readability ([71aa294](https://github.com/jarv/borderrace/commit/71aa294fb577e51dcc21044b0e1b8bdbf93615a2))
+
+
+### Features
+
+* streamline game actions and display route rows and score paths ([f9fb825](https://github.com/jarv/borderrace/commit/f9fb825f43ce02244a91717247d973e53f74aad5))
+
 ## [1.1.2](https://github.com/jarv/borderrace/compare/v1.1.1...v1.1.2) (2026-10-30)
 
 
