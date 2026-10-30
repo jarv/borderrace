@@ -42,6 +42,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
       element.remove();
       particles.delete(element);
     });
+    return animation;
   }
 
   function clearParticles() {
@@ -59,10 +60,14 @@ export function createArena({ map, onPlay, reducedMotion }) {
     flight.clone.remove();
     cards.get(code)?.style.removeProperty('opacity');
     flights.delete(code);
+    flight.onScore?.();
   }
 
-  function sparkle(card, points) {
-    if (reducedMotion.matches || !card.isConnected) return;
+  function sparkle(card, points, onScore) {
+    if (reducedMotion.matches || !card.isConnected) {
+      onScore?.();
+      return;
+    }
     const box = card.getBoundingClientRect();
     const centerX = box.x + box.width / 2;
     const centerY = box.y + box.height / 2;
@@ -98,9 +103,21 @@ export function createArena({ map, onPlay, reducedMotion }) {
     chip.style.left = `${box.x + box.width / 2}px`;
     chip.style.top = `${box.y - 8}px`;
     effects.append(chip);
-    effect(chip, { y: [0, -55], opacity: [0, 1, 1, 0], scale: [0.6, 1.45, 1] }, { duration: 0.85 });
-    // Experience-like energy motes collect into the score HUD, without bonuses.
     const hud = document.querySelector('#score').getBoundingClientRect();
+    const scoreX = hud.x + hud.width / 2 - centerX;
+    const scoreY = hud.y + hud.height / 2 - (box.y - 8);
+    const scoreAnimation = effect(
+      chip,
+      {
+        x: [0, scoreX * 0.15, scoreX],
+        y: [0, Math.min(-35, scoreY * 0.15), scoreY],
+        opacity: [0, 1, 1, 0],
+        scale: [0.6, 1.6, 0.35],
+      },
+      { duration: 0.85, ease: [0.4, 0, 0.2, 1] },
+    );
+    Promise.resolve(scoreAnimation).then(() => onScore?.());
+    // Experience-like energy motes collect into the score HUD, without bonuses.
     for (let i = 0; i < (points ? 4 : 0); i++) {
       const gem = document.createElement('span');
       gem.className = 'energy-gem';
@@ -121,11 +138,17 @@ export function createArena({ map, onPlay, reducedMotion }) {
     animate(card, { scale: [1.35, 0.88, 1], rotate: [-5, 2, 0] }, { duration: 0.4 });
   }
 
-  function flyToMap(code, source) {
+  function flyToMap(code, source, onScore) {
     const target = cards.get(code);
-    if (!target || reducedMotion.matches || !source || !map.getBoundingClientRect().width) return;
+    if (!target || reducedMotion.matches || !source || !map.getBoundingClientRect().width) {
+      onScore?.();
+      return;
+    }
     const destination = target.getBoundingClientRect();
-    if (!destination.width) return;
+    if (!destination.width) {
+      onScore?.();
+      return;
+    }
     cancelFlight(code);
     const clone = source.node;
     clone.removeAttribute('id');
@@ -155,13 +178,13 @@ export function createArena({ map, onPlay, reducedMotion }) {
       },
       { duration: 0.65, ease: [0.22, 0.75, 0.25, 1] },
     );
-    flights.set(code, { animation, clone });
+    flights.set(code, { animation, clone, onScore });
     Promise.resolve(animation).then(() => {
       if (flights.get(code)?.clone !== clone) return;
       clone.remove();
       flights.delete(code);
       target.style.removeProperty('opacity');
-      sparkle(target, pointsFor(code, zeroCards, cardPoints));
+      sparkle(target, pointsFor(code, zeroCards, cardPoints), onScore);
     });
   }
 
@@ -256,7 +279,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
       );
     });
     positionCards();
-    if (arrival) flyToMap(arrival.code, arrival.source);
+    if (arrival) flyToMap(arrival.code, arrival.source, arrival.onScore);
   }
 
   new ResizeObserver(() => {

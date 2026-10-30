@@ -43,6 +43,43 @@ let solutionCache;
 let scoringWorker = null;
 let messageAnimation;
 let messageRevision = 0;
+const pendingPoints = new Map();
+
+function renderScore() {
+  for (const [code, pending] of pendingPoints) {
+    if (!game.route.includes(code)) {
+      clearTimeout(pending.timeout);
+      pendingPoints.delete(code);
+    }
+  }
+  const waiting = [...pendingPoints.values()].reduce((total, pending) => total + pending.points, 0);
+  $('#score').innerHTML =
+    `${score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints) - waiting} <small>pts</small>`;
+}
+
+function waitForPoints(code) {
+  if (reducedMotion.matches) return;
+  const pending = { points: pointsFor(code, game.zeroCards, game.cardPoints) };
+  const settle = () => {
+    if (pendingPoints.get(code) !== pending) return;
+    clearTimeout(pending.timeout);
+    pendingPoints.delete(code);
+    renderScore();
+    if (!reducedMotion.matches)
+      animate($('#score'), { scale: [1, 1.25, 1], rotate: [0, -4, 0] }, { duration: 0.4 });
+  };
+  // Never leave the visual total behind if an effect is interrupted or unavailable.
+  pending.timeout = setTimeout(settle, 2500);
+  pendingPoints.set(code, pending);
+  return settle;
+}
+
+reducedMotion.addEventListener('change', () => {
+  if (!reducedMotion.matches) return;
+  for (const pending of pendingPoints.values()) clearTimeout(pending.timeout);
+  pendingPoints.clear();
+  renderScore();
+});
 const startMessage =
   'Select cards to cross the map. Start with a green coastal card. Gold cards are harder to use and worth 3 points.';
 const audio = createAudio({ enabled: save.soundEnabled });
@@ -125,6 +162,8 @@ $$('dialog').forEach((dialog) => {
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
 
 function fresh() {
+  for (const pending of pendingPoints.values()) clearTimeout(pending.timeout);
+  pendingPoints.clear();
   clearTimeout(completionTimeout);
   completionRoute = null;
   clearTimeout(resultTimeout);
@@ -217,10 +256,8 @@ function play(code) {
   hint = null;
   game = addCard(game, code);
   persist();
-  render(false, { code, source });
+  render(false, { code, source, onScore: waitForPoints(code) });
   audio.play('place', game.route.length);
-  if (!reducedMotion.matches)
-    animate($('#score'), { scale: [1, 1.25, 1], rotate: [0, -4, 0] }, { duration: 0.4 });
   if (isComplete(game.deal, game.route)) {
     arena.complete();
     finish(true);
@@ -279,7 +316,7 @@ function completeMap(animateRoute = true) {
       completionRoute.length === plan.route.length &&
       completionRoute.every((code, index) => code === plan.route[index])
     ) {
-      message('Route completed. Select New game.');
+      message('');
       return;
     }
     completionTimeout = setTimeout(step, 400);
@@ -287,7 +324,7 @@ function completeMap(animateRoute = true) {
   if (!animateRoute || reducedMotion.matches) {
     completionRoute = plan.route;
     render();
-    message('Route completed. Select New game.');
+    message('');
   } else {
     render();
     message('Completing route…');
@@ -295,7 +332,7 @@ function completeMap(animateRoute = true) {
   }
 }
 
-$('#end-game').addEventListener('click', () => {
+$('#show-route').addEventListener('click', () => {
   if (game.status === 'won') return showResult();
   if (game.status !== 'playing' || game.cardPoints === null) return;
   hint = null;
@@ -331,8 +368,7 @@ function render(dealAnimation = false, arrival) {
   $('.game-shell').classList.toggle('trip-ended', ended);
   $('.game-shell').classList.toggle('loading', pending);
   $('.board-layout').setAttribute('aria-busy', String(pending));
-  $('#score').innerHTML =
-    `${score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints)} <small>pts</small>`;
+  renderScore();
   $('#hint-cost').hidden = !game.hintPending || ended;
   const focusCode = document.activeElement?.dataset.card;
   $('#cards').innerHTML = game.deal
@@ -353,10 +389,10 @@ function render(dealAnimation = false, arrival) {
   );
   if (focusCode) $(`[data-card="${focusCode}"]`)?.focus({ preventScroll: true });
   $('#hint-button').disabled = ended || pending;
-  $('#end-game').disabled = pending || lost;
+  $('#show-route').disabled = pending || lost;
   for (const id of ['#sound-button', '#records-button', '#help-button']) $(id).disabled = lost;
   arena.sync(visibleRoute, ended, arrival, game.zeroCards, game.cardPoints);
-  $('#end-game').textContent = game.status === 'won' ? 'Results' : 'End game';
+  $('#show-route').textContent = game.status === 'won' ? 'Results' : 'Show route';
   if (dealAnimation) arena.deal();
 }
 

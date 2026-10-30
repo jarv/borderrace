@@ -617,6 +617,7 @@
     padding: 4px 8px;
   }
   .game-toolbar nav,
+  .hint-controls,
   .game-actions {
     gap: 4px;
   }
@@ -729,6 +730,12 @@
     margin: 0;
   }
 }
+@media (pointer: coarse) and (max-width: 360px) and (orientation: portrait) {
+  .game-shell .game-toolbar {
+    gap: 2px;
+    padding-inline: 2px;
+  }
+}
 @media (pointer: coarse) and (max-width: 650px) and (orientation: portrait) {
   .game-toolbar {
     gap: 4px;
@@ -739,6 +746,7 @@
     padding-inline: 4px;
   }
   .game-toolbar nav,
+  .hint-controls,
   .game-actions {
     gap: 2px;
   }

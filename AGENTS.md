@@ -66,7 +66,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Start at either coast, append bordering states, finish at the opposite coast.
 - Validate the actual submitted sequence, not just connectivity of the deck.
 - Clicking a played card in the hand or map removes it and its suffix.
-- New game and End game act immediately, without confirmation. Dismissing the
+- New game and Show route act immediately, without confirmation. Dismissing the
   You win dialog starts a new game. Score clearing also acts immediately.
 - Keep unusual connections (AZ–CO, NM–UT, MI–MN, NY–RI). Gulf-only states are not
   valid coastal endpoints. Preserve original points for unversioned saved games.
@@ -101,11 +101,12 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Win results show only the exact most-points reference route using frozen values
   and zeroCards, preferring fewer cards on score ties. No shortest reference.
   Mobile reference cards stay smaller than the player's route cards.
-- End game records a loss immediately, then animates removal of the minimum
+- Show route, immediately to the right of Hint, records a loss then animates removal of the minimum
   blocked suffix and adds a shortest continuation on the map. Preserve the actual
   player route, score, and penalties in the save; never record an assisted win.
   No loss dialog. Only New game is enabled during/after completion; it cancels
   pending steps. Reduced motion and reloaded losses show completion immediately.
+  No completion message. New game is the green primary action.
 - Show the player's actual route and its score above solutions, not a points/states
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
 - Save schema version 2 has no active time/mode fields. Archive old data and
@@ -134,7 +135,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Keep copy literal and minimal throughout the app: no mode name, aphorisms,
   “adventures”, promotional headings, redundant chain strip, or reassurance about
   accounts/saving. No diamond icons on cards. Use short functional labels such as
-  Hint, End game, Game over, Play again, and Your scores. Show a short initial
+  Hint, Show route, Play again, and Your scores. Show a short initial
   coastal-card prompt and one sentence explaining gold difficulty/value in the
   map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.
@@ -144,6 +145,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   half of the screen, above overlapping route cards.
 - Effects and audio never grant bonuses or change game rules. Respect reduced
   motion, provide a persistent mute control, and degrade safely without Web Audio.
+  Save points immediately but defer visible additions until their point pop reaches
+  the HUD. Handle fast play, undo, and new games without stale additions; reduced
+  motion updates the total immediately. Interrupted effects must not strand points.
 - Bundle assets; no external fonts, map tiles, scripts, or runtime CDN calls.
 - Keep asset URLs relative so both domain roots and subpaths work.
 - `dist/` is generated, ignored, and the only deployment artifact. Never publish

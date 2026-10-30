@@ -10,7 +10,7 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 - Each state can appear only once in the route.
 - Clicking a played card in the hand or on the map removes it and all following cards.
 - Reaching the opposite coast **ends the game automatically**. You cannot extend
-  a route past that coast. **End game** immediately gives up, then animates a
+  a route past that coast. **Show route**, beside Hint, immediately gives up, then animates a
   completion on the map. It preserves the longest solvable prefix, removing
   blocked cards before adding the shortest continuation. Reduced motion skips
   the animation. Only **New game** remains enabled, including during completion.
@@ -98,7 +98,8 @@ Each score shows its winning path and points. Older records without paths show a
 Win results show your played route and its points first. Below it is the
 most-points route using the dealt cards and frozen point values. Score ties
 prefer fewer cards. Routes stop at the first opposite coast. No shortest route
-is displayed. End game leaves the completed map visible, without a result dialog.
+is displayed. Show route leaves the completed map visible, without a result dialog
+or completion message. New game is the green primary action.
 
 Each route shows its point total using the game's zero-point cards from hints.
 Routes use small linked cards showing only state abbreviations, with smaller
@@ -106,6 +107,9 @@ reference cards on mobile. The most-points route is calculated exactly in a work
 so the page stays responsive.
 
 ## Local data and effects
+
+The visible score increases when animated points reach the total. Scores and
+wins are saved immediately; reduced motion updates the total immediately.
 
 The current game, penalties, records, and sound setting are stored in this browser.
 Blocked storage permits play without saving. **Your scores → Clear** removes

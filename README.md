@@ -93,7 +93,7 @@ estimate and Node/Chromium preparation results.
 ## Made for phones, too
 
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
-or beside them in landscape. Hint, sound, scores, **?** (help), New game, and End game
+or beside them in landscape. Hint, Show route, sound, scores, **?** (help), and New game
 share one row; portrait uses a music-note sound toggle. The board fits Galaxy S25-sized
 viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
@@ -151,7 +151,11 @@ Use **Your scores → Clear** to clear scores and game counts without resetting 
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls
 vertically on shorter screens.
-End game records a loss immediately, then animates the map to a solution, keeping
+Show route sits to the right of Hint; New game is the green primary action.
+Card point pops zoom toward the score total; the visible total increases when
+they arrive. Scores are saved immediately, and reduced motion updates the total
+immediately without the effect.
+Show route records a loss immediately, then animates the map to a solution, keeping
 as much of your route as possible and removing its blocked suffix if needed.
 Assisted cards do not change your score, penalties, or winning records. Reduced
 motion shows the completed map immediately. Only New game remains enabled;

@@ -105,7 +105,7 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
   await expect(page.locator('#message')).toHaveText('Preparing cards…');
   await expect(page.locator('.state-card').first()).toBeDisabled();
   await expect(page.locator('#hint-button')).toBeDisabled();
-  await expect(page.locator('#end-game')).toBeDisabled();
+  await expect(page.locator('#show-route')).toBeDisabled();
   expect(
     await page
       .locator('#message')
@@ -655,7 +655,7 @@ test('all-zero wins show most points and mobile reference cards stay smaller tha
 });
 
 for (const motion of ['reduce', 'no-preference']) {
-  test(`End game completes the map without a win or modal, motion=${motion}`, async ({
+  test(`Show route completes the map without a win or modal, motion=${motion}`, async ({
     page,
     isMobile,
   }) => {
@@ -667,14 +667,17 @@ for (const motion of ['reduce', 'no-preference']) {
       fixture({ route: blocked, hintPending: true, zeroCards: ['CA'], mistakePoints: 2 }),
     );
     await page.clock.runFor(1000);
-    await press(page.locator('#end-game'), isMobile);
+    await press(page.locator('#show-route'), isMobile);
+    await expect(page.locator('.game-toolbar button:enabled')).toHaveCount(1);
+    await expect(page.locator('#hint-button')).toBeDisabled();
+    await expect(page.locator('#show-route')).toBeDisabled();
     if (motion === 'no-preference') {
       await expect(page.locator('#message')).toHaveText('Completing route…');
       await page.clock.runFor(401);
       await expect(page.locator('[data-chain="MI"]')).toHaveCount(0);
     }
     await page.clock.runFor(15000);
-    await expect(page.locator('#message')).toHaveText('Route completed. Select New game.');
+    await expect(page.locator('#message')).toBeEmpty();
     const expected = planCompletion(deal, blocked).route;
     expect(
       await page
@@ -693,7 +696,7 @@ for (const motion of ['reduce', 'no-preference']) {
     expect(data.wins).toBe(0);
     expect(data.records).toEqual([]);
     await page.reload();
-    await expect(page.locator('#message')).toHaveText('Route completed. Select New game.');
+    await expect(page.locator('#message')).toBeEmpty();
     expect((await saved(page)).played).toBe(1);
     await press(page.locator('#new-game'), isMobile);
     await page.clock.runFor(15000);
@@ -707,7 +710,7 @@ test('New game cancels an assisted completion in progress', async ({ page, isMob
   await page.clock.install();
   await seed(page, fixture({ route: ['ME'] }));
   await page.clock.runFor(1000);
-  await press(page.locator('#end-game'), isMobile);
+  await press(page.locator('#show-route'), isMobile);
   await press(page.locator('#new-game'), isMobile);
   await page.clock.runFor(15000);
   expect((await saved(page)).game.route).toEqual([]);
@@ -721,10 +724,10 @@ test('help, scores, ending a game, and clearing scores work', async ({ page, isM
   await expect(page.locator('#help-dialog')).toContainText('next card you add scores 0');
   await expect(page.locator('#help-dialog')).not.toContainText(/wildcard|Explorer|five minutes/);
   await press(page.locator('#help-dialog [data-close]').first(), isMobile);
-  await press(page.locator('#end-game'), isMobile);
+  await press(page.locator('#show-route'), isMobile);
   await expect(page.locator('#confirm-dialog')).not.toBeVisible();
   await expect(page.locator('#result-dialog')).not.toBeVisible();
-  await expect(page.locator('#message')).toHaveText('Route completed. Select New game.', {
+  await expect(page.locator('#message')).toBeEmpty({
     timeout: 15000,
   });
   await press(page.locator('#new-game'), isMobile);
@@ -940,10 +943,77 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   await expect(page.locator('#message')).toBeEmpty();
 });
 
+test('card point pops zoom toward the score total and clean up', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await seed(page);
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  expect((await saved(page)).game.route).toEqual(['CA']);
+  const pop = page.locator('.score-pop');
+  await expect(pop).toHaveText('+1');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  const distance = () =>
+    pop.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const score = document.querySelector('#score').getBoundingClientRect();
+      return Math.hypot(
+        box.x + box.width / 2 - score.x - score.width / 2,
+        box.y + box.height / 2 - score.y - score.height / 2,
+      );
+    });
+  const start = await distance();
+  await expect.poll(distance).toBeLessThan(start / 2);
+  expect((await saved(page)).game.route).toEqual(['CA']);
+  await expect(page.locator('#score')).toHaveText('1 pts');
+  await expect(pop).toHaveCount(0);
+});
+
+test('fast placements settle independently and undo cancels pending points', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await seed(page);
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await page.locator('[data-card="AZ"]').dispatchEvent('click');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  await expect(page.locator('#score')).toHaveText('3 pts');
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  await expect(page.locator('#score')).toHaveText('1 pts');
+  await page.locator('[data-card="AZ"]').dispatchEvent('click');
+  await page.locator('#new-game').dispatchEvent('click');
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  await expect(page.locator('.score-pop, .flying-card')).toHaveCount(0);
+});
+
+test('switching to reduced motion settles pending points immediately', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await seed(page);
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('#score')).toHaveText('1 pts');
+});
+
+test('reduced motion skips point pops', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page);
+  await page.locator('[data-card="CA"]').dispatchEvent('click');
+  await expect(page.locator('#score')).toHaveText('1 pts');
+  await expect(page.locator('.score-pop')).toHaveCount(0);
+});
+
 test('phone and desktop layouts fit, with usable touch targets', async ({ page, isMobile }) => {
   await seed(page);
+  await expect(page.locator('#show-route')).toHaveText('Show route');
+  await expect(page.locator('#new-game')).toHaveClass('primary-button');
+  await expect(page.locator('#show-route')).toHaveClass('secondary-button');
+  await expect(page.locator('.hint-controls > button')).toHaveText(['Hint', 'Show route']);
   const sizes = isMobile
     ? [
+        [320, 568],
+        [360, 780],
+        [650, 900],
         [915, 412],
         [915, 320],
         [844, 390],
@@ -958,6 +1028,10 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
       ];
   for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
+    const hint = await page.locator('#hint-button').boundingBox();
+    const showRoute = await page.locator('#show-route').boundingBox();
+    expect(showRoute.x).toBeGreaterThanOrEqual(hint.x + hint.width);
+    expect(showRoute.y).toBe(hint.y);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -976,7 +1050,9 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
       }
       expect(map.y + map.height).toBeLessThanOrEqual(height);
       const controls = await page
-        .locator('#hint-button, #sound-button, #records-button, #help-button, #new-game, #end-game')
+        .locator(
+          '#hint-button, #sound-button, #records-button, #help-button, #new-game, #show-route',
+        )
         .evaluateAll((buttons) =>
           buttons.map((button) => {
             const { x, y, width, height } = button.getBoundingClientRect();
