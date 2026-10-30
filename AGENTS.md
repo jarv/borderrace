@@ -101,8 +101,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Keep copy literal and minimal throughout the app: no mode name, aphorisms,
   “adventures”, promotional headings, redundant chain strip, or reassurance about
   accounts/saving. No diamond icons on cards. Use short functional labels such as
-  Hint, End game, Game over, Play again, and Your scores. Do not show an initial
-  coastal-card prompt; explain the first-card rule in help.
+  Hint, End game, Game over, Play again, and Your scores. Show a short initial
+  coastal-card prompt in the map's bottom message area, fading after play starts.
+  Keep messages inside the map without changing board height.
 - Effects and audio never grant bonuses or change game rules. Respect reduced
   motion, provide a persistent mute control, and degrade safely without Web Audio.
 - Bundle assets; no external fonts, map tiles, scripts, or runtime CDN calls.

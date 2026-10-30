@@ -61,15 +61,14 @@
           <section class="map-panel" aria-label="Map">
             <div class="map-wrap">
               <div id="map"></div>
+              <div class="map-messages">
+                <div class="message-wrap" hidden>
+                  <p id="message" role="status" aria-live="polite" aria-atomic="true"></p>
+                </div>
+                <span id="hint-cost" hidden>Next card: 0 pts</span>
+              </div>
             </div>
           </section>
-        </div>
-        <div class="game-bottom">
-          <div class="message-wrap" hidden>
-            <span class="message-icon" aria-hidden="true">↗</span>
-            <p id="message" role="status" aria-live="polite"></p>
-          </div>
-          <span id="hint-cost" hidden>Next card: 0 pts</span>
         </div>
       </section>
       <p id="storage-warning" class="storage-warning" hidden>

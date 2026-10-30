@@ -37,6 +37,9 @@ let confettiFrame;
 let hint = null;
 let solutionWorker;
 let solutionCache;
+let messageAnimation;
+let messageRevision = 0;
+const startMessage = 'Select cards to cross the map. Start with a green coastal card.';
 const mapCenters = {};
 const audio = createAudio({ enabled: save.soundEnabled });
 document.addEventListener('pointerdown', () => audio.unlock(), { once: true });
@@ -85,9 +88,21 @@ function persist() {
 }
 
 function message(text, error = false) {
-  $('#message').textContent = text;
-  $('.message-wrap').hidden = !text;
-  $('.message-wrap').classList.toggle('error', error);
+  const wrap = $('.message-wrap');
+  const revision = ++messageRevision;
+  messageAnimation?.stop();
+  const update = () => {
+    $('#message').textContent = text;
+    wrap.hidden = !text;
+    wrap.classList.toggle('error', error);
+    wrap.style.removeProperty('opacity');
+  };
+  if (!text && !wrap.hidden && !reducedMotion.matches) {
+    messageAnimation = animate(wrap, { opacity: 0 }, { duration: 0.3 });
+    Promise.resolve(messageAnimation).then(() => {
+      if (revision === messageRevision) update();
+    });
+  } else update();
 }
 
 function openDialog(id) {
@@ -143,7 +158,7 @@ function fresh() {
   persist();
   render(true);
   audio.play('deal');
-  message('');
+  message(startMessage);
 }
 
 function requestNew() {
@@ -404,3 +419,4 @@ persist();
 render(true);
 if (['won', 'lost'].includes(game.status)) showResult();
 else if (isComplete(game.deal, game.route)) finish();
+else if (!game.route.length) message(startMessage);

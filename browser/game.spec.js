@@ -42,10 +42,12 @@ test('games are playable immediately with no wildcard, timer, start, or finish c
 }) => {
   await seed(page);
   await expect(page.locator('#wild, #clock, #time-fill, #finish, #start')).toHaveCount(0);
-  await expect(page.locator('#message')).toBeEmpty();
-  await expect(page.locator('body')).not.toContainText('Start with a coastal card.');
+  await expect(page.locator('#message')).toHaveText(
+    'Select cards to cross the map. Start with a green coastal card.',
+  );
   await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
   await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('#message')).toBeEmpty();
   expect((await saved(page)).game.status).toBe('playing');
   await page.reload();
   await expect(page.locator('[data-chain]')).toHaveCount(1);
@@ -88,6 +90,68 @@ test('invalid cards are rejected and undo removes a suffix', async ({ page, isMo
   await press(page.locator('[data-card="AZ"]'), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);
   await expect(page.locator('#score')).toHaveText('-2 pts');
+});
+
+test('map messages never move the board and new games restore the starting prompt', async ({
+  page,
+  isMobile,
+}) => {
+  test.setTimeout(60_000);
+  await seed(page);
+  const sizes = isMobile
+    ? [
+        [320, 568],
+        [360, 640],
+        [360, 780],
+        [412, 915],
+        [915, 412],
+        [568, 320],
+      ]
+    : [
+        [1440, 1000],
+        [768, 844],
+      ];
+  for (const [width, height] of sizes) {
+    await page.setViewportSize({ width, height });
+    // Restore the seeded deal so assertions are independent of random new games.
+    await page.evaluate(
+      ({ key, game }) => {
+        const data = JSON.parse(localStorage.getItem(key));
+        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+      },
+      { key: STORAGE_KEY, game: fixture() },
+    );
+    await page.reload();
+    await expect(page.locator('#message')).toContainText('Start with a green coastal card.');
+    const bounds = async () =>
+      page.locator('.game-shell, .board-layout, .map-panel, .hand').evaluateAll((elements) =>
+        elements.map((element) => {
+          const { x, y, width, height } = element.getBoundingClientRect();
+          return { x, y, width, height };
+        }),
+      );
+    const before = await bounds();
+    await press(page.locator('[data-card="AZ"]'), isMobile);
+    await expect(page.locator('.map-panel #message')).toContainText('−2 pts');
+    expect(await bounds()).toEqual(before);
+    await press(page.locator('#hint-button'), isMobile);
+    await expect(page.locator('#hint-cost')).toBeVisible();
+    expect(await bounds()).toEqual(before);
+    const text = await page.locator('.map-messages').boundingBox();
+    const map = await page.locator('.map-wrap').boundingBox();
+    const texas = await page.locator('.map-state[data-code="TX"]').boundingBox();
+    expect(text.y).toBeGreaterThanOrEqual(texas.y + texas.height);
+    expect(text.y + text.height).toBeLessThanOrEqual(map.y + map.height);
+    await press(page.locator('[data-card="CA"]'), isMobile);
+    await expect(page.locator('#message')).toBeEmpty();
+    expect(await bounds()).toEqual(before);
+    await press(page.locator('[data-card="NC"]'), isMobile);
+    await expect(page.locator('#message')).toContainText('doesn’t border');
+    expect(await bounds()).toEqual(before);
+    await press(page.locator('#new-game'), isMobile);
+    await press(page.locator('#confirm-action'), isMobile);
+    await expect(page.locator('#message')).toContainText('Start with a green coastal card.');
+  }
 });
 
 test('map states highlight and translucent cards retain solid borders and text', async ({
@@ -326,6 +390,7 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   await press(page.locator('.state-card.coastal').first(), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);
   await expect(page.locator('.flying-card')).toHaveCount(0);
+  await expect(page.locator('#message')).toBeEmpty();
 });
 
 test('phone and desktop layouts fit, with usable touch targets', async ({ page, isMobile }) => {

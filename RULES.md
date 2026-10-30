@@ -30,6 +30,8 @@ deck or next-move coloring. The map has no state labels.
 On phones, the map sits above smaller cards in portrait, or to their right in
 landscape. Controls share one row, with a music-note sound toggle in portrait.
 The hand scrolls independently when needed. **?** opens How to play.
+The map's bottom message area shows a starting prompt, hints, and errors without
+changing the board height. The starting prompt fades after your first valid card.
 
 ## Hints
 

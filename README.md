@@ -67,6 +67,8 @@ viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
+Instructions and error messages appear below the map's states without shifting
+the board. The starting prompt fades after the first valid card.
 
 ## Rules and local data
 
