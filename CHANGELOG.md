@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/jarv/borderrace/compare/v1.5.0...v1.6.0) (2026-10-30)
+
+
+### Features
+
+* animate route completion when ending a game ([a77df34](https://github.com/jarv/borderrace/commit/a77df34d215c76e84997ee3e269d648230a2c46d))
+
 # [1.5.0](https://github.com/jarv/borderrace/compare/v1.4.0...v1.5.0) (2026-10-30)
 
 
