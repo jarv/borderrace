@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/jarv/borderrace/compare/v1.6.0...v1.7.0) (2026-10-30)
+
+
+### Features
+
+* streamline route controls and animate score collection ([7f0c7b7](https://github.com/jarv/borderrace/commit/7f0c7b736e93c7564b78a762f63bb309e7309d50))
+
 # [1.6.0](https://github.com/jarv/borderrace/compare/v1.5.0...v1.6.0) (2026-10-30)
 
 
