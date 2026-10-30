@@ -1,0 +1,36 @@
+project_id = "borderrace"
+
+[api]
+port = 55431
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55432
+shadow_port = 55430
+major_version = 17
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = false
+
+[local_smtp]
+enabled = false
+
+[storage]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:4173/"
+additional_redirect_urls = ["http://127.0.0.1:4174/"]
+enable_signup = true
+
+[analytics]
+enabled = false

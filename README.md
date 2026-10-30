@@ -5,7 +5,10 @@ A frontend-only geography game. Connect the Atlantic and Pacific coasts with
 Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
 gems, and a canvas celebration — not a literal casino table.
-No Python, backend, accounts, tracking, or remote game state.
+No Python, custom backend, tracking, or remote game state. Optional Supabase Google
+login adds a daily cumulative leaderboard; play and personal records remain local.
+See [Supabase setup](docs/supabase-setup.md) for configuration, UTC scoring,
+credential handling, database tests, and deployment. Unconfigured builds stay local-only.
 
 ## Play locally
 

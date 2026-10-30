@@ -8,6 +8,7 @@
     "node": ">=24"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.118.0",
     "motion": "14.8.0"
   },
   "devDependencies": {

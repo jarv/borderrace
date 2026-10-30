@@ -136,6 +136,16 @@ so the page stays responsive.
 
 ## Local data and effects
 
+When the optional online leaderboard is configured, **Your scores → Daily
+leaderboard** shows cumulative winning points for the current UTC day. Sign in
+with Google before winning to contribute. Each game counts once; Show route,
+abandoned games, and previous anonymous wins do not count. Hint and mistake
+deductions still apply, including negative winning totals. Ties share a rank.
+The board changes at midnight UTC without deleting history. Queued offline wins
+count on the day the server first receives them. Your public player name and
+total are visible to everyone; Google names/emails are not published. Scores are
+browser-reported, not cheat-resistant. Local score clearing affects no online data.
+
 The visible score increases when animated points reach the total. Scores and
 wins are saved immediately; reduced motion updates the total immediately.
 

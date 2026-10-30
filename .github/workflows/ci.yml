@@ -21,3 +21,7 @@ jobs:
       - run: mise run test:browser
       - name: Test release artifact
         run: mise run test:release
+      - name: Test local database permissions and scoring
+        run: |
+          mise run db:start
+          mise run test:db

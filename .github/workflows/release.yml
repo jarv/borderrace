@@ -23,6 +23,10 @@ jobs:
         run: mise exec -- npx playwright install --with-deps chromium
       - run: mise run test:browser
       - run: mise run test:release
+      - name: Test local database permissions and scoring
+        run: |
+          mise run db:start
+          mise run test:db
 
   release:
     needs: ci
@@ -40,4 +44,6 @@ jobs:
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
         run: mise run release

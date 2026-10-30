@@ -5,6 +5,7 @@ import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
 import { createSweepView } from './sweep-view.js';
 import { restoreSweep, accelerateSweep, PENALTY_ACCELERATION } from './sweep.js';
+import { createOnline } from './online.js';
 import {
   newGame,
   canAdd,
@@ -118,6 +119,12 @@ const sweepView = createSweepView({
   onTimeout: timeout,
   reducedMotion,
 });
+let online = { recordWin() {} };
+try {
+  online = createOnline({ storage, openDialog });
+} catch {
+  $('#daily-button').hidden = true;
+}
 
 function persist() {
   save = { ...save, game };
@@ -282,6 +289,7 @@ function finish(delayed = false) {
   game = { ...game, status: 'won' };
   save = recordResult(save, game);
   persist();
+  online.recordWin(game);
   render();
   if (delayed && !reducedMotion.matches) {
     const gameId = game.id;

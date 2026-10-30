@@ -463,6 +463,48 @@ dialog .fine-print {
   z-index: 100;
   pointer-events: none;
 }
+#daily-list {
+  max-height: 40dvh;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+#daily-list table {
+  width: 100%;
+  table-layout: fixed;
+}
+#daily-list th:first-child,
+#daily-list td:first-child {
+  width: 18%;
+}
+#daily-list th:last-child,
+#daily-list td:last-child {
+  width: 28%;
+}
+.your-rank {
+  color: var(--green);
+}
+#daily-dialog .secondary-button {
+  margin-bottom: 8px;
+}
+#profile-form {
+  margin-top: 12px;
+}
+.profile-fields {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.profile-fields input {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  background: #111a2b;
+  border: 1px solid #455474;
+  border-radius: 6px;
+  color: inherit;
+  padding: 8px;
+  font: inherit;
+}
 @media (max-width: 760px) {
   .site-header,
   main,

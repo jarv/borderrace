@@ -145,6 +145,29 @@
       <div id="record-list"></div>
       <p class="fine-print">Top 10 wins, ranked by points.</p>
       <button id="clear-scores" class="secondary-button">Clear</button>
+      <button id="daily-button" class="secondary-button" hidden>Daily leaderboard</button>
+    </dialog>
+    <dialog id="daily-dialog" aria-labelledby="daily-title">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Close leaderboard">×</button>
+      </div>
+      <h2 id="daily-title">Daily leaderboard</h2>
+      <p id="daily-date" class="fine-print"></p>
+      <p id="daily-account"></p>
+      <button id="google-sign-in" class="secondary-button">Sign in with Google</button>
+      <button id="online-sign-out" class="secondary-button" hidden>Sign out</button>
+      <form id="profile-form" hidden>
+        <label for="display-name">Public player name</label>
+        <div class="profile-fields">
+          <input id="display-name" name="display-name" maxlength="24" required autocomplete="off" />
+          <button id="save-display-name" class="secondary-button" type="submit">Save</button>
+        </div>
+      </form>
+      <p class="fine-print">Winning points add up each UTC day. Tied totals share a rank.</p>
+      <p id="daily-status" role="status" aria-live="polite"></p>
+      <p id="daily-loading" hidden>Loading…</p>
+      <div id="daily-list" class="record-section"></div>
+      <button id="daily-refresh" class="secondary-button">Refresh</button>
     </dialog>
     <canvas id="confetti" aria-hidden="true"></canvas>
     <noscript
