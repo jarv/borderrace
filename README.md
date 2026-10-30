@@ -70,8 +70,9 @@ large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 Instructions and error messages appear below the map's states without shifting
 the board. The starting prompt fades after the first valid card.
 In portrait, messages stay below the US in the upper half of the screen. The
-route row sits about two-thirds down the map, overlaps Texas slightly, and scrolls
-horizontally for long routes. Messages remain above the cards.
+route follows a slight zig-zag about two-thirds down the map and overlaps Texas slightly.
+Long routes wrap into compact rows inside the map, without horizontal scrolling.
+Messages remain above the cards.
 
 ## Rules and local data
 
@@ -99,6 +100,8 @@ Reloading resumes the game and preserves hint penalties. Blocked/full storage
 falls back to in-memory play. There is no shared leaderboard or cross-device sync.
 Use **Your scores → Clear** to clear scores and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
+Clearing scores is immediate, without confirmation; the scores dialog scrolls
+vertically on shorter screens.
 New game and End game act immediately without confirmation. Closing the You win
 dialog starts the next game. Scores show each winning path alongside its points;
 older records without a saved path show a dash.

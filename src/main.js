@@ -30,7 +30,6 @@ try {
 }
 let save = loadSave(storage);
 let game = save.game ?? newGame();
-let pendingAction;
 let previousFocus;
 let resultTimeout;
 let confettiFrame;
@@ -118,19 +117,6 @@ $$('dialog').forEach((dialog) => {
   dialog.addEventListener('close', () => previousFocus?.focus());
 });
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
-
-function confirmAction(action, title, copy, label) {
-  pendingAction = action;
-  $('#confirm-title').textContent = title;
-  $('#confirm-copy').textContent = copy;
-  $('#confirm-action').textContent = label;
-  openDialog('#confirm-dialog');
-}
-$('#confirm-action').addEventListener('click', () => {
-  $('#confirm-dialog').close();
-  pendingAction?.();
-  pendingAction = null;
-});
 
 function fresh() {
   clearTimeout(resultTimeout);
@@ -338,18 +324,11 @@ function showScores() {
 }
 $('#records-button').addEventListener('click', showScores);
 
-$('#clear-scores').addEventListener('click', () =>
-  confirmAction(
-    () => {
-      save = { ...save, records: [], wins: 0, played: 0 };
-      persist();
-      showScores();
-    },
-    'Clear scores?',
-    'Remove all scores and game counts?',
-    'Clear',
-  ),
-);
+$('#clear-scores').addEventListener('click', () => {
+  save = { ...save, records: [], wins: 0, played: 0 };
+  persist();
+  showScores();
+});
 
 // No network calls. Another tab's save never silently replaces the live route.
 window.addEventListener('storage', (event) => {

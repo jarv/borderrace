@@ -24,7 +24,8 @@ and NY–RI**, as in the original game, even where there is no land border.
 ## Map
 
 Played states are highlighted. Their cards form a left-to-right row about two-thirds
-down the map, independent of the states' locations. Long rows scroll horizontally.
+down the map in a slight zig-zag, independent of the states' locations. Long routes
+wrap into compact rows inside the map, without horizontal scrolling.
 Cards have translucent backgrounds with opaque borders and text.
 Undoing cards also removes their state highlights. Unplayed states have no
 deck or next-move coloring. The map has no state labels.
@@ -85,8 +86,9 @@ route is calculated exactly in a worker so the page stays responsive.
 
 The current game, penalties, records, and sound setting are stored in this browser.
 Blocked storage permits play without saving. **Your scores → Clear** removes
-scores and game counts after confirmation, keeping the current game, hint penalties,
+scores and game counts immediately, keeping the current game, hint penalties,
 and sound setting. Clearing browser data removes all local data.
+Your scores scrolls vertically when the list is taller than the screen.
 Earlier-format saves are archived, and compatible
 games and point records are migrated without carrying time fields into active play.
 

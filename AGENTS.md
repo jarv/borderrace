@@ -35,7 +35,7 @@ for build/test tools), and commit both package files. No global npm packages.
 - `src/storage.js`: versioned local save, defensive loading, personal records.
 - `src/main.js`: interaction, SVG map, rendering, dialogs, Motion animations,
   canvas celebration. No API requests.
-- `src/chain.js`: left-to-right, touch-sized route-row placement; long rows scroll.
+- `src/chain.js`: touch-sized zig-zag route placement; long routes wrap to fit the map.
 - `src/arena.js`: keyed map-card chain, flying cards, energy bursts, score pops,
   and completion payoff. Bound and clean up transient effects; never block gameplay on animation.
 - `src/audio.js`: lazy, gesture-unlocked Web Audio effects; no audio downloads,
@@ -60,7 +60,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Validate the actual submitted sequence, not just connectivity of the deck.
 - Clicking a played card in the hand or map removes it and its suffix.
 - New game and End game act immediately, without confirmation. Dismissing the
-  You win dialog starts a new game. Keep score clearing confirmed.
+  You win dialog starts a new game. Score clearing also acts immediately.
 - Keep the original point values and unusual connections (AZ–CO, NM–UT, MI–MN,
   NY–RI). Gulf-only states are not valid coastal endpoints.
 - New games are immediately `playing`. No start/finish button, countdown,
@@ -84,8 +84,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
 - Save schema version 2 has no active time/mode fields. Archive old data and
   migrate compatible games/point records without introducing new time tracking.
-- “Your scores” contains a confirmed Clear action that resets scores and game
-  counts only. Preserve the active game, hint penalties, and sound preference.
+- “Your scores” scrolls vertically when needed and contains an immediate Clear
+  action that resets scores and game counts only. Preserve the active game, hint
+  penalties, and sound preference.
   Use “New game”, not “New deal”. No local-data/credits footer or dialog.
 
 ## UI and deployment requirements
@@ -108,8 +109,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   Hint, End game, Game over, Play again, and Your scores. Show a short initial
   coastal-card prompt in the map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.
-- The map's route cards form a horizontally scrolling row about two-thirds down,
-  not geographic anchors. In portrait, messages stay below the US in the upper
+- The map's route cards form a gentle zig-zag about two-thirds down, wrapping to
+  fit without horizontal scrolling, not geographic anchors. In portrait,
+  messages stay below the US in the upper
   half of the screen, above overlapping route cards.
 - Effects and audio never grant bonuses or change game rules. Respect reduced
   motion, provide a persistent mute control, and degrade safely without Web Audio.

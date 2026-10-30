@@ -240,7 +240,7 @@
   position: relative;
   z-index: 1;
 }
-#map svg {
+#map > svg {
   width: 100%;
   height: auto;
   display: block;
@@ -264,19 +264,15 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: thin;
-  scrollbar-color: #547b94 transparent;
-}
-#map-chain:has([data-chain]) {
-  pointer-events: auto;
-  touch-action: pan-x;
+  z-index: 2;
 }
 .row-line {
   position: absolute;
-  border-top: 3px dashed var(--cyan);
+  overflow: visible;
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 3;
+  stroke-dasharray: 5 4;
   pointer-events: none;
 }
 .map-card {

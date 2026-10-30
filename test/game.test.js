@@ -231,9 +231,9 @@ test('records use penalized points only, and results are recorded once', () => {
   assert.equal(save.played, 16);
 });
 
-test('route rows stay touch-sized and scroll horizontally instead of stacking', () => {
-  for (const width of [288, 328, 600, 900]) {
-    const height = width * 0.61;
+test('zig-zag routes wrap to fit the map while staying touch-sized', () => {
+  for (const width of [294, 328, 600, 900]) {
+    const height = Math.max(220, width * 0.61);
     const chain = layoutChain(route, width, height);
     assert.deepEqual(
       chain.map((p) => p.code),
@@ -241,13 +241,21 @@ test('route rows stay touch-sized and scroll horizontally instead of stacking', 
     );
     for (const card of chain) {
       assert.ok(card.width >= 44 && card.height >= 44);
-      assert.ok(card.x >= card.width / 2);
+      assert.ok(card.x >= card.width / 2 && card.x <= width - card.width / 2);
       assert.ok(card.y >= card.height / 2 && card.y <= height - card.height / 2);
-      assert.equal(card.y, chain[0].y);
     }
-    assert.ok(chain[0].x < chain.at(-1).x);
+    assert.equal(chain[0].y, chain[2].y);
+    assert.equal(chain[1].y, chain[3].y);
+    assert.ok(chain[1].y > chain[0].y);
+    assert.ok(chain[1].y - chain[0].y <= 12);
+    assert.ok(chain[0].x < chain[1].x);
     const long = layoutChain(CODES.slice(0, 24), width, height);
-    assert.ok(long.at(-1).x > width);
+    for (const card of long) {
+      assert.ok(card.width >= 44 && card.height >= 44);
+      assert.ok(card.x >= card.width / 2 && card.x <= width - card.width / 2);
+      assert.ok(card.y >= card.height / 2 && card.y <= height - card.height / 2);
+    }
+    assert.ok(long.at(-1).row > 0);
   }
 });
 

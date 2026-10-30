@@ -205,6 +205,8 @@ dialog {
   width: calc(100% - 32px);
   max-width: 520px;
   max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
   padding: 28px;
   box-shadow:
     0 25px 120px #0009,
@@ -453,12 +455,6 @@ dialog .fine-print {
 .record-section td:last-child {
   text-align: right;
 }
-.confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 25px;
-}
 #confetti {
   position: fixed;
   inset: 0;
@@ -500,12 +496,6 @@ dialog .fine-print {
   }
   dialog h2 {
     font-size: 27px;
-  }
-  .confirm-actions {
-    flex-wrap: wrap;
-  }
-  .confirm-actions button {
-    flex: 1;
   }
 }
 @media (max-width: 360px) {

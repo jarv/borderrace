@@ -205,7 +205,7 @@ test('the map fills and centers its artwork while cards form a horizontal route 
         [1024, 844],
       ]) {
     await page.setViewportSize({ width, height });
-    const svg = await page.locator('#map svg').boundingBox();
+    const svg = await page.locator('#map > svg').boundingBox();
     const artwork = await page.locator('#state-shapes').boundingBox();
     const panel = await page.locator('.map-wrap').boundingBox();
     expect(artwork.width / svg.width).toBeGreaterThan(0.95);
@@ -219,10 +219,12 @@ test('the map fills and centers its artwork while cards form a horizontal route 
   }
   for (const code of ['CA', 'AZ']) await press(page.locator(`[data-card="${code}"]`), isMobile);
   const alignment = await page.evaluate(() => {
-    const line = document.querySelector('.row-line').getBoundingClientRect();
-    return ['CA', 'AZ'].map((code) => {
+    const line = document.querySelector('.row-line polyline');
+    return ['CA', 'AZ'].map((code, index) => {
+      const point = line.points.getItem(index);
+      const screen = new DOMPoint(point.x, point.y).matrixTransform(line.getScreenCTM());
       const card = document.querySelector(`[data-chain="${code}"]`).getBoundingClientRect();
-      return Math.abs(line.y - card.y - card.height / 2);
+      return Math.hypot(screen.x - card.x - card.width / 2, screen.y - card.y - card.height / 2);
     });
   });
   for (const distance of alignment) expect(distance).toBeLessThan(1);
@@ -350,7 +352,7 @@ test('help, scores, ending a game, and clearing scores work', async ({ page, isM
   await expect(page.locator('#record-summary')).toHaveText('0 wins · 1 game');
   await expect(page.locator('#records-dialog h2')).toHaveText('Your scores');
   await press(page.locator('#clear-scores'), isMobile);
-  await press(page.locator('#confirm-action'), isMobile);
+  await expect(page.locator('#confirm-dialog')).toHaveCount(0);
   await expect(page.locator('#record-summary')).toHaveText('No games yet.');
   await expect(page.locator('#record-list')).toContainText('No scores yet.');
 });
@@ -409,30 +411,41 @@ test('all win dialog dismissal controls start a new game and scores show the win
   ).toBe(true);
 });
 
-test('long route rows scroll inside the map and remain keyboard accessible', async ({
+test('long routes fit inside the map without scrolling and remain keyboard accessible', async ({
   page,
   isMobile,
 }) => {
-  test.skip(!isMobile, 'Small-screen row scrolling');
+  test.skip(!isMobile, 'Small-screen route wrapping');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 320, height: 568 });
-  await seed(page, fixture({ route: route.slice(0, -1) }));
+  const path = findLongestRoute(deal).slice(0, -1);
+  await seed(page, fixture({ route: path }));
   const cards = await page
     .locator('[data-chain]')
     .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
-  expect(new Set(cards).size).toBe(1);
-  const map = await page.locator('#map').boundingBox();
-  const card = await page.locator('[data-chain="CA"]').boundingBox();
-  expect(card.y).toBeGreaterThan(map.y + map.height * 0.4);
+  expect(new Set(cards).size).toBeGreaterThan(2);
+  expect(Math.abs(cards[1] - cards[0])).toBeLessThanOrEqual(12);
+  expect(cards[0]).toBe(cards[2]);
+  const map = await page.locator('.map-wrap').boundingBox();
+  const card = await page.locator('[data-chain]').first().boundingBox();
+  expect(card.y).toBeGreaterThanOrEqual(map.y);
   expect(card.y + card.height).toBeLessThanOrEqual(map.y + map.height);
   const messages = await page.locator('.map-messages').boundingBox();
   const us = await page.locator('#state-shapes').boundingBox();
   expect(messages.y).toBeGreaterThanOrEqual(us.y + us.height);
   expect(messages.y + messages.height).toBeLessThanOrEqual(568 / 2);
-  await page.locator('[data-chain="TN"]').focus();
-  expect(await page.locator('#map-chain').evaluate((layer) => layer.scrollLeft)).toBeGreaterThan(0);
+  for (const element of await page.locator('[data-chain]').all()) {
+    const bounds = await element.boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(map.x);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(map.x + map.width);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(map.y + map.height);
+    expect(bounds.width).toBeGreaterThanOrEqual(44);
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.locator(`[data-chain="${path.at(-1)}"]`).focus();
+  expect(await page.locator('#map-chain').evaluate((layer) => layer.scrollLeft)).toBe(0);
   await page.keyboard.press('Enter');
-  await expect(page.locator('[data-chain]')).toHaveCount(5);
+  await expect(page.locator('[data-chain]')).toHaveCount(path.length - 1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -455,11 +468,7 @@ test('clearing scores preserves the current route, hint penalties, and sound set
   await expect(page.locator('#privacy-button, #privacy-dialog')).toHaveCount(0);
   await press(page.getByRole('button', { name: 'Your scores' }), isMobile);
   await press(page.locator('#clear-scores'), isMobile);
-  await press(page.locator('#confirm-dialog [data-close]').last(), isMobile);
-  expect((await saved(page)).records).toEqual(before.records);
-  await press(page.locator('#records-button'), isMobile);
-  await press(page.locator('#clear-scores'), isMobile);
-  await press(page.locator('#confirm-action'), isMobile);
+  await expect(page.locator('#confirm-dialog')).toHaveCount(0);
   const after = await saved(page);
   expect(after.records).toEqual([]);
   expect(after.wins).toBe(0);
@@ -469,6 +478,42 @@ test('clearing scores preserves the current route, hint penalties, and sound set
   await page.reload();
   expect((await saved(page)).game).toEqual(before.game);
   await expect(page.locator('#sound-button')).toHaveText('Sound off');
+});
+
+test('Your scores scrolls vertically on short screens and Clear is reachable without confirmation', async ({
+  page,
+  isMobile,
+}) => {
+  await page.setViewportSize(isMobile ? { width: 320, height: 568 } : { width: 1024, height: 400 });
+  await seed(page);
+  await page.evaluate(
+    ({ key, route }) => {
+      const data = JSON.parse(localStorage.getItem(key));
+      data.records = Array.from({ length: 10 }, (_, index) => ({
+        id: `score-${index}`,
+        points: 11,
+        route,
+      }));
+      data.wins = data.played = 10;
+      localStorage.setItem(key, JSON.stringify(data));
+    },
+    { key: STORAGE_KEY, route },
+  );
+  await page.reload();
+  await press(page.locator('#records-button'), isMobile);
+  const dialog = page.locator('#records-dialog');
+  await expect(dialog.locator('tbody tr')).toHaveCount(10);
+  await expect(dialog).toHaveCSS('overflow-y', 'auto');
+  expect(await dialog.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(
+    true,
+  );
+  expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.locator('#clear-scores').scrollIntoViewIfNeeded();
+  expect(await dialog.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await press(page.locator('#clear-scores'), isMobile);
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('#record-summary')).toHaveText('No games yet.');
+  await expect(page.locator('#confirm-dialog')).toHaveCount(0);
 });
 
 test('sound preference persists and blocked audio does not prevent keyboard play', async ({

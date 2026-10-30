@@ -8,11 +8,12 @@ export function createArena({ map, onPlay, reducedMotion }) {
   layer.id = 'map-chain';
   layer.setAttribute('role', 'group');
   layer.setAttribute('aria-label', 'Your card chain across the USA');
-  const rowLine = document.createElement('span');
-  rowLine.className = 'row-line';
+  const rowLine = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  rowLine.setAttribute('class', 'row-line');
   rowLine.setAttribute('aria-hidden', 'true');
   layer.append(rowLine);
-  map.append(layer);
+  const stage = map.parentElement;
+  stage.append(layer);
   const effects = document.createElement('div');
   effects.id = 'arena-effects';
   effects.setAttribute('aria-hidden', 'true');
@@ -163,7 +164,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
   }
 
   function positionCards() {
-    const bounds = map.getBoundingClientRect();
+    const bounds = stage.getBoundingClientRect();
     const positions = layoutChain(currentRoute, bounds.width, bounds.height);
     for (const p of positions) {
       const card = cards.get(p.code);
@@ -176,12 +177,27 @@ export function createArena({ map, onPlay, reducedMotion }) {
       });
     }
     rowLine.hidden = positions.length < 2;
-    if (positions.length > 1)
+    if (positions.length > 1) {
+      const top = Math.min(...positions.map((p) => p.y));
+      const left = Math.min(...positions.map((p) => p.x));
+      const width = Math.max(1, Math.max(...positions.map((p) => p.x)) - left);
+      const height = Math.max(1, Math.max(...positions.map((p) => p.y)) - top);
       Object.assign(rowLine.style, {
-        left: `${positions[0].x}px`,
-        top: `${positions[0].y}px`,
-        width: `${positions.at(-1).x - positions[0].x}px`,
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
       });
+      rowLine.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      rowLine.innerHTML = Array.from(
+        { length: positions.at(-1).row + 1 },
+        (_, row) =>
+          `<polyline points="${positions
+            .filter((p) => p.row === row)
+            .map((p) => `${p.x - left},${p.y - top}`)
+            .join(' ')}"/>`,
+      ).join('');
+    }
   }
 
   function sync(route, isEnded, arrival, zeroPointCards = []) {
@@ -230,17 +246,13 @@ export function createArena({ map, onPlay, reducedMotion }) {
       );
     });
     positionCards();
-    if (arrival) {
-      const card = cards.get(arrival.code);
-      layer.scrollLeft = Math.max(0, card.offsetLeft + card.offsetWidth - layer.clientWidth + 8);
-    }
     if (arrival) flyToMap(arrival.code, arrival.source);
   }
 
   new ResizeObserver(() => {
     for (const code of flights.keys()) cancelFlight(code);
     positionCards();
-  }).observe(map);
+  }).observe(stage);
   reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) {
       for (const code of flights.keys()) cancelFlight(code);
