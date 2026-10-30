@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/jarv/borderrace/compare/v1.1.1...v1.1.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* keep game messages on the map without shifting the board ([4a7f2f2](https://github.com/jarv/borderrace/commit/4a7f2f2669faca9caea20208c73d7de8286994e2))
+
 ## [1.1.1](https://github.com/jarv/borderrace/compare/v1.1.0...v1.1.1) (2026-10-30)
 
 
