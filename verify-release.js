@@ -122,7 +122,7 @@ try {
     );
     await page.locator('[data-card="CA"]').click();
     await page.locator('#end-game').click();
-    await page.locator('.solution-chain[aria-label="Longest"]').waitFor();
+    await page.locator('.solution-chain[aria-label="Most points"]').waitFor();
     for (const worker of ['scoring-worker', 'solution-worker'])
       assert.ok(requests.includes(`/game/${asset(worker, 'js')}`));
     assert.ok(requests.includes(`/game/${asset('app', 'css')}`));

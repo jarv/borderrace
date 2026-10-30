@@ -49,15 +49,24 @@ export function getHint(deal, route) {
     const solution = findContinuation(deal, prefix);
     if (solution)
       return keep < route.length
-        ? { type: 'undo', code: route[keep] }
+        ? { type: 'undo', code: route[keep], playCode: solution[keep] }
         : { type: 'play', code: solution[keep] };
   }
   return null;
 }
 
-// Exact longest simple route. Reaching the opposite coast ends the route.
-// Run in a worker: longest-path search can be expensive on highly connected deals.
+// Exact simple-route optimization. Stop on the first opposite coast in either
+// direction; ties use fewer cards. Nonnegative card weights make the reachable
+// weight sum a safe upper bound. Run expensive searches in a worker.
 export function findLongestRoute(deal) {
+  return findBestRoute(deal, () => 1);
+}
+
+export function findMostPointsRoute(deal, cardPoints, zeroCards = []) {
+  return findBestRoute(deal, (code) => pointsFor(code, zeroCards, cardPoints));
+}
+
+function findBestRoute(deal, valueFor) {
   let best = findSolution(deal);
   if (!best) return null;
   const codes = [...new Set(deal)];
@@ -65,18 +74,27 @@ export function findLongestRoute(deal) {
   const graph = codes.map((code) =>
     STATES[code].neighbors.filter((next) => indices.has(next)).map((next) => indices.get(next)),
   );
+  const weights = codes.map(valueFor);
+  let bestValue = best.reduce((total, code) => total + valueFor(code), 0);
+  const totalValue = weights.reduce((total, value) => total + value, 0);
+  const minimumBestLength = Math.max(best.length, weights.filter((value) => value > 0).length);
+  const perfect = () => bestValue === totalValue && best.length === minimumBestLength;
   let targets;
   const path = [];
   const seen = new Set();
-  function search(node, used) {
+  function search(node, used, value) {
     path.push(node);
     used |= 1 << node;
+    value += weights[node];
     if (targets.has(node)) {
-      if (path.length > best.length) best = path.map((index) => codes[index]);
+      if (value > bestValue || (value === bestValue && path.length < best.length)) {
+        best = path.map((index) => codes[index]);
+        bestValue = value;
+      }
       path.pop();
       return;
     }
-    if (best.length === codes.length) {
+    if (perfect()) {
       path.pop();
       return;
     }
@@ -90,22 +108,27 @@ export function findLongestRoute(deal) {
     const reachable = [node];
     let mask = 1 << node;
     let reachesTarget = targets.has(node);
+    let potential = value;
     for (let i = 0; i < reachable.length; i++) {
       for (const next of graph[reachable[i]]) {
         if (!(mask & (1 << next)) && !(used & (1 << next))) {
           mask |= 1 << next;
           reachable.push(next);
+          potential += weights[next];
           if (targets.has(next)) reachesTarget = true;
         }
       }
     }
-    if (reachesTarget && path.length + reachable.length - 1 > best.length) {
+    if (
+      reachesTarget &&
+      (potential > bestValue || (potential === bestValue && path.length < best.length))
+    ) {
       const nextNodes = graph[node]
         .filter((next) => !(used & (1 << next)))
-        .sort((a, b) => graph[a].length - graph[b].length);
+        .sort((a, b) => weights[b] - weights[a] || graph[a].length - graph[b].length);
       for (const next of nextNodes) {
-        search(next, used);
-        if (best.length === codes.length) break;
+        search(next, used, value);
+        if (perfect()) break;
       }
     }
     path.pop();
@@ -117,10 +140,10 @@ export function findLongestRoute(deal) {
     targets = new Set(ends.filter((code) => indices.has(code)).map((code) => indices.get(code)));
     seen.clear();
     for (const code of starts) {
-      if (indices.has(code)) search(indices.get(code), 0);
-      if (best.length === codes.length) break;
+      if (indices.has(code)) search(indices.get(code), 0, 0);
+      if (perfect()) break;
     }
-    if (best.length === codes.length) break;
+    if (perfect()) break;
   }
   return best;
 }

@@ -4,6 +4,7 @@ import { STORAGE_KEY, emptySave } from '../src/storage.js';
 import {
   findSolution,
   findLongestRoute,
+  findMostPointsRoute,
   findContinuation,
   createDeal,
   score,
@@ -216,7 +217,7 @@ test('hard-card values apply to results, reference solutions, and saved scores',
   );
   for (const [label, solution] of [
     ['Shortest', findSolution(hardDeal)],
-    ['Longest', findLongestRoute(hardDeal)],
+    ['Most points', findMostPointsRoute(hardDeal, hardPoints, ['OR'])],
   ]) {
     await expect(
       page
@@ -238,7 +239,7 @@ test('games are playable immediately with no wildcard, timer, start, or finish c
   await seed(page);
   await expect(page.locator('#wild, #clock, #time-fill, #finish, #start')).toHaveCount(0);
   await expect(page.locator('#message')).toHaveText(
-    'Select cards to cross the map. Start with a green coastal card.',
+    'Select cards to cross the map. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
   );
   await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
   await press(page.locator('[data-card="CA"]'), isMobile);
@@ -452,6 +453,9 @@ test('a hint zeros any next chosen card and the penalty survives undo and reload
 }) => {
   await seed(page);
   await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Play NC');
+  await expect(page.locator('#message')).not.toContainText('points');
+  expect((await page.locator('.map-messages').innerText()).match(/Next card/g)).toHaveLength(1);
   await expect(page.locator('.state-card.hinted')).toHaveCount(1);
   await expect(page.locator('#hint-cost')).toBeVisible();
   expect((await saved(page)).game.hintPending).toBe(true);
@@ -474,11 +478,101 @@ test('a backtracking hint charges the next added card, not the removal', async (
 }) => {
   await seed(page, fixture({ route: ['ME'] }));
   await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Remove ME, play NC');
   await expect(page.locator('[data-card="ME"]')).toHaveClass(/hinted/);
   await press(page.locator('[data-card="ME"]'), isMobile);
+  await expect(page.locator('#message')).toBeEmpty();
+  await expect(page.locator('#hint-cost')).toBeVisible();
   expect((await saved(page)).game.hintPending).toBe(true);
   await press(page.locator('[data-card="CA"]'), isMobile);
   expect((await saved(page)).game.zeroCards).toEqual(['CA']);
+});
+
+test('backtracking hints name the suffix to remove and the exact next abbreviation', async ({
+  page,
+  isMobile,
+}) => {
+  const blocked = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'];
+  await seed(page, fixture({ route: blocked }));
+  await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Remove KY, play GA');
+  await expect(page.locator('[data-card="KY"]')).toHaveClass(/hinted/);
+  expect((await page.locator('.map-messages').innerText()).match(/Next card/g)).toHaveLength(1);
+  await press(page.locator('[data-card="KY"]'), isMobile);
+  expect((await saved(page)).game.route).toEqual(blocked.slice(0, 6));
+  expect((await saved(page)).game.hintPending).toBe(true);
+  await press(page.locator('[data-card="GA"]'), isMobile);
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  expect((await saved(page)).game.zeroCards).toEqual(['GA']);
+});
+
+for (const reducedMotion of ['no-preference', 'reduce']) {
+  test(`win results wait for the celebration with motion=${reducedMotion}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.clock.install();
+    await seed(page, fixture({ route: route.slice(0, -1) }));
+    await page.clock.fastForward(2000);
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+    await page.locator('[data-card="NC"]').dispatchEvent('click');
+    expect((await saved(page)).game.status).toBe('won');
+    expect((await saved(page)).wins).toBe(1);
+    if (reducedMotion === 'no-preference') {
+      await expect(page.locator('#result-dialog')).not.toBeVisible();
+      await page.clock.runFor(1999);
+      await expect(page.locator('#result-dialog')).not.toBeVisible();
+      await page.clock.runFor(1);
+    }
+    await expect(page.locator('#result-dialog')).toBeVisible();
+    expect((await saved(page)).wins).toBe(1);
+  });
+}
+
+test('mobile modal close controls are visually compact without losing touch targets', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Compact mobile dialogs');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page);
+  for (const [width, height] of [
+    [320, 568],
+    [360, 780],
+    [915, 412],
+  ]) {
+    await page.setViewportSize({ width, height });
+    for (const [trigger, id] of [
+      ['#help-button', '#help-dialog'],
+      ['#records-button', '#records-dialog'],
+      ['#end-game', '#result-dialog'],
+    ]) {
+      await press(page.locator(trigger), true);
+      const dialog = page.locator(id);
+      const button = dialog.locator('.close-button');
+      await expect(dialog.locator('.dialog-top')).toHaveCSS('position', 'absolute');
+      const sizes = await button.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        const visual = getComputedStyle(element, '::before');
+        return {
+          width: box.width,
+          height: box.height,
+          visualWidth: parseFloat(visual.width),
+          visualHeight: parseFloat(visual.height),
+        };
+      });
+      expect(sizes.width).toBeGreaterThanOrEqual(44);
+      expect(sizes.height).toBeGreaterThanOrEqual(44);
+      expect(sizes.visualWidth).toBeLessThanOrEqual(32);
+      expect(sizes.visualHeight).toBeLessThanOrEqual(32);
+      const heading = await dialog.locator('h2').boundingBox();
+      const close = await button.boundingBox();
+      expect(heading.y).toBeLessThan(close.y + close.height);
+      expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+        true,
+      );
+      await press(button, true);
+      await expect(dialog).not.toBeVisible();
+    }
+  }
 });
 
 test('automatic results and records include the final hinted card penalty', async ({
@@ -493,10 +587,10 @@ test('automatic results and records include the final hinted card penalty', asyn
   expect((await saved(page)).records[0].points).toBe(10);
   expect((await saved(page)).game.zeroCards).toEqual(['NC']);
   await expect(page.locator('#result-route h3')).toHaveText('Your route 10 pts');
-  await expect(page.locator('.solution-chain[aria-label="Longest"]')).toHaveCount(1);
+  await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
   for (const [label, path] of [
     ['Shortest', findSolution(deal)],
-    ['Longest', findLongestRoute(deal)],
+    ['Most points', findMostPointsRoute(deal, undefined, ['NC'])],
   ]) {
     const total = path.reduce(
       (points, code) => points + (code === 'NC' ? 0 : STATES[code].points),
@@ -513,10 +607,10 @@ test('automatic results and records include the final hinted card penalty', asyn
 
 test('solutions are linked, compact state abbreviations only', async ({ page }) => {
   await seed(page, fixture({ status: 'lost' }));
-  await expect(page.locator('.solution-chain[aria-label="Longest"]')).toHaveCount(1);
+  await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
   for (const [label, expected] of [
     ['Shortest', findSolution(deal)],
-    ['Longest', findLongestRoute(deal)],
+    ['Most points', findMostPointsRoute(deal)],
   ]) {
     const cards = page.locator(`.solution-chain[aria-label="${label}"] .solution-card`);
     expect(await cards.allTextContents()).toEqual(expected);
@@ -531,6 +625,40 @@ test('solutions are linked, compact state abbreviations only', async ({ page }) 
       .locator('#result-dialog')
       .evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth),
   ).toBe(true);
+});
+
+test('equal-length references stay separate when their scores differ', async ({ page }) => {
+  await seed(page, fixture({ status: 'lost', zeroCards: deal.filter((code) => code !== 'GA') }));
+  await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
+  const shortest = page.locator('.solution-chain[aria-label="Shortest"] .solution-card');
+  const best = page.locator('.solution-chain[aria-label="Most points"] .solution-card');
+  expect(await shortest.count()).toBe(await best.count());
+  await expect(page.locator('#solutions h3')).toHaveText(['Shortest 0 pts', 'Most points 1 pts']);
+});
+
+test('all-zero solutions combine and mobile reference cards stay smaller than your route', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ status: 'won', route, zeroCards: deal }));
+  await expect(page.locator('#solutions h3')).toHaveText('Shortest / most points 0 pts');
+  if (isMobile) {
+    for (const width of [320, 360, 650]) {
+      await page.setViewportSize({ width, height: 780 });
+      const reference = page.locator('#solutions .solution-card').first();
+      await expect(reference).toHaveCSS('width', '26px');
+      await expect(reference).toHaveCSS('height', '30px');
+      const player = page.locator('#result-route .solution-card').first();
+      expect(
+        parseFloat(await player.evaluate((element) => getComputedStyle(element).height)),
+      ).toBeGreaterThan(30);
+      expect(
+        await page
+          .locator('#result-dialog')
+          .evaluate((element) => element.scrollWidth <= element.clientWidth),
+      ).toBe(true);
+    }
+  }
 });
 
 test('help, scores, ending a game, and clearing scores work', async ({ page, isMobile }) => {

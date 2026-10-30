@@ -509,6 +509,60 @@ dialog .fine-print {
     font-size: 9px;
   }
 }
+@media (max-width: 760px), (pointer: coarse) and (max-height: 600px) {
+  #solutions .solution-section {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  #solutions .solution-section h3 {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  #solutions .solution-chain {
+    gap: 7px 10px;
+  }
+  #solutions .solution-card {
+    width: 26px;
+    height: 30px;
+    padding: 3px;
+    border-radius: 4px;
+    font-size: 11px;
+    box-shadow: 0 2px 0 #10192b;
+  }
+  #solutions .solution-chain li:not(:last-child)::after {
+    right: -9px;
+    top: 8px;
+    font-size: 9px;
+  }
+  .dialog-top {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    margin: 0;
+  }
+  dialog > h2 {
+    padding-right: 44px;
+    min-height: 32px;
+  }
+  .close-button {
+    position: relative;
+    isolation: isolate;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .close-button::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    z-index: -1;
+    border: 1px solid #3c4965;
+    border-radius: 6px;
+    background: #242d44;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

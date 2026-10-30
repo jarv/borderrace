@@ -100,7 +100,9 @@ screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 Instructions and error messages appear below the map's states without shifting
-the board. The starting prompt fades after the first valid card.
+the board. The starting prompt explains coastal and gold cards, then fades after
+the first valid card. Mobile dialogs put a smaller visual close button beside the
+heading while preserving its touch target.
 In portrait, messages stay below the US in the upper half of the screen. The
 route follows a slight zig-zag about two-thirds down the map and overlaps Texas slightly.
 Long routes wrap into compact rows inside the map, without horizontal scrolling.
@@ -115,9 +117,14 @@ with solid text and borders. Unplayed states have no gameplay coloring.
 **Hint** highlights the next playable card, or a card to remove when backtracking
 is needed. After a hint, the next added card scores zero, even if a different card
 is chosen. That card stays at zero after undo/replay. Results show small linked
-abbreviations for the shortest and longest routes, measured by card count.
-The exact longest-route search runs in a worker; equal-length extremes are shown
-as one solution.
+abbreviations for the shortest route by card count and the most-points route using
+frozen values and hint penalties. Score ties prefer fewer cards. The exact
+most-points search runs in a worker; when the shortest route also maximizes points,
+one combined solution is shown. Reference cards are smaller on mobile while your
+route stays larger.
+Hint messages use abbreviations: `Play NC` or `Remove KY, play GA`. The zero-point
+reminder appears once. A win celebrates for two seconds before results appear;
+reduced motion skips the animation delay. The result is saved immediately.
 
 Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
 hard cards. A hard card appears in more than zero but fewer than 20% of its deal's

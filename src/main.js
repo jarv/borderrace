@@ -41,7 +41,8 @@ let solutionCache;
 let scoringWorker = null;
 let messageAnimation;
 let messageRevision = 0;
-const startMessage = 'Select cards to cross the map. Start with a green coastal card.';
+const startMessage =
+  'Select cards to cross the map. Start with a green coastal card. Gold cards are harder to use and worth 3 points.';
 const audio = createAudio({ enabled: save.soundEnabled });
 document.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 document.addEventListener('keydown', () => audio.unlock(), { once: true });
@@ -190,7 +191,7 @@ function play(code) {
     game = { ...game, route: backtrack(game.route, code) };
     persist();
     render();
-    message(game.hintPending ? 'Next card: 0 points.' : '');
+    message('');
     return;
   }
   if (!canAdd(game.deal, game.route, code)) {
@@ -231,11 +232,11 @@ function finish(forceLoss = false, delayed = false) {
   save = recordResult(save, game);
   persist();
   render();
-  if (delayed) {
+  if (delayed && !reducedMotion.matches) {
     const gameId = game.id;
     resultTimeout = setTimeout(() => {
       if (game.id === gameId) showResult();
-    }, 750);
+    }, 2000);
   } else showResult();
   audio.play(won ? 'win' : 'loss');
   if (won) celebrate();
@@ -255,11 +256,8 @@ $('#hint-button').addEventListener('click', () => {
   game = { ...game, hintPending: true };
   persist();
   render();
-  const name = STATES[hint.code].name;
   message(
-    hint.type === 'undo'
-      ? `Remove ${name} and following cards. Next added card: 0 points.`
-      : `Play ${name}. Next card: 0 points.`,
+    hint.type === 'undo' ? `Remove ${hint.code}, play ${hint.playCode}` : `Play ${hint.code}`,
   );
   const card = $(`[data-card="${hint.code}"]`);
   card.scrollIntoView({ block: 'nearest', behavior: reducedMotion.matches ? 'instant' : 'smooth' });
@@ -322,19 +320,21 @@ function showSolutions() {
     return;
   }
   if (solutionCache?.gameId === game.id) {
-    const longest = solutionCache.longest;
+    const mostPoints = solutionCache.mostPoints;
     $('#solutions').innerHTML =
-      longest && longest.length === shortest.length
-        ? solutionCards(shortest, 'Solution')
+      mostPoints &&
+      score(shortest, game.zeroCards, 0, game.cardPoints) ===
+        score(mostPoints, game.zeroCards, 0, game.cardPoints)
+        ? solutionCards(shortest, 'Shortest / most points')
         : solutionCards(shortest, 'Shortest') +
-          (longest
-            ? solutionCards(longest, 'Longest')
-            : '<p class="fine-print">Longest route unavailable.</p>');
+          (mostPoints
+            ? solutionCards(mostPoints, 'Most points')
+            : '<p class="fine-print">Most points unavailable.</p>');
     return;
   }
   $('#solutions').innerHTML =
     solutionCards(shortest, 'Shortest') +
-    '<p class="fine-print" role="status">Finding longest route…</p>';
+    '<p class="fine-print" role="status">Finding most points…</p>';
   if (solutionWorker) return;
   const gameId = game.id;
   try {
@@ -344,21 +344,26 @@ function showSolutions() {
     solutionWorker = worker;
     worker.onmessage = ({ data }) => {
       if (game.id !== gameId || solutionWorker !== worker) return;
-      solutionCache = { gameId, longest: data.longest };
+      solutionCache = { gameId, mostPoints: data.mostPoints };
       worker.terminate();
       solutionWorker = null;
       showSolutions();
     };
     worker.onerror = () => {
       if (game.id !== gameId || solutionWorker !== worker) return;
-      solutionCache = { gameId, longest: null };
+      solutionCache = { gameId, mostPoints: null };
       worker.terminate();
       solutionWorker = null;
       showSolutions();
     };
-    worker.postMessage({ gameId, deal: game.deal });
+    worker.postMessage({
+      gameId,
+      deal: game.deal,
+      cardPoints: game.cardPoints,
+      zeroCards: game.zeroCards,
+    });
   } catch {
-    solutionCache = { gameId, longest: null };
+    solutionCache = { gameId, mostPoints: null };
     solutionWorker = null;
     showSolutions();
   }

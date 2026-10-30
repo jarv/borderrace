@@ -726,7 +726,7 @@
     padding: 16px;
   }
   .dialog-top {
-    margin-bottom: 4px;
+    margin: 0;
   }
 }
 @media (pointer: coarse) and (max-width: 650px) and (orientation: portrait) {

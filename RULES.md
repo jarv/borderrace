@@ -13,6 +13,8 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
   a route past that coast. **End game** immediately gives up and shows the solutions.
 - **New game** immediately replaces the current game. Abandoned games are not counted.
 - Dismissing the **You win** dialog starts a new game automatically.
+- Wins are saved immediately, with a two-second celebration before results appear.
+  Reduced motion skips the animation delay.
 
 Pacific endpoints: **CA, OR, WA**.
 
@@ -42,7 +44,9 @@ appear above any overlapping route cards.
 ## Hints
 
 **Hint** highlights a valid next card. If backtracking is needed, it highlights
-the card to remove instead.
+the card to remove instead. Messages use abbreviations: **Play XX**, or
+**Remove XX, play YY**. Removing XX still removes its entire suffix; YY is the
+legal next card after that removal. The zero-point reminder is shown once.
 
 After using Hint, the **next successfully added card scores 0**, even if it is
 not the highlighted card. Invalid attempts and removing cards do not consume the
@@ -88,13 +92,15 @@ Each score shows its winning path and points. Older records without paths show a
 ## Solutions
 
 Results show your played route and its points first. Below it are the shortest
-and longest routes using the dealt cards, measured
-by card count, not score. Both obey automatic completion at the first opposite
-coast. If their lengths match, one solution is shown.
+route by card count and the most-points route using the dealt cards and frozen
+point values. Score ties prefer fewer cards. Both obey automatic completion at
+the first opposite coast. If the shortest route also achieves the maximum score,
+one **Shortest / most points** solution is shown.
 
 Each route shows its point total using the game's zero-point cards from hints.
-Routes use small linked cards showing only state abbreviations. The longest
-route is calculated exactly in a worker so the page stays responsive.
+Routes use small linked cards showing only state abbreviations, with smaller
+reference cards on mobile. The most-points route is calculated exactly in a worker
+so the page stays responsive.
 
 ## Local data and effects
 

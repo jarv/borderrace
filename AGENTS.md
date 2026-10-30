@@ -28,10 +28,10 @@ for build/test tools), and commit both package files. No global npm packages.
 
 - `src/data.js`: state names, points, adjacency, coasts.
 - `src/game.js`: pure game logic, solvable deals, exact sequence validation,
-  hints and zero-point penalties, exact shortest/longest routes, backtracking,
+  hints and zero-point penalties, exact shortest/most-points routes, backtracking,
   snapshot validation. No time tracking or special cards.
-- `src/solution-worker.js`: longest-route search, off the main thread. Cancel on
-  new game and ignore stale results. Never label an approximate route “longest”.
+- `src/solution-worker.js`: exact most-points search, off the main thread. Cancel on
+  new game and ignore stale results. Never label an approximate route “most points”.
 - `src/route-count.js` / `src/scoring.js` / `src/prepare-deal.js` / `src/scoring-worker.js`: exact winning-route
   participation and frozen deal points, prepared off-thread before play.
 - `src/storage.js`: versioned local save, defensive loading, personal records.
@@ -90,12 +90,19 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   discontinued-mode saves in the local archive rather than deleting them.
   New winning records include their actual route; show paths and points in scores,
   and a dash for older records without paths.
+  Save wins immediately; allow two seconds of celebration before revealing the
+  result dialog, skipping that delay for reduced motion. New game cancels it.
 - Hints highlight a legal next card, or a card to remove when backtracking is
   needed. Set `hintPending` until the next valid added card; it scores zero even
   if it differs from the hint. Persist its code in `zeroCards` for the whole game,
   including undo/replay. Invalid clicks/removals do not consume the penalty.
-- End results show compact linked cards with abbreviations only for exact
-  shortest/longest routes by card count; show one when the lengths match.
+  Hint text uses abbreviations (`Play XX` or `Remove XX, play YY`), with the
+  zero-point reminder shown only once in its separate label.
+- End results show compact linked cards with abbreviations only for the exact
+  shortest route by card count and most-points route using frozen values and
+  zeroCards, preferring fewer cards on score ties. Show one combined solution only
+  when the shortest route maximizes points. Mobile reference cards stay smaller
+  than the player's route cards.
 - Show the player's actual route and its score above solutions, not a points/states
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
 - Save schema version 2 has no active time/mode fields. Archive old data and
@@ -115,6 +122,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Cards on the hand and map must remain keyboard-accessible buttons. Dialogs use
   native modal behavior; messages use a live status region. Honor
   `prefers-reduced-motion` in CSS and JavaScript.
+  Compact mobile modal headers put the 32px visual close button beside the title
+  while retaining its 44px touch target.
 - Keep animations lightweight (Motion, CSS, canvas). Don't require WebGL to play.
 - Use arcade/mobile-game energy and reward feedback, not a literal casino/card
   table theme. No felt, suits, poker chips, large promotional headings, or hero area.
@@ -123,7 +132,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   “adventures”, promotional headings, redundant chain strip, or reassurance about
   accounts/saving. No diamond icons on cards. Use short functional labels such as
   Hint, End game, Game over, Play again, and Your scores. Show a short initial
-  coastal-card prompt in the map's bottom message area, fading after play starts.
+  coastal-card prompt and one sentence explaining gold difficulty/value in the
+  map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.
 - The map's route cards form a gentle zig-zag about two-thirds down, wrapping to
   fit without horizontal scrolling, not geographic anchors. In portrait,

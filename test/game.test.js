@@ -5,6 +5,7 @@ import {
   createDeal,
   findSolution,
   findLongestRoute,
+  findMostPointsRoute,
   getHint,
   canAdd,
   isComplete,
@@ -83,7 +84,14 @@ test('hints lead to a solution and identify backtracking without mutating the ro
   }
   assert.ok(isComplete(deal, path));
   assert.deepEqual(getHint(deal, path), { type: 'complete' });
-  assert.deepEqual(getHint(deal, ['ME']), { type: 'undo', code: 'ME' });
+  assert.deepEqual(getHint(deal, ['ME']), { type: 'undo', code: 'ME', playCode: 'NC' });
+  const blocked = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'];
+  assert.ok(isLegalRoute(deal, blocked));
+  const undo = getHint(deal, blocked);
+  assert.deepEqual(undo, { type: 'undo', code: 'KY', playCode: 'GA' });
+  const prefix = backtrack(blocked, undo.code);
+  assert.ok(canAdd(deal, prefix, undo.playCode));
+  assert.ok(isComplete(deal, [...prefix, undo.playCode]));
 });
 
 test('a hint zeros the next added card, including a different choice and undo/replay', () => {
@@ -178,6 +186,51 @@ test('longest routes are exact in either direction and end at the first opposite
     assert.ok(isComplete(codes, longest));
   }
   assert.equal(findLongestRoute(['CA', 'ME']), null);
+});
+
+test('most-points routes match exhaustive search with zero cards and shorter score ties', () => {
+  for (const codes of [
+    route,
+    [...route, 'CO', 'KS'],
+    [...route, 'OR', 'ID', 'UT'],
+    [...route, 'GA', 'FL', 'AL'],
+  ]) {
+    const points = Object.fromEntries(codes.map((code, index) => [code, index % 3 === 0 ? 3 : 1]));
+    for (const zeroCards of [[], ['CA', 'TN'], codes]) {
+      let best = null;
+      function visit(path) {
+        if (isComplete(codes, path)) {
+          if (
+            !best ||
+            score(path, zeroCards, 0, points) > score(best, zeroCards, 0, points) ||
+            (score(path, zeroCards, 0, points) === score(best, zeroCards, 0, points) &&
+              path.length < best.length)
+          )
+            best = path;
+          return;
+        }
+        for (const code of codes) if (canAdd(codes, path, code)) visit([...path, code]);
+      }
+      visit([]);
+      const actual = findMostPointsRoute(codes, points, zeroCards);
+      assert.ok(isComplete(codes, actual));
+      assert.equal(score(actual, zeroCards, 0, points), score(best, zeroCards, 0, points));
+      assert.equal(actual.length, best.length);
+    }
+  }
+  assert.equal(findMostPointsRoute(['CA', 'ME']), null);
+});
+
+test('a shorter gold route can score more than the longest route', () => {
+  const codes = createDeal(seeded(10));
+  const points = Object.fromEntries(codes.map((code) => [code, code === 'WA' ? 3 : 1]));
+  const longest = findLongestRoute(codes);
+  const best = findMostPointsRoute(codes, points);
+  assert.equal(longest.length, 20);
+  assert.equal(best.length, 19);
+  assert.equal(score(longest, [], 0, points), 20);
+  assert.equal(score(best, [], 0, points), 21);
+  assert.ok(isComplete(codes, best));
 });
 
 test('storage tolerates corruption, persists pending penalties, and migrates old saves', () => {
