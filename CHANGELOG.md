@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/jarv/borderrace/compare/v1.7.0...v1.8.0) (2026-10-30)
+
+
+### Features
+
+* add GoatCounter tracking script ([a39b53f](https://github.com/jarv/borderrace/commit/a39b53f44baf3ac4fede3e38f425dd7146a4b131))
+
 # [1.7.0](https://github.com/jarv/borderrace/compare/v1.6.0...v1.7.0) (2026-10-30)
 
 
