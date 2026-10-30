@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/jarv/borderrace/compare/v1.4.0...v1.5.0) (2026-10-30)
+
+
+### Features
+
+* show most-points solutions and compact mobile results ([0a7d091](https://github.com/jarv/borderrace/commit/0a7d091f23f97fd31d30fd1361729ee50aeec30f))
+
 # [1.4.0](https://github.com/jarv/borderrace/compare/v1.3.1...v1.4.0) (2026-10-30)
 
 
