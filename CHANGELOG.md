@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/jarv/borderrace/compare/v1.2.0...v1.2.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* fit zig-zag routes and streamline score clearing ([0cc1c00](https://github.com/jarv/borderrace/commit/0cc1c0099ebe3f128e2ed19172d34cf30b5b2b53))
+
 # [1.2.0](https://github.com/jarv/borderrace/compare/v1.1.2...v1.2.0) (2026-10-30)
 
 
