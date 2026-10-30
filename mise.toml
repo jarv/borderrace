@@ -36,6 +36,11 @@ description = "Repeat a route-count benchmark in a Chromium worker"
 depends = ["install"]
 run = "node scripts/benchmark-browser-routes.js"
 
+[tasks."benchmark:gold"]
+description = "Evaluate gold thresholds and bounded gold-containing deal preparation"
+depends = ["install"]
+run = "node scripts/benchmark-gold-deals.js"
+
 [tasks.format]
 description = "Format application, tests, and documentation"
 depends = ["install"]

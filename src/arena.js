@@ -11,6 +11,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
   const rowLine = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   rowLine.setAttribute('class', 'row-line');
   rowLine.setAttribute('aria-hidden', 'true');
+  rowLine.setAttribute('hidden', '');
   layer.append(rowLine);
   const stage = map.parentElement;
   stage.append(layer);
@@ -177,7 +178,13 @@ export function createArena({ map, onPlay, reducedMotion }) {
         '--tilt': `${p.angle}deg`,
       });
     }
-    rowLine.hidden = positions.length < 2;
+    // SVG elements do not implement HTMLElement.hidden: assigning that property
+    // leaves the previous polyline visible. Clear the geometry as well.
+    rowLine.toggleAttribute('hidden', positions.length < 2);
+    if (positions.length < 2) {
+      rowLine.replaceChildren();
+      return;
+    }
     if (positions.length > 1) {
       const top = Math.min(...positions.map((p) => p.y));
       const left = Math.min(...positions.map((p) => p.x));

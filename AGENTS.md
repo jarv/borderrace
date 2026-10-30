@@ -32,7 +32,7 @@ for build/test tools), and commit both package files. No global npm packages.
   snapshot validation. No time tracking or special cards.
 - `src/solution-worker.js`: longest-route search, off the main thread. Cancel on
   new game and ignore stale results. Never label an approximate route “longest”.
-- `src/route-count.js` / `src/scoring.js` / `src/scoring-worker.js`: exact winning-route
+- `src/route-count.js` / `src/scoring.js` / `src/prepare-deal.js` / `src/scoring-worker.js`: exact winning-route
   participation and frozen deal points, prepared off-thread before play.
 - `src/storage.js`: versioned local save, defensive loading, personal records.
 - `src/main.js`: interaction, SVG map, rendering, dialogs, Motion animations,
@@ -71,11 +71,14 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Keep unusual connections (AZ–CO, NM–UT, MI–MN, NY–RI). Gulf-only states are not
   valid coastal endpoints. Preserve original points for unversioned saved games.
 - New games have 1-point cards, with +2 (3 total) for hard cards appearing in more
-  than zero but fewer than 10% of exact winning routes for that deal. Gold marks
+  than zero but fewer than 20% of exact winning routes for that deal. Gold marks
   hard cards; coastal cards remain recognizable. Freeze and persist the point
   table before play; use a spinner during analysis, cancel stale workers on New
   game, and never grant bonuses from incomplete counts. A clearly announced
   all-1-point fallback keeps gameplay available if analysis fails or times out.
+  Successful new scoring (`hard-v2`) requires at least one gold card; re-deal
+  without changing the rarity rule, bounded by 128 candidates and two seconds.
+  Preserve frozen `hard-v1` saves without re-scoring or forcing a replacement.
 - New games are immediately `playing`. No start/finish button, countdown,
   elapsed-time tracking, timestamps, or duration-based scoring/ranking.
 - Reaching the opposite coast automatically wins and ends the route. Longest

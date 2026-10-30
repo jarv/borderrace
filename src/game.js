@@ -1,4 +1,5 @@
 import { CODES, STATES, EAST, WEST, coast } from './data.js';
+import { SCORING_VERSION } from './scoring.js';
 
 export function findSolution(deal) {
   const allowed = new Set(deal);
@@ -200,7 +201,7 @@ export function newGame(random = Math.random) {
   return {
     id: crypto.randomUUID(),
     deal: createDeal(random),
-    scoring: 'hard-v1',
+    scoring: SCORING_VERSION,
     cardPoints: null,
     route: [],
     zeroCards: [],
@@ -231,10 +232,10 @@ export function validGame(game) {
     return false;
   if (game.scoring === undefined) {
     if (game.cardPoints !== undefined) return false;
-  } else if (!['hard-v1', 'base-v1'].includes(game.scoring)) return false;
+  } else if (!['hard-v1', SCORING_VERSION, 'base-v1'].includes(game.scoring)) return false;
   else if (game.cardPoints === null) {
     if (
-      game.scoring !== 'hard-v1' ||
+      !['hard-v1', SCORING_VERSION].includes(game.scoring) ||
       game.route.length ||
       game.zeroCards.length ||
       game.hintPending ||
@@ -243,6 +244,8 @@ export function validGame(game) {
     )
       return false;
   } else if (!validCardPoints(game.deal, game.cardPoints, game.scoring === 'base-v1')) return false;
+  else if (game.scoring === SCORING_VERSION && !Object.values(game.cardPoints).includes(3))
+    return false;
   return game.status !== 'won' || isComplete(game.deal, game.route);
 }
 

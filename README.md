@@ -85,6 +85,10 @@ own temporary loopback fixture server; neither benchmark touches the app's dev s
 Browser compute times exclude worker startup and message passing.
 See [measured route-count results](docs/route-count-benchmark.md) for the
 1,000-deal experiment, stress cases, and reproduction commands.
+Use `mise run benchmark:gold --json /tmp/opencode/gold-deals.json` to compare gold
+thresholds, estimate the remaining hand space, and measure bounded re-dealing.
+See [gold-deal measurements](docs/gold-deal-evaluation.md) for the 100,000-hand
+estimate and Node/Chromium preparation results.
 
 ## Made for phones, too
 
@@ -116,10 +120,13 @@ The exact longest-route search runs in a worker; equal-length extremes are shown
 as one solution.
 
 Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
-hard cards. A hard card appears in more than zero but fewer than 10% of its deal's
+hard cards. A hard card appears in more than zero but fewer than 20% of its deal's
 winning routes. Values are calculated exactly before play, with a loading spinner,
 and remain fixed across undo and reloads. If analysis is unavailable or exceeds
 its budget, a notice appears and the game uses fixed 1-point cards instead.
+Successful analysis re-deals hands without gold so every new bonus-scored game
+has at least one gold card. Preparation is bounded to 128 candidates and two
+seconds; existing games keep their saved values.
 
 Invalid card selections deduct the card's assigned value on every attempt.
 Undoing is free, but does not erase deductions. Scores can go negative; deductions

@@ -14,11 +14,17 @@ if (!input) throw new Error('Use --input <Node benchmark JSON> [--json <output>]
 const source = JSON.parse(await readFile(input, 'utf8'));
 const workerSource = `
 import { countWinningRoutes } from '/scripts/count-routes.js';
+import { createDeal } from '/src/game.js';
+import { prepareGoldDeal } from '/src/prepare-deal.js';
 self.onmessage = ({ data }) => {
   const started = performance.now();
-  const result = countWinningRoutes(data.deal, {
-    shouldStop: () => performance.now() - started >= data.budget,
-  });
+  const shouldStop = () => performance.now() - started >= data.budget;
+  let result;
+  if (data.kind === 'gold-deals') {
+    let seed = data.seed;
+    const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+    result = prepareGoldDeal(createDeal(random), {nextDeal: () => createDeal(random), shouldStop, maxAttempts: data.maxAttempts});
+  } else result = countWinningRoutes(data.deal, {shouldStop});
   self.postMessage({ ...result, milliseconds: performance.now() - started });
 };`;
 // An ephemeral, loopback-only fixture server. No changes to the app/dev server.
@@ -27,6 +33,9 @@ const server = createServer(async (request, response) => {
     '/scripts/count-routes.js': new URL('./count-routes.js', import.meta.url),
     '/src/data.js': new URL('../src/data.js', import.meta.url),
     '/src/route-count.js': new URL('../src/route-count.js', import.meta.url),
+    '/src/game.js': new URL('../src/game.js', import.meta.url),
+    '/src/scoring.js': new URL('../src/scoring.js', import.meta.url),
+    '/src/prepare-deal.js': new URL('../src/prepare-deal.js', import.meta.url),
   };
   try {
     if (request.url === '/') {
@@ -54,7 +63,7 @@ try {
   const page = await browser.newPage();
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   const results = await page.evaluate(
-    async ({ fixtures, budget }) => {
+    async ({ fixtures, budget, kind, maxAttempts }) => {
       const worker = new Worker('/worker.js', { type: 'module' });
       const results = [];
       try {
@@ -62,10 +71,22 @@ try {
           const result = await new Promise((resolve, reject) => {
             worker.onmessage = ({ data }) => resolve(data);
             worker.onerror = (event) => reject(new Error(event.message));
-            worker.postMessage({ deal: fixture.deal, budget });
+            worker.postMessage({
+              deal: fixture.deal,
+              seed: fixture.seed,
+              budget,
+              kind,
+              maxAttempts,
+            });
           });
           if (result.complete && fixture.complete) {
-            if (
+            if (kind === 'gold-deals') {
+              if (
+                JSON.stringify(result.deal) !== JSON.stringify(fixture.deal) ||
+                JSON.stringify(result.cardPoints) !== JSON.stringify(fixture.cardPoints)
+              )
+                throw new Error(`Gold-deal mismatch at seed ${fixture.seed}`);
+            } else if (
               String(result.routes) !== fixture.routes ||
               fixture.deal.some((code) => String(result.byCard[code]) !== fixture.byCard[code])
             )
@@ -83,7 +104,12 @@ try {
       }
       return results;
     },
-    { fixtures: source.results, budget: source.options['budget-ms'] },
+    {
+      fixtures: source.results,
+      budget: source.options['budget-ms'],
+      kind: source.kind,
+      maxAttempts: source.options['max-attempts'],
+    },
   );
   console.log(`Headless Chromium ${browser.version()}, dedicated worker, ${cpus()[0]?.model}`);
   console.log(
@@ -91,7 +117,7 @@ try {
   );
   const percentile = (values, fraction) =>
     values[Math.max(0, Math.ceil(values.length * fraction) - 1)];
-  for (const cohort of ['random', 'dense-selected']) {
+  for (const cohort of [...new Set(results.map((result) => result.cohort))]) {
     const group = results.filter((result) => result.cohort === cohort);
     if (!group.length) continue;
     const exact = group.filter((result) => result.complete);

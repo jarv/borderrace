@@ -14,8 +14,9 @@ import {
   pointsFor,
   findSolution,
   getHint,
-  validCardPoints,
+  validGame,
 } from './game.js';
+import { SCORING_VERSION } from './scoring.js';
 import { loadSave, writeSave, recordResult } from './storage.js';
 import './style.css';
 import './arena.css';
@@ -137,16 +138,19 @@ function fresh() {
 function prepareScoring(dealAnimation = false) {
   const gameId = game.id;
   let worker = null;
-  const complete = (cardPoints) => {
+  const complete = (cardPoints, deal) => {
     if (game.id !== gameId || scoringWorker !== worker) return;
     worker?.terminate();
     scoringWorker = null;
-    const exact = validCardPoints(game.deal, cardPoints);
-    game = {
-      ...game,
-      scoring: exact ? 'hard-v1' : 'base-v1',
-      cardPoints: exact ? cardPoints : Object.fromEntries(game.deal.map((code) => [code, 1])),
-    };
+    const candidate = { ...game, deal, scoring: SCORING_VERSION, cardPoints };
+    const exact = Boolean(cardPoints && validGame(candidate));
+    game = exact
+      ? candidate
+      : {
+          ...game,
+          scoring: 'base-v1',
+          cardPoints: Object.fromEntries(game.deal.map((code) => [code, 1])),
+        };
     persist();
     render(dealAnimation);
     if (dealAnimation) audio.play('deal');
@@ -157,7 +161,7 @@ function prepareScoring(dealAnimation = false) {
     worker = new Worker(new URL('./scoring-worker.js', document.baseURI), { type: 'module' });
     scoringWorker = worker;
     worker.onmessage = ({ data }) => {
-      if (data.gameId === gameId) complete(data.cardPoints);
+      if (data.gameId === gameId) complete(data.cardPoints, data.deal);
     };
     worker.onerror = (event) => {
       event.preventDefault();
@@ -276,7 +280,7 @@ function render(dealAnimation = false, arrival) {
     .map((code) => {
       const state = STATES[code];
       const placed = game.route.includes(code);
-      const hard = game.scoring === 'hard-v1' && game.cardPoints?.[code] === 3;
+      const hard = game.cardPoints?.[code] === 3;
       const value = pending
         ? '…'
         : game.hintPending && !placed
@@ -308,7 +312,7 @@ function showResult() {
 }
 
 function solutionCards(path, label, mistakePoints = 0) {
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.scoring === 'hard-v1' && game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {

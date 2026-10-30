@@ -8,7 +8,8 @@ import { join, extname } from 'node:path';
 import { createServer } from 'node:http';
 import { chromium } from '@playwright/test';
 import { extract, list } from 'tar';
-import { CODES } from './src/data.js';
+import { createDeal } from './src/game.js';
+import { SCORING_VERSION } from './src/scoring.js';
 import { STORAGE_KEY, emptySave } from './src/storage.js';
 
 execFileSync(process.execPath, ['release.js', '1.0.0'], { stdio: 'inherit' });
@@ -95,8 +96,8 @@ try {
     const requests = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('request', (request) => requests.push(new URL(request.url()).pathname));
-    const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
-    const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
+    let seed = 7;
+    const deal = createDeal(() => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
     await page.addInitScript(({ key, data }) => localStorage.setItem(key, JSON.stringify(data)), {
       key: STORAGE_KEY,
       data: {
@@ -109,7 +110,7 @@ try {
           hintPending: false,
           mistakePoints: 0,
           status: 'playing',
-          scoring: 'hard-v1',
+          scoring: SCORING_VERSION,
           cardPoints: null,
         },
       },

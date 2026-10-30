@@ -57,8 +57,8 @@ Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 
 total**, and is marked gold. Coastal hard cards retain a green background with a
 gold border so they remain recognizable as coastal cards.
 
-Hard cards occur in **more than zero but fewer than 10%** of this deal's winning
-routes. Exactly 10% is not hard; cards that cannot occur in a winning route stay
+Hard cards occur in **more than zero but fewer than 20%** of this deal's winning
+routes. Exactly 20% is not hard; cards that cannot occur in a winning route stay
 at 1 point. Count all legal ordered winning routes from either coast, stopping at
 the first opposite coast. Reversed routes count separately when both are legal.
 
@@ -67,6 +67,10 @@ game, including undo, hints, and reloads. If analysis fails or exceeds its work
 budget, a notice is shown and all cards are frozen at 1 point. Partial counts
 never grant bonuses. Existing games retain their original point values, and
 previous score records are not recalculated.
+New successfully analyzed games always contain at least one gold card. During
+preparation, hands without gold are re-dealt, up to 128 candidates within the
+worker's two-second computation budget. The announced all-1-point fallback is
+the exception if a qualifying hand cannot be prepared within those limits.
 
 The score is the sum of the route's assigned values, excluding zero-point cards.
 Hints zero the whole card, including any hard-card bonus.

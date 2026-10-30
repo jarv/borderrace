@@ -9,7 +9,7 @@ import {
   score,
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
-import { pointsFromCounts } from '../src/scoring.js';
+import { pointsFromCounts, SCORING_VERSION } from '../src/scoring.js';
 
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
@@ -28,7 +28,7 @@ const hardDeal = createDeal(
 );
 const hardPoints = pointsFromCounts(hardDeal, countWinningRoutes(hardDeal));
 const modernFixture = (overrides = {}) =>
-  fixture({ deal: hardDeal, scoring: 'hard-v1', cardPoints: hardPoints, ...overrides });
+  fixture({ deal: hardDeal, scoring: SCORING_VERSION, cardPoints: hardPoints, ...overrides });
 
 async function seed(page, game = fixture()) {
   await page.addInitScript(
@@ -128,9 +128,56 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
   await page.evaluate(() => window.releaseScoring());
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
   const game = (await saved(page)).game;
-  expect(game.scoring).toBe('hard-v1');
+  expect(game.scoring).toBe(SCORING_VERSION);
+  expect(Object.values(game.cardPoints)).toContain(3);
   expect(game.cardPoints).toEqual(pointsFromCounts(game.deal, countWinningRoutes(game.deal)));
   await expect(page.locator('.state-card').first()).toBeEnabled();
+});
+
+test('connectors disappear on undo and New game, including normal and reduced motion', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    await page.emulateMedia({ reducedMotion });
+    // Restore a fixed, already-scored legacy deal between motion variants.
+    await page.evaluate(
+      ({ key, game }) => {
+        const data = JSON.parse(localStorage.getItem(key));
+        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+      },
+      { key: STORAGE_KEY, game: fixture() },
+    );
+    await page.reload();
+    for (const code of ['CA', 'AZ']) await press(page.locator(`[data-card="${code}"]`), isMobile);
+    await expect(page.locator('.row-line')).toBeVisible();
+    await expect(page.locator('.row-line polyline')).toHaveCount(1);
+    await press(page.locator('[data-card="AZ"]'), isMobile);
+    await expect(page.locator('.row-line')).toBeHidden();
+    await expect(page.locator('.row-line polyline')).toHaveCount(0);
+    await press(page.locator('[data-card="AZ"]'), isMobile);
+    await expect(page.locator('.row-line')).toBeVisible();
+    await press(page.locator('#new-game'), isMobile);
+    await expect(page.locator('.row-line')).toBeHidden();
+    await expect(page.locator('.row-line polyline')).toHaveCount(0);
+    await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.locator('[data-chain]')).toHaveCount(0);
+    expect(await page.locator('.state-card.hard').count()).toBeGreaterThanOrEqual(1);
+  }
+});
+
+test('older hard-card games keep their saved points without a forced reroll', async ({ page }) => {
+  const original = modernFixture({
+    scoring: 'hard-v1',
+    cardPoints: Object.fromEntries(hardDeal.map((code) => [code, 1])),
+    route: ['OR'],
+  });
+  await seed(page, original);
+  await expect(page.locator('[data-chain="OR"] small')).toHaveText('1 PT');
+  await expect(page.locator('.state-card.hard')).toHaveCount(0);
+  await page.reload();
+  expect((await saved(page)).game).toEqual(original);
 });
 
 test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {

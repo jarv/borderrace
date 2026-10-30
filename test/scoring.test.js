@@ -12,7 +12,8 @@ import {
   findContinuation,
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
-import { pointsFromCounts } from '../src/scoring.js';
+import { pointsFromCounts, SCORING_VERSION } from '../src/scoring.js';
+import { prepareGoldDeal } from '../src/prepare-deal.js';
 import { emptySave, writeSave, loadSave, recordResult } from '../src/storage.js';
 
 let seed = 7;
@@ -21,18 +22,18 @@ const counts = countWinningRoutes(deal);
 const cardPoints = pointsFromCounts(deal, counts);
 const fixture = (overrides = {}) => ({ ...newGame(), deal, cardPoints, ...overrides });
 
-test('hard bonuses use exact participation below 10%, excluding zero and the boundary', () => {
+test('hard bonuses use exact participation below 20%, excluding zero and the boundary', () => {
   assert.deepEqual(
     pointsFromCounts(['CA', 'OR', 'WA', 'AZ', 'NM'], {
       complete: true,
       routes: 100n,
-      byCard: { CA: 0n, OR: 1n, WA: 9n, AZ: 10n, NM: 100n },
+      byCard: { CA: 0n, OR: 1n, WA: 19n, AZ: 20n, NM: 100n },
     }),
     { CA: 1, OR: 3, WA: 3, AZ: 1, NM: 1 },
   );
   const huge = 10n ** 30n;
   assert.equal(
-    pointsFromCounts(['CA'], { complete: true, routes: huge, byCard: { CA: huge / 10n - 1n } }).CA,
+    pointsFromCounts(['CA'], { complete: true, routes: huge, byCard: { CA: huge / 5n - 1n } }).CA,
     3,
   );
   assert.throws(() => pointsFromCounts(deal, { ...counts, complete: false }));
@@ -47,6 +48,56 @@ test('hard bonuses use exact participation below 10%, excluding zero and the bou
   );
   assert.equal(pointsFromCounts(otherDeal, countWinningRoutes(otherDeal)).OR, 1);
   assert.equal(cardPoints.OR, 3);
+  assert.equal(
+    validGame(
+      fixture({
+        scoring: SCORING_VERSION,
+        cardPoints: Object.fromEntries(deal.map((code) => [code, 1])),
+      }),
+    ),
+    false,
+  );
+  assert.ok(
+    validGame(
+      fixture({
+        scoring: 'hard-v1',
+        cardPoints: Object.fromEntries(deal.map((code) => [code, 1])),
+      }),
+    ),
+  );
+});
+
+test('preparation only accepts exact, solvable gold-containing hands and bounds retries', () => {
+  let s = 1;
+  const noGold = createDeal(() => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+  let draws = 0;
+  const result = prepareGoldDeal(noGold, {
+    nextDeal: () => {
+      draws++;
+      return deal;
+    },
+  });
+  assert.equal(result.complete, true);
+  assert.equal(result.attempts, 2);
+  assert.equal(draws, 1);
+  assert.deepEqual(result.deal, deal);
+  assert.deepEqual(result.cardPoints, cardPoints);
+  assert.ok(validGame(fixture({ deal: result.deal, cardPoints: result.cardPoints })));
+  const kept = prepareGoldDeal(deal, {
+    nextDeal: () => {
+      throw new Error('Unnecessary reroll');
+    },
+  });
+  assert.equal(kept.attempts, 1);
+  const exhausted = prepareGoldDeal(noGold, { maxAttempts: 2, nextDeal: () => noGold });
+  assert.equal(exhausted.complete, false);
+  assert.equal(exhausted.reason, 'attempt limit');
+  assert.equal(exhausted.attempts, 2);
+  assert.equal(exhausted.cardPoints, undefined);
+  const cancelled = prepareGoldDeal(noGold, { shouldStop: () => true });
+  assert.equal(cancelled.complete, false);
+  assert.equal(cancelled.attempts, 0);
+  assert.throws(() => prepareGoldDeal(noGold, { maxAttempts: 0 }));
 });
 
 test('deal points stay fixed through hints, invalid selections, undo, and replay', () => {
