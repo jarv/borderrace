@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/jarv/borderrace/compare/v1.3.0...v1.3.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* fingerprint production assets to prevent stale updates ([d654b4b](https://github.com/jarv/borderrace/commit/d654b4bcc08fe865fe1988b4ae948d77824cb4e3))
+
 # [1.3.0](https://github.com/jarv/borderrace/compare/v1.2.1...v1.3.0) (2026-10-30)
 
 
