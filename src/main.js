@@ -63,6 +63,7 @@ $('#sound-button').addEventListener('click', () => {
 renderSound();
 
 $('#map').innerHTML = mapSvg;
+const mapViewBox = $('#map svg').viewBox.baseVal;
 // Also strip labels from an already-running dev server's older virtual SVG.
 $$('.map-state text, .map-state title').forEach((label) => label.remove());
 $$('.map-state').forEach((group) => {
@@ -78,7 +79,11 @@ $$('.map-state').forEach((group) => {
     DE: [906, 230],
   };
   const [x, y] = adjustments[code] ?? [box.x + box.width / 2, box.y + box.height / 2];
-  mapCenters[code] = [x, y];
+  // Chain layout uses normalized coordinates, independent of the SVG crop.
+  mapCenters[code] = [
+    ((x - mapViewBox.x) / mapViewBox.width) * 1000,
+    ((y - mapViewBox.y) / mapViewBox.height) * 610,
+  ];
 });
 const arena = createArena({ map: $('#map'), centers: mapCenters, onPlay: play, reducedMotion });
 

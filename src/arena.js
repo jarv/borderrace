@@ -171,8 +171,12 @@ export function createArena({ map, centers, onPlay, reducedMotion }) {
         '--tilt': `${p.angle}deg`,
       });
     }
+    const viewBox = map.querySelector('svg').viewBox.baseVal;
     const line = positions
-      .map((p) => `${(p.x / bounds.width) * 1000},${(p.y / bounds.height) * 610}`)
+      .map(
+        (p) =>
+          `${viewBox.x + (p.x / bounds.width) * viewBox.width},${viewBox.y + (p.y / bounds.height) * viewBox.height}`,
+      )
       .join(' ');
     map.querySelector('#route-lines').innerHTML =
       positions.length > 1

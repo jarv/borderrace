@@ -188,6 +188,48 @@ test('map states highlight and translucent cards retain solid borders and text',
   await expect(page.locator('.map-state[data-code="AZ"]')).not.toHaveClass(/on-route/);
 });
 
+test('the map fills and centers its artwork while route cards and lines stay aligned', async ({
+  page,
+  isMobile,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page);
+  for (const [width, height] of isMobile
+    ? [
+        [360, 780],
+        [915, 412],
+        [320, 568],
+      ]
+    : [
+        [1440, 1000],
+        [1024, 844],
+      ]) {
+    await page.setViewportSize({ width, height });
+    const svg = await page.locator('#map svg').boundingBox();
+    const artwork = await page.locator('#state-shapes').boundingBox();
+    const panel = await page.locator('.map-wrap').boundingBox();
+    expect(artwork.width / svg.width).toBeGreaterThan(0.95);
+    expect(Math.abs(artwork.x + artwork.width / 2 - panel.x - panel.width / 2)).toBeLessThan(3);
+    expect(Math.abs(artwork.y + artwork.height / 2 - svg.y - svg.height / 2)).toBeLessThan(3);
+    expect(
+      await page
+        .locator('#message')
+        .evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
+    ).toBeGreaterThanOrEqual(13);
+  }
+  for (const code of ['CA', 'AZ']) await press(page.locator(`[data-card="${code}"]`), isMobile);
+  const alignment = await page.evaluate(() => {
+    const line = document.querySelector('.route-line');
+    return ['CA', 'AZ'].map((code, index) => {
+      const point = line.points.getItem(index);
+      const screen = new DOMPoint(point.x, point.y).matrixTransform(line.getScreenCTM());
+      const card = document.querySelector(`[data-chain="${code}"]`).getBoundingClientRect();
+      return Math.hypot(screen.x - card.x - card.width / 2, screen.y - card.y - card.height / 2);
+    });
+  });
+  for (const distance of alignment) expect(distance).toBeLessThan(1);
+});
+
 test('mistakes persist, stack, preserve hints, and count in final scores', async ({
   page,
   isMobile,

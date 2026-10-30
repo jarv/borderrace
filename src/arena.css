@@ -360,12 +360,12 @@
   pointer-events: none;
 }
 .message-wrap {
-  max-width: 420px;
+  max-width: 540px;
 }
 #message {
   margin: 0;
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.4;
   color: #c4d3e9;
   text-wrap: pretty;
 }
@@ -552,7 +552,7 @@
     font-size: 8px;
   }
   #message {
-    font-size: 10px;
+    font-size: 13px;
   }
 }
 @media (pointer: coarse) and (max-width: 650px),
@@ -668,18 +668,20 @@
   }
   .map-wrap {
     min-height: 0;
-    padding: 0 0 54px;
+    padding: 0 0 72px;
   }
   #map {
-    width: min(100%, calc((100dvh - 132px) * 1000 / 610));
+    width: min(100%, calc((100dvh - 150px) * 870 / 560));
     max-height: 100%;
   }
   .map-card strong {
     font-size: 18px;
   }
-  #message,
+  #message {
+    font-size: 13px;
+  }
   #hint-cost {
-    font-size: 10px;
+    font-size: 12px;
   }
   .storage-warning {
     position: absolute;
@@ -743,7 +745,7 @@
     min-height: 120px;
   }
   #map {
-    width: min(100%, calc((100dvh - 474px) * 1000 / 610));
+    width: min(100%, calc((100dvh - 492px) * 870 / 560));
     min-width: min(100%, 240px);
   }
   .hand {
