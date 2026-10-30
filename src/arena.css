@@ -10,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   min-height: 72px;
   padding: 12px 20px 16px;
   position: relative;
@@ -47,6 +47,7 @@
 .trip-stats {
   display: flex;
   gap: 28px;
+  margin-left: auto;
 }
 .trip-stats > div {
   min-width: 85px;
@@ -219,10 +220,6 @@
   padding: 18px 20px 14px;
   background: radial-gradient(ellipse at 50% 40%, #202b45, #141c2f 80%);
 }
-.map-controls {
-  display: flex;
-  justify-content: flex-end;
-}
 .map-wrap {
   position: relative;
   flex: 1;
@@ -280,9 +277,6 @@
   stroke-width: 12;
   stroke-linejoin: round;
   pointer-events: none;
-}
-#map-toggle {
-  display: none;
 }
 #map-chain {
   position: absolute;
@@ -362,6 +356,9 @@
   border-top: 1px solid #2f3e58;
   background: #1c253a;
 }
+.game-bottom:has(.message-wrap[hidden]):has(#hint-cost[hidden]) {
+  display: none;
+}
 .message-wrap {
   display: flex;
   align-items: center;
@@ -398,7 +395,6 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  margin-left: auto;
 }
 #arena-effects {
   position: fixed;
@@ -528,22 +524,9 @@
 }
 @media (max-width: 760px) {
   .game-toolbar {
-    min-height: 66px;
-    padding: 10px 12px 13px;
-    gap: 10px;
-  }
-  .trip-stats {
-    gap: 15px;
-  }
-  .trip-stats > div {
-    min-width: 57px;
-  }
-  .trip-stats strong {
-    font-size: 25px;
-  }
-  .stat-label {
-    font-size: 6px;
-    letter-spacing: 1px;
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 8px;
   }
   .board-layout {
     display: flex;
@@ -554,17 +537,9 @@
     padding: 4px 12px 8px;
     border-bottom: 1px solid #35425b;
   }
-  #map-toggle {
-    display: block;
-    font-size: 10px;
-    min-height: 44px;
-  }
   .map-wrap {
     min-height: 0;
     padding: 0 3px 8px;
-  }
-  .map-collapsed .map-wrap {
-    display: none;
   }
   .map-card strong {
     font-size: 19px;
@@ -608,53 +583,173 @@
     width: 23px;
     height: 23px;
   }
-  .game-actions {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 30;
-    padding: 12px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    background: #151d2ff5;
-    border-top: 1px solid #354560;
-    backdrop-filter: blur(10px);
-    justify-content: space-between;
+}
+@media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+  body {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
   }
-  .game-actions button {
-    min-height: 46px;
+  .site-header {
+    display: none;
   }
-  .game-actions #end-game {
-    min-width: 150px;
+  main {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    position: relative;
   }
-  .message-wrap.error {
-    position: fixed;
-    left: 10px;
-    right: 10px;
-    bottom: calc(82px + env(safe-area-inset-bottom));
-    z-index: 31;
-    padding: 12px;
-    background: #31283e;
-    border: 1px solid #815162;
+  .game-shell {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     border-radius: 8px;
-    box-shadow: 0 4px 20px #0004;
+  }
+  .game-toolbar {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    min-height: 52px;
+    gap: 8px;
+    padding: 4px 8px;
+  }
+  .game-toolbar nav,
+  .game-actions {
+    gap: 4px;
+  }
+  .game-toolbar button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  #hint-button {
+    min-width: 44px;
+  }
+  .scores-label {
+    display: none;
+  }
+  .trip-stats > div {
+    min-width: 48px;
+  }
+  .trip-stats strong {
+    font-size: 22px;
+  }
+  .stat-label {
+    font-size: 6px;
+    margin-bottom: 2px;
+  }
+  .board-layout {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(298px, 36%) minmax(0, 1fr);
+  }
+  .hand {
+    min-height: 0;
+    max-height: none;
+    padding: 6px;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    border-right: 1px solid #2e3c56;
+  }
+  .section-label {
+    margin-bottom: 6px;
+  }
+  .section-label h2 {
+    font-size: 10px;
+  }
+  .cards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .state-card {
+    height: clamp(48px, calc((100dvh - 112px) / 4), 68px);
+    min-height: 44px;
+    padding: 4px;
+    border-radius: 5px;
+  }
+  .state-card > strong {
+    font-size: 21px;
+  }
+  .card-top {
+    font-size: 4px;
+    letter-spacing: 0;
+  }
+  .card-points {
+    font-size: 9px;
+  }
+  .card-name {
+    font-size: 6px;
+  }
+  .card-check {
+    right: 3px;
+    bottom: 12px;
+    font-size: 9px;
+  }
+  .map-panel {
+    order: 0;
+    min-height: 0;
+    padding: 6px;
+    border-bottom: 0;
+  }
+  .map-wrap {
+    min-height: 0;
+    padding: 0;
+  }
+  #map {
+    width: min(100%, calc((100dvh - 78px) * 1000 / 610));
+    max-height: 100%;
+  }
+  .map-card strong {
+    font-size: 18px;
+  }
+  .game-bottom {
+    flex: 0 0 auto;
+    min-height: 22px;
+    padding: 2px 8px;
+    gap: 8px;
+  }
+  .message-icon {
+    display: none;
+  }
+  #message,
+  #hint-cost {
+    font-size: 10px;
+  }
+  #hint-cost {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .storage-warning {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 40;
+    margin: 0;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  dialog {
+    padding: 16px;
+  }
+  .dialog-top {
+    margin-bottom: 4px;
   }
 }
-@media (max-height: 500px) and (pointer: coarse) and (min-width: 761px) {
-  body {
-    padding-bottom: 80px;
+@media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) and (max-width: 740px) {
+  .board-layout {
+    grid-template-columns: 250px minmax(0, 1fr);
   }
-  .game-actions {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 30;
-    justify-content: flex-end;
-    padding: 10px 24px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    background: #151d2ff5;
-    border-top: 1px solid #354560;
+  .cards {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .game-toolbar {
+    gap: 4px;
+  }
+  .game-toolbar button {
+    padding-inline: 6px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

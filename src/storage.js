@@ -46,9 +46,7 @@ export function loadSave(storage) {
       game: validGame(data.game) ? data.game : null,
       records: Array.isArray(data.records)
         ? data.records
-            .filter(
-              (r) => r && typeof r.id === 'string' && Number.isFinite(r.points) && r.points >= 0,
-            )
+            .filter((r) => r && typeof r.id === 'string' && Number.isFinite(r.points))
             .map(({ id, points }) => ({ id, points }))
             .sort((a, b) => b.points - a.points)
             .slice(0, 10)
@@ -75,7 +73,7 @@ export function writeSave(storage, save) {
 export function recordResult(save, game) {
   if (save.game?.id === game.id && ['won', 'lost'].includes(save.game.status)) return save;
   const won = game.status === 'won';
-  const record = { id: game.id, points: score(game.route, game.zeroCards) };
+  const record = { id: game.id, points: score(game.route, game.zeroCards, game.mistakePoints) };
   const records = won ? [record, ...save.records.filter((r) => r.id !== game.id)] : save.records;
   return {
     ...save,

@@ -162,8 +162,8 @@ export function isComplete(deal, route) {
 
 export const pointsFor = (code, zeroCards = []) =>
   zeroCards.includes(code) ? 0 : (STATES[code]?.points ?? 0);
-export const score = (route, zeroCards = []) =>
-  route.reduce((total, code) => total + pointsFor(code, zeroCards), 0);
+export const score = (route, zeroCards = [], mistakePoints = 0) =>
+  route.reduce((total, code) => total + pointsFor(code, zeroCards), 0) - mistakePoints;
 export const backtrack = (route, code) =>
   route.includes(code) ? route.slice(0, route.indexOf(code)) : route;
 
@@ -180,6 +180,17 @@ export function addCard(game, code) {
   };
 }
 
+export function penalizeInvalidCard(game, code) {
+  if (
+    game.status !== 'playing' ||
+    !game.deal.includes(code) ||
+    game.route.includes(code) ||
+    canAdd(game.deal, game.route, code)
+  )
+    return game;
+  return { ...game, mistakePoints: (game.mistakePoints ?? 0) + STATES[code].points };
+}
+
 export function newGame(random = Math.random) {
   return {
     id: crypto.randomUUID(),
@@ -187,6 +198,7 @@ export function newGame(random = Math.random) {
     route: [],
     zeroCards: [],
     hintPending: false,
+    mistakePoints: 0,
     status: 'playing',
   };
 }
@@ -205,6 +217,8 @@ export function validGame(game) {
     new Set(game.zeroCards).size !== game.zeroCards.length ||
     !game.zeroCards.every((code) => game.deal.includes(code)) ||
     typeof game.hintPending !== 'boolean' ||
+    (game.mistakePoints !== undefined &&
+      (!Number.isSafeInteger(game.mistakePoints) || game.mistakePoints < 0)) ||
     !['playing', 'won', 'lost'].includes(game.status)
   )
     return false;

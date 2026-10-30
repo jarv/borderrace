@@ -27,7 +27,9 @@ locations. Cards have translucent backgrounds with opaque borders and text.
 Undoing cards also removes their state highlights. Unplayed states have no
 deck or next-move coloring. The map has no state labels.
 
-On phones the hand scrolls independently and the map can be collapsed.
+On phones, rotate to landscape to play. Smaller cards sit on the left, with the
+map always visible on the right and controls in one row. The hand scrolls
+independently when needed. **?** opens How to play.
 
 ## Hints
 
@@ -44,6 +46,11 @@ replaying it. Pending penalties and zero-point cards persist across reloads.
 ## Points and records
 
 The score is the sum of the route's card values, excluding zero-point cards.
+Each invalid card selection subtracts the state's original point value, including
+invalid first cards and repeated mistakes. Hint penalties do not reduce this cost.
+Undoing cards is free and does not erase mistake deductions. Scores may be negative.
+Mistake deductions persist across reloads and reset with New game. Your final score
+and personal records include them; example solution scores do not include mistakes.
 
 | Points | States                                                                     |
 | ------ | -------------------------------------------------------------------------- |

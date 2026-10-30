@@ -78,7 +78,7 @@ test('connecting the coasts wins automatically and saves the result exactly once
 test('invalid cards are rejected and undo removes a suffix', async ({ page, isMobile }) => {
   await seed(page);
   await press(page.locator('[data-card="AZ"]'), isMobile);
-  await expect(page.locator('#message')).toHaveText('Choose a coastal card.');
+  await expect(page.locator('#message')).toHaveText('Choose a coastal card. −2 pts');
   await expect(page.locator('[data-chain]')).toHaveCount(0);
   for (const code of route.slice(0, 3))
     await press(page.locator(`[data-card="${code}"]`), isMobile);
@@ -87,7 +87,7 @@ test('invalid cards are rejected and undo removes a suffix', async ({ page, isMo
   await expect(page.locator('[data-chain]')).toHaveCount(3);
   await press(page.locator('[data-card="AZ"]'), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);
-  await expect(page.locator('#score')).toContainText('1');
+  await expect(page.locator('#score')).toHaveText('-2 pts');
 });
 
 test('map states highlight and translucent cards retain solid borders and text', async ({
@@ -122,6 +122,27 @@ test('map states highlight and translucent cards retain solid borders and text',
   await press(page.locator('[data-card="AZ"]'), isMobile);
   await expect(page.locator('.map-state.on-route')).toHaveCount(1);
   await expect(page.locator('.map-state[data-code="AZ"]')).not.toHaveClass(/on-route/);
+});
+
+test('mistakes persist, stack, preserve hints, and count in final scores', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  await press(page.locator('#hint-button'), isMobile);
+  for (let i = 0; i < 2; i++) await press(page.locator('[data-card="AZ"]'), isMobile);
+  await expect(page.locator('#score')).toHaveText('-4 pts');
+  expect((await saved(page)).game.hintPending).toBe(true);
+  await page.reload();
+  await expect(page.locator('#score')).toHaveText('-4 pts');
+  for (const code of route) await press(page.locator(`[data-card="${code}"]`), isMobile);
+  await expect(page.locator('#result-route h3')).toHaveText('Your route 6 pts');
+  expect((await saved(page)).records[0].points).toBe(6);
+  await page.reload();
+  await expect(page.locator('#result-route h3')).toHaveText('Your route 6 pts');
+  await press(page.locator('#play-again'), isMobile);
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  expect((await saved(page)).game.mistakePoints).toBe(0);
 });
 
 test('a hint zeros any next chosen card and the penalty survives undo and reload', async ({
@@ -307,27 +328,93 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   await expect(page.locator('.flying-card')).toHaveCount(0);
 });
 
-test('phone and desktop layouts fit, with usable touch targets and map controls', async ({
-  page,
-  isMobile,
-}) => {
+test('phone and desktop layouts fit, with usable touch targets', async ({ page, isMobile }) => {
   await seed(page);
-  for (const width of isMobile ? [320, 375, 390, 430, 650] : [768, 1024, 1440]) {
-    await page.setViewportSize({ width, height: 844 });
+  const sizes = isMobile
+    ? [
+        [915, 412],
+        [915, 320],
+        [844, 390],
+        [780, 360],
+        [650, 320],
+        [568, 320],
+      ]
+    : [
+        [768, 844],
+        [1024, 844],
+        [1440, 1000],
+      ];
+  for (const [width, height] of sizes) {
+    await page.setViewportSize({ width, height });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
     const box = await page.locator('.state-card').first().boundingBox();
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
+    if (isMobile) {
+      const hand = await page.locator('.hand').boundingBox();
+      const map = await page.locator('.map-panel').boundingBox();
+      expect(hand.x + hand.width).toBeLessThanOrEqual(map.x + 1);
+      expect(Math.abs(hand.y - map.y)).toBeLessThan(1);
+      expect(map.y + map.height).toBeLessThanOrEqual(height);
+      const controls = await page
+        .locator('#hint-button, #sound-button, #records-button, #help-button, #new-game, #end-game')
+        .evaluateAll((buttons) =>
+          buttons.map((button) => {
+            const { x, y, width, height } = button.getBoundingClientRect();
+            return { x, y, width, height };
+          }),
+        );
+      expect(
+        Math.max(...controls.map((b) => b.y)) - Math.min(...controls.map((b) => b.y)),
+      ).toBeLessThan(1);
+      for (const control of controls) {
+        expect(control.width).toBeGreaterThanOrEqual(44);
+        expect(control.height).toBeGreaterThanOrEqual(44);
+        expect(control.x + control.width).toBeLessThanOrEqual(width);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(
+        true,
+      );
+    }
   }
   if (isMobile) {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await press(page.locator('#map-toggle'), true);
-    await expect(page.locator('#map')).toBeHidden();
-    await press(page.locator('#map-toggle'), true);
-    await expect(page.locator('#map')).toBeVisible();
-    const actions = await page.locator('.game-actions').boundingBox();
-    expect(actions.y + actions.height).toBeLessThanOrEqual(845);
+    await page.setViewportSize({ width: 915, height: 412 });
+    expect(
+      await page.locator('.hand').evaluate((hand) => hand.scrollHeight <= hand.clientHeight),
+    ).toBe(true);
+    await press(page.locator('[data-card="CA"]'), true);
+    await expect(page.locator('[data-chain="CA"]')).toBeVisible();
+    await press(page.locator('[data-chain="CA"]'), true);
+    await expect(page.locator('[data-chain]')).toHaveCount(0);
   }
+});
+
+test('portrait phones require rotation without losing the current game', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Phone orientation requirement');
+  await seed(page, fixture({ route: ['CA'] }));
+  for (const width of [320, 375, 390, 430, 650]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(page.locator('.rotate-prompt')).toBeVisible();
+    await expect(page.locator('main')).toHaveAttribute('inert', '');
+    await expect(page.locator('#cards')).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 915, height: 412 });
+  await expect(page.locator('.rotate-prompt')).toBeHidden();
+  await expect(page.locator('main')).not.toHaveAttribute('inert', '');
+  await expect(page.locator('[data-chain="CA"]')).toBeVisible();
+  expect((await saved(page)).game.route).toEqual(['CA']);
+  await press(page.locator('#help-button'), true);
+  await page.setViewportSize({ width: 412, height: 915 });
+  await expect(page.locator('.rotate-prompt')).toBeVisible();
+  await expect(page.locator('#help-dialog')).toHaveAttribute('inert', '');
+  await page.setViewportSize({ width: 915, height: 412 });
+  await expect(page.locator('#help-dialog')).toBeVisible();
 });

@@ -14,6 +14,7 @@ import {
   newGame,
   validGame,
   addCard,
+  penalizeInvalidCard,
 } from '../src/game.js';
 import { emptySave, loadSave, writeSave, recordResult, STORAGE_KEY } from '../src/storage.js';
 import { layoutChain } from '../src/chain.js';
@@ -112,6 +113,40 @@ test('new games are immediately playable and have no time fields', () => {
   assert.equal(validGame({ ...game, hintPending: 'yes' }), false);
   assert.ok(validGame(fixture({ status: 'won', route })));
   assert.equal(validGame(fixture({ status: 'won', route: ['CA', 'NC'] })), false);
+});
+
+test('invalid selections deduct original points repeatedly without consuming hints', () => {
+  let game = fixture({ hintPending: true, zeroCards: ['AZ'] });
+  game = penalizeInvalidCard(game, 'AZ');
+  assert.equal(game.mistakePoints, 2);
+  game = penalizeInvalidCard(game, 'AZ');
+  assert.equal(score(game.route, game.zeroCards, game.mistakePoints), -4);
+  assert.equal(game.hintPending, true);
+  assert.equal(penalizeInvalidCard(game, 'CA'), game);
+  assert.equal(penalizeInvalidCard(game, 'wild'), game);
+  game = addCard(game, 'CA');
+  assert.equal(game.mistakePoints, 4);
+  assert.equal(penalizeInvalidCard(game, 'CA'), game);
+  game = { ...game, route: backtrack(game.route, 'CA') };
+  assert.equal(score(game.route, game.zeroCards, game.mistakePoints), -4);
+  for (const status of ['won', 'lost']) {
+    const ended = { ...game, status };
+    assert.equal(penalizeInvalidCard(ended, 'AZ'), ended);
+  }
+  assert.equal(newGame().mistakePoints, 0);
+  const { mistakePoints, ...oldGame } = game;
+  assert.ok(validGame(oldGame));
+  for (const value of [-1, 1.5, '2', null, Infinity, Number.MAX_SAFE_INTEGER + 1])
+    assert.equal(validGame({ ...game, mistakePoints: value }), false);
+});
+
+test('mistake deductions and negative winning records survive storage', () => {
+  const game = fixture({ route, status: 'won', mistakePoints: 20 });
+  const save = recordResult(emptySave(), game);
+  assert.equal(save.records[0].points, -9);
+  const loaded = loadSave({ getItem: () => JSON.stringify(save) });
+  assert.deepEqual(loaded.game, game);
+  assert.deepEqual(loaded.records, save.records);
 });
 
 test('longest routes are exact in either direction and end at the first opposite coast', () => {

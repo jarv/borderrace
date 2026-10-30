@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#101320" />
     <meta
       name="description"
@@ -18,28 +18,36 @@
       <a class="brand" href="./" aria-label="Border Race home"
         ><span class="brand-icon" aria-hidden="true">ϟ</span> border<span>race</span></a
       >
-      <nav aria-label="Information">
-        <button
-          class="text-button sound-button"
-          id="sound-button"
-          aria-pressed="true"
-          aria-label="Sound on, click to mute"
-        >
-          Sound on
-        </button>
-        <button class="text-button" id="records-button">
-          Your scores <span aria-hidden="true">↗</span></button
-        ><button class="text-button" id="help-button">
-          How to play <span class="question-icon" aria-hidden="true">?</span>
-        </button>
-      </nav>
     </header>
+    <section class="rotate-prompt" aria-labelledby="rotate-heading">
+      <span aria-hidden="true">↻</span>
+      <h1 id="rotate-heading">Rotate your phone</h1>
+      <p>Play in landscape.</p>
+    </section>
     <main>
       <section class="game-shell" aria-label="Border Race game">
         <div class="game-toolbar">
           <div class="hint-controls">
-            <button id="hint-button" class="secondary-button">Hint</button
-            ><span id="hint-cost" hidden>Next card: 0 pts</span>
+            <button id="hint-button" class="secondary-button">Hint</button>
+          </div>
+          <nav aria-label="Game controls">
+            <button
+              class="text-button sound-button"
+              id="sound-button"
+              aria-pressed="true"
+              aria-label="Sound on, click to mute"
+            >
+              Sound on
+            </button>
+            <button class="text-button" id="records-button" aria-label="Your scores">
+              <span class="scores-label">Your </span>scores</button
+            ><button class="text-button" id="help-button" aria-label="How to play">
+              <span class="question-icon" aria-hidden="true">?</span>
+            </button>
+          </nav>
+          <div class="game-actions">
+            <button id="new-game" class="secondary-button">New game</button>
+            <button id="end-game" class="primary-button">End game</button>
           </div>
           <div class="trip-stats">
             <div>
@@ -56,7 +64,6 @@
             <div id="cards" class="cards"></div>
           </section>
           <section class="map-panel" aria-label="Map">
-            <div class="map-controls"></div>
             <div class="map-wrap">
               <div id="map"></div>
             </div>
@@ -67,11 +74,7 @@
             <span class="message-icon" aria-hidden="true">↗</span>
             <p id="message" role="status" aria-live="polite"></p>
           </div>
-          <div class="game-actions">
-            <button id="new-game" class="secondary-button">
-              New game <span aria-hidden="true">⤨</span></button
-            ><button id="end-game" class="primary-button">End game</button>
-          </div>
+          <span id="hint-cost" hidden>Next card: 0 pts</span>
         </div>
       </section>
       <p id="storage-warning" class="storage-warning" hidden>
@@ -101,6 +104,10 @@
           points.
         </li>
       </ol>
+      <p>
+        Each invalid card selection deducts that state's original point value, even after a hint.
+        Repeated mistakes deduct points again. Undoing cards is free. Scores can go negative.
+      </p>
       <p>
         Hint highlights the next card, or a card to remove if the route is blocked. After using
         Hint, the next card you add scores 0, even if you choose a different card. That card stays

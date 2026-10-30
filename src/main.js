@@ -8,6 +8,7 @@ import {
   canAdd,
   backtrack,
   addCard,
+  penalizeInvalidCard,
   isComplete,
   score,
   pointsFor,
@@ -118,18 +119,16 @@ $$('dialog').forEach((dialog) => {
   dialog.addEventListener('close', () => previousFocus?.focus());
 });
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
-const mapToggle = document.createElement('button');
-mapToggle.id = 'map-toggle';
-mapToggle.className = 'text-button';
-mapToggle.textContent = 'Hide map −';
-mapToggle.setAttribute('aria-expanded', 'true');
-mapToggle.setAttribute('aria-controls', 'map');
-$('.map-controls').append(mapToggle);
-mapToggle.addEventListener('click', () => {
-  const collapsed = $('.map-panel').classList.toggle('map-collapsed');
-  mapToggle.setAttribute('aria-expanded', String(!collapsed));
-  mapToggle.textContent = collapsed ? 'Show map +' : 'Hide map −';
-});
+const portraitPhone = window.matchMedia(
+  '(pointer: coarse) and (max-width: 650px) and (orientation: portrait)',
+);
+function syncOrientation() {
+  $$('.site-header, main, dialog').forEach((element) => {
+    element.inert = portraitPhone.matches;
+  });
+}
+portraitPhone.addEventListener('change', syncOrientation);
+syncOrientation();
 
 function confirmAction(action, title, copy, label) {
   pendingAction = action;
@@ -180,11 +179,14 @@ function play(code) {
     return;
   }
   if (!canAdd(game.deal, game.route, code)) {
+    game = penalizeInvalidCard(game, code);
+    persist();
+    render();
     const last = game.route.at(-1);
     const text = !last
       ? 'Choose a coastal card.'
       : `${STATES[code].name} doesn’t border ${STATES[last].name}.`;
-    message(text, true);
+    message(`${text} −${STATES[code].points} pts`, true);
     audio.play('invalid');
     const card = $(`[data-card="${code}"]`);
     if (card && !reducedMotion.matches) animate(card, { x: [0, -5, 5, -3, 0] }, { duration: 0.28 });
@@ -253,7 +255,8 @@ $('#hint-button').addEventListener('click', () => {
 function render(dealAnimation = false, arrival) {
   const ended = ['won', 'lost'].includes(game.status);
   $('.game-shell').classList.toggle('trip-ended', ended);
-  $('#score').innerHTML = `${score(game.route, game.zeroCards)} <small>pts</small>`;
+  $('#score').innerHTML =
+    `${score(game.route, game.zeroCards, game.mistakePoints)} <small>pts</small>`;
   $('#hint-cost').hidden = !game.hintPending || ended;
   const focusCode = document.activeElement?.dataset.card;
   $('#cards').innerHTML = game.deal
@@ -278,15 +281,15 @@ function showResult() {
   clearTimeout(resultTimeout);
   const won = game.status === 'won';
   $('#result-title').textContent = won ? 'You win' : 'Game over';
-  $('#result-route').hidden = !game.route.length;
-  $('#result-route').innerHTML = game.route.length ? solutionCards(game.route, 'Your route') : '';
+  $('#result-route').hidden = false;
+  $('#result-route').innerHTML = solutionCards(game.route, 'Your route', game.mistakePoints);
   showSolutions();
   message(won ? 'You win.' : 'Game over.');
   openDialog('#result-dialog');
 }
 
-function solutionCards(path, label) {
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
+function solutionCards(path, label, mistakePoints = 0) {
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {

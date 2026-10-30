@@ -11,7 +11,14 @@ export default defineConfig({
       name: 'desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1000 } },
     },
-    { name: 'phone', use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' } },
+    {
+      name: 'phone',
+      use: {
+        ...devices['Galaxy S9+'],
+        viewport: { width: 915, height: 412 },
+        defaultBrowserType: 'chromium',
+      },
+    },
   ],
   webServer: {
     command: 'PORT=4174 node build.js --serve',

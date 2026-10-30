@@ -40,9 +40,11 @@ Alaska, Hawaii, and DC are excluded. See [third-party credits](THIRD_PARTY.md).
 
 ## Made for phones, too
 
-The phone layout has touch-sized CSS cards, an independently scrolling hand,
-a collapsible map, fixed bottom game
-controls, safe-area padding, and responsive dialogs. Everything is also usable
+Phones require landscape; portrait shows a rotate-phone prompt. The compact layout
+puts smaller, touch-sized cards on the left and the map on the right, with Hint,
+sound, scores, **?** (help), New game, and End game in one row. The board fits the
+Galaxy S25's landscape viewport, with an independently scrolling hand on shorter
+screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 
@@ -59,8 +61,12 @@ abbreviations for the shortest and longest routes, measured by card count.
 The exact longest-route search runs in a worker; equal-length extremes are shown
 as one solution.
 
+Invalid card selections deduct the state's original point value on every attempt.
+Undoing is free, but does not erase deductions. Scores can go negative; deductions
+survive reloads, count toward personal records, and reset with New game.
+
 Short synthesized sounds accompany links and completion. Sound starts
-only after interaction; the header toggle mutes it and remembers your preference.
+only after interaction; the Sound toggle mutes it and remembers your preference.
 There is no music, autoplay, or external audio download.
 
 The current game and top 10 wins are saved to local storage.
