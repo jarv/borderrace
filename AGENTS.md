@@ -48,6 +48,8 @@ for build/test tools), and commit both package files. No global npm packages.
 - `build.js`: esbuild entry point; extracts 48 state paths, bundles the SVG and
   application locally, and writes the site to `dist/`. Development watch/server
   mode is `--serve`. No framework or separate asset build pipeline.
+- `build-assets.js`: content-hashed production assets and relative HTML/worker URL
+  rewriting. Dev filenames stay stable; HTML must not use immutable caching.
 - `test/`: Node unit tests; `browser/`: Playwright desktop and mobile tests on
   port 4174, separate from the user's port-4173 dev server. Do not stop that server.
 - `.github/workflows/{ci,release}.yml`: mise-based checks and semantic-release.

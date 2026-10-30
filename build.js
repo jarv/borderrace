@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild';
 import { readFile, mkdir, writeFile, copyFile, rm } from 'node:fs/promises';
 import { STATES } from './src/data.js';
+import { fingerprintAssets } from './build-assets.js';
 
 const serve = process.argv.includes('--serve');
 // Extract only known state paths, never scripts, inline styles, or event handlers.
@@ -64,9 +65,11 @@ const context = await esbuild.context({
           );
           await writeFile('dist/LICENSES.txt', licenses.join('\n\n--------------------\n\n'));
         });
-        build.onEnd((result) => {
-          if (!result.errors.length)
+        build.onEnd(async (result) => {
+          if (!result.errors.length) {
+            if (!serve) await fingerprintAssets('dist');
             console.log(`Built ${Object.keys(result.metafile.outputs).length} assets → dist/`);
+          }
         });
       },
     },

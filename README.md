@@ -148,6 +148,16 @@ time fields. New games and records do not track any time.
 
 `mise run build` writes the standalone static site to `dist/`. It needs no backend;
 use any static web server to serve that directory. Generated files are ignored by Git.
+Production JavaScript, CSS, workers, and the favicon use content-hashed filenames
+under `dist/assets/`. HTML and worker references are updated automatically, so
+changed assets get fresh URLs while unchanged assets keep their cache keys.
+Development builds retain stable filenames for fast rebuilds.
+
+For hosting, revalidate HTML and metadata (`Cache-Control: no-cache`); successful
+hashed asset responses can use `public, max-age=31536000, immutable`. Do not apply
+long-lived caching to missing files. Already-open tabs may need refreshing after
+an update. Release verification also runs the packaged site in Chromium under a
+subpath, so install the browser runtime before `mise run test:release`.
 
 To build and verify a release archive locally:
 
