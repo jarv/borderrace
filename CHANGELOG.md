@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/jarv/borderrace/compare/v1.1.0...v1.1.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* fit mobile portrait play with map above compact cards ([be30647](https://github.com/jarv/borderrace/commit/be306472d4bf566d4a7d17688ee2e5abf95cf65a))
+
 # [1.1.0](https://github.com/jarv/borderrace/compare/v1.0.0...v1.1.0) (2026-10-30)
 
 
