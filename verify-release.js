@@ -22,6 +22,7 @@ assert.deepEqual(entries.sort(), [
   'app.js',
   'favicon.svg',
   'index.html',
+  'scoring-worker.js',
   'solution-worker.js',
   'version.json',
 ]);

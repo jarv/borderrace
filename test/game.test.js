@@ -21,7 +21,10 @@ import { layoutChain } from '../src/chain.js';
 
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
-const fixture = (overrides = {}) => ({ ...newGame(), deal, ...overrides });
+const fixture = (overrides = {}) => {
+  const { scoring, cardPoints, ...legacy } = newGame();
+  return { ...legacy, deal, ...overrides };
+};
 const seeded = (seed) => () => {
   seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
   return seed / 2 ** 32;
@@ -101,7 +104,7 @@ test('a hint zeros the next added card, including a different choice and undo/re
   assert.equal(score(route, ['NC']), 10);
 });
 
-test('new games are immediately playable and have no time fields', () => {
+test('new games begin playing with pending points and have no time fields', () => {
   const game = newGame(seeded(23));
   assert.equal(game.status, 'playing');
   assert.deepEqual(game.route, []);

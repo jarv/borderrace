@@ -26,6 +26,16 @@ run = "node --test"
 description = "Check formatting, test, and build the frontend"
 depends = ["format:check", "test", "build"]
 
+[tasks."benchmark:routes"]
+description = "Measure exact winning-route counts and per-card participation (development only)"
+depends = ["install"]
+run = "node scripts/benchmark-routes.js"
+
+[tasks."benchmark:routes:browser"]
+description = "Repeat a route-count benchmark in a Chromium worker"
+depends = ["install"]
+run = "node scripts/benchmark-browser-routes.js"
+
 [tasks.format]
 description = "Format application, tests, and documentation"
 depends = ["install"]

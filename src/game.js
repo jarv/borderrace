@@ -160,15 +160,16 @@ export function isComplete(deal, route) {
   );
 }
 
-export const pointsFor = (code, zeroCards = []) =>
-  zeroCards.includes(code) ? 0 : (STATES[code]?.points ?? 0);
-export const score = (route, zeroCards = [], mistakePoints = 0) =>
-  route.reduce((total, code) => total + pointsFor(code, zeroCards), 0) - mistakePoints;
+export const pointsFor = (code, zeroCards = [], cardPoints) =>
+  zeroCards.includes(code) ? 0 : (cardPoints?.[code] ?? STATES[code]?.points ?? 0);
+export const score = (route, zeroCards = [], mistakePoints = 0, cardPoints) =>
+  route.reduce((total, code) => total + pointsFor(code, zeroCards, cardPoints), 0) - mistakePoints;
 export const backtrack = (route, code) =>
   route.includes(code) ? route.slice(0, route.indexOf(code)) : route;
 
 export function addCard(game, code) {
-  if (game.status !== 'playing' || !canAdd(game.deal, game.route, code)) return game;
+  if (game.status !== 'playing' || game.cardPoints === null || !canAdd(game.deal, game.route, code))
+    return game;
   return {
     ...game,
     route: [...game.route, code],
@@ -183,18 +184,24 @@ export function addCard(game, code) {
 export function penalizeInvalidCard(game, code) {
   if (
     game.status !== 'playing' ||
+    game.cardPoints === null ||
     !game.deal.includes(code) ||
     game.route.includes(code) ||
     canAdd(game.deal, game.route, code)
   )
     return game;
-  return { ...game, mistakePoints: (game.mistakePoints ?? 0) + STATES[code].points };
+  return {
+    ...game,
+    mistakePoints: (game.mistakePoints ?? 0) + pointsFor(code, [], game.cardPoints),
+  };
 }
 
 export function newGame(random = Math.random) {
   return {
     id: crypto.randomUUID(),
     deal: createDeal(random),
+    scoring: 'hard-v1',
+    cardPoints: null,
     route: [],
     zeroCards: [],
     hintPending: false,
@@ -222,5 +229,33 @@ export function validGame(game) {
     !['playing', 'won', 'lost'].includes(game.status)
   )
     return false;
+  if (game.scoring === undefined) {
+    if (game.cardPoints !== undefined) return false;
+  } else if (!['hard-v1', 'base-v1'].includes(game.scoring)) return false;
+  else if (game.cardPoints === null) {
+    if (
+      game.scoring !== 'hard-v1' ||
+      game.route.length ||
+      game.zeroCards.length ||
+      game.hintPending ||
+      game.mistakePoints ||
+      game.status !== 'playing'
+    )
+      return false;
+  } else if (!validCardPoints(game.deal, game.cardPoints, game.scoring === 'base-v1')) return false;
   return game.status !== 'won' || isComplete(game.deal, game.route);
+}
+
+export function validCardPoints(deal, cardPoints, baseOnly = false) {
+  return Boolean(
+    cardPoints &&
+    typeof cardPoints === 'object' &&
+    !Array.isArray(cardPoints) &&
+    Object.keys(cardPoints).length === deal.length &&
+    deal.every(
+      (code) =>
+        Object.hasOwn(cardPoints, code) &&
+        (cardPoints[code] === 1 || (!baseOnly && cardPoints[code] === 3)),
+    ),
+  );
 }

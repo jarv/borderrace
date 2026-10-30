@@ -1,7 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { CODES, STATES } from '../src/data.js';
 import { STORAGE_KEY, emptySave } from '../src/storage.js';
-import { findSolution, findLongestRoute } from '../src/game.js';
+import {
+  findSolution,
+  findLongestRoute,
+  findContinuation,
+  createDeal,
+  score,
+} from '../src/game.js';
+import { countWinningRoutes } from '../src/route-count.js';
+import { pointsFromCounts } from '../src/scoring.js';
 
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
@@ -14,6 +22,13 @@ const fixture = (overrides = {}) => ({
   status: 'playing',
   ...overrides,
 });
+let hardSeed = 7;
+const hardDeal = createDeal(
+  () => (hardSeed = (Math.imul(hardSeed, 1664525) + 1013904223) >>> 0) / 2 ** 32,
+);
+const hardPoints = pointsFromCounts(hardDeal, countWinningRoutes(hardDeal));
+const modernFixture = (overrides = {}) =>
+  fixture({ deal: hardDeal, scoring: 'hard-v1', cardPoints: hardPoints, ...overrides });
 
 async function seed(page, game = fixture()) {
   await page.addInitScript(
@@ -35,6 +50,139 @@ async function press(locator, mobile) {
 async function saved(page) {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY);
 }
+
+test('hard cards are gold, worth three points, and retain their frozen values after reload', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, modernFixture());
+  await expect(page.locator('.state-card.hard')).toHaveCount(3);
+  await expect(page.locator('[data-card="OR"]')).toHaveAccessibleName(/3 points, hard card/);
+  await expect(page.locator('[data-card="OR"]')).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
+  await expect(page.locator('[data-card="NM"] .card-points')).toHaveText('1 PT');
+  await press(page.locator('[data-card="OR"]'), isMobile);
+  await expect(page.locator('#score')).toHaveText('3 pts');
+  await expect(page.locator('[data-chain="OR"]')).toHaveClass(/hard/);
+  await press(page.locator('[data-card="GA"]'), isMobile);
+  await expect(page.locator('#message')).toContainText('−3 pts');
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  await page.reload();
+  expect((await saved(page)).game.cardPoints).toEqual(hardPoints);
+  await expect(page.locator('[data-chain="OR"] small')).toHaveText('3 PTS');
+  await press(page.locator('#hint-button'), isMobile);
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('#score')).toHaveText('0 pts');
+  expect((await saved(page)).game.zeroCards).toEqual(['CA']);
+});
+
+test('preparation shows a spinner, blocks play, and ignores superseded scoring results', async ({
+  page,
+  isMobile,
+}) => {
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.heldScoring = [];
+    window.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        super(url, options);
+        if (String(url).endsWith('/scoring-worker.js')) {
+          this.postMessage = (data) => window.heldScoring.push({ worker: this, data });
+        }
+      }
+    };
+    window.releaseScoring = () => {
+      const { worker, data } = window.heldScoring.at(-1);
+      NativeWorker.prototype.postMessage.call(worker, data);
+    };
+  });
+  await seed(page);
+  await press(page.locator('#new-game'), isMobile);
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#message')).toHaveText('Preparing cards…');
+  await expect(page.locator('.state-card').first()).toBeDisabled();
+  await expect(page.locator('#hint-button')).toBeDisabled();
+  await expect(page.locator('#end-game')).toBeDisabled();
+  expect(
+    await page
+      .locator('#message')
+      .evaluate((element) => getComputedStyle(element, '::before').content),
+  ).not.toBe('none');
+  await page.locator('.state-card').first().dispatchEvent('click');
+  expect((await saved(page)).game.route).toEqual([]);
+  const firstId = (await saved(page)).game.id;
+  await press(page.locator('#new-game'), isMobile);
+  expect((await saved(page)).game.id).not.toBe(firstId);
+  await page.evaluate(() => {
+    const { worker, data } = window.heldScoring[0];
+    worker.onmessage({
+      data: {
+        gameId: data.gameId,
+        cardPoints: Object.fromEntries(data.deal.map((code) => [code, 3])),
+      },
+    });
+  });
+  expect((await saved(page)).game.cardPoints).toBeNull();
+  await page.evaluate(() => window.releaseScoring());
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  const game = (await saved(page)).game;
+  expect(game.scoring).toBe('hard-v1');
+  expect(game.cardPoints).toEqual(pointsFromCounts(game.deal, countWinningRoutes(game.deal)));
+  await expect(page.locator('.state-card').first()).toBeEnabled();
+});
+
+test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      constructor(url, options) {
+        if (String(url).endsWith('/scoring-worker.js')) throw new Error('Blocked worker');
+        super(url, options);
+      }
+    };
+  });
+  await page.goto('/');
+  await expect(page.locator('#message')).toHaveText('Bonus unavailable. All cards: 1 pt.');
+  await expect(page.locator('.state-card.hard')).toHaveCount(0);
+  await expect(page.locator('.state-card').first()).toBeEnabled();
+  const game = (await saved(page)).game;
+  expect(game.scoring).toBe('base-v1');
+  expect(Object.values(game.cardPoints)).toEqual(Array(24).fill(1));
+});
+
+test('hard-card values apply to results, reference solutions, and saved scores', async ({
+  page,
+  isMobile,
+}) => {
+  const path = findContinuation(hardDeal, ['OR']);
+  await seed(
+    page,
+    modernFixture({ route: path.slice(0, -1), zeroCards: ['OR'], mistakePoints: 3 }),
+  );
+  await press(page.locator(`[data-card="${path.at(-1)}"]`), isMobile);
+  const total = score(path, ['OR'], 3, hardPoints);
+  await expect(page.locator('#result-route h3')).toHaveText(`Your route ${total} pts`);
+  await expect(page.locator('#result-route .solution-card.hard')).toHaveCount(
+    path.filter((code) => hardPoints[code] === 3).length,
+  );
+  for (const [label, solution] of [
+    ['Shortest', findSolution(hardDeal)],
+    ['Longest', findLongestRoute(hardDeal)],
+  ]) {
+    await expect(
+      page
+        .locator('#solutions .solution-section')
+        .filter({ has: page.locator(`ol[aria-label="${label}"]`) })
+        .locator('h3'),
+    ).toHaveText(`${label} ${score(solution, ['OR'], 0, hardPoints)} pts`);
+  }
+  expect((await saved(page)).records[0].points).toBe(total);
+  await page.reload();
+  await expect(page.locator('#result-route h3')).toHaveText(`Your route ${total} pts`);
+  expect((await saved(page)).records).toHaveLength(1);
+});
 
 test('games are playable immediately with no wildcard, timer, start, or finish controls', async ({
   page,
@@ -377,6 +525,7 @@ test('all win dialog dismissal controls start a new game and scores show the win
 }) => {
   await seed(page);
   for (const method of ['close', 'escape', 'play-again']) {
+    await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
     await page.evaluate(
       ({ key, game }) => {
         const data = JSON.parse(localStorage.getItem(key));

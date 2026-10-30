@@ -58,6 +58,34 @@ deal generation, scoring, audio, and local storage.
 The application is plain JavaScript, CSS, and SVG, bundled with esbuild. See
 [AGENTS.md](AGENTS.md) for the source map, architecture, and contribution guidance.
 
+### Route-count experiment
+
+```sh
+mise run benchmark:routes
+mise run benchmark:routes --deals 100 --seed 1 --budget-ms 1000 --json /tmp/opencode/routes.json
+mise run browser:install # once, for the optional browser measurement
+mise run benchmark:routes:browser --input /tmp/opencode/routes.json --json /tmp/opencode/browser-routes.json
+```
+
+This development-only benchmark exhaustively counts winning routes, per-card
+participation, and route lengths without changing gameplay or point values.
+An ordered route counts once; both travel directions are included, and reaching
+the first opposite coast stops the route. Reversed sequences are distinct when
+both are legal. Counts use exact integers.
+
+The random cohort uses reproducible solvable 24-card deals. A separate stress
+cohort selects the most connected deals from a candidate pool (`--dense 5
+--candidates 1000` by default). Timings include per-card counting but exclude
+deal generation. Runs exceeding the per-deal budget are interrupted; their counts
+are lower bounds, not exact results. Desktop Node timings do not establish mobile
+browser performance. This is an enumeration baseline, not a claim of optimal speed.
+The optional Playwright measurement repeats the saved deals in a dedicated Chromium
+worker and checks completed totals against the Node run. It starts and closes its
+own temporary loopback fixture server; neither benchmark touches the app's dev server.
+Browser compute times exclude worker startup and message passing.
+See [measured route-count results](docs/route-count-benchmark.md) for the
+1,000-deal experiment, stress cases, and reproduction commands.
+
 ## Made for phones, too
 
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
@@ -87,9 +115,17 @@ abbreviations for the shortest and longest routes, measured by card count.
 The exact longest-route search runs in a worker; equal-length extremes are shown
 as one solution.
 
-Invalid card selections deduct the state's original point value on every attempt.
+Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
+hard cards. A hard card appears in more than zero but fewer than 10% of its deal's
+winning routes. Values are calculated exactly before play, with a loading spinner,
+and remain fixed across undo and reloads. If analysis is unavailable or exceeds
+its budget, a notice appears and the game uses fixed 1-point cards instead.
+
+Invalid card selections deduct the card's assigned value on every attempt.
 Undoing is free, but does not erase deductions. Scores can go negative; deductions
 survive reloads, count toward personal records, and reset with New game.
+Hints zero the full card value, including bonuses. Existing games and records keep
+their original values.
 
 Short synthesized sounds accompany links and completion. Sound starts
 only after interaction; the Sound toggle mutes it and remembers your preference.

@@ -4,7 +4,8 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 
 ## Playing
 
-- A solvable deal is ready when the page opens. There is no start button or time limit.
+- A solvable deal is prepared when the page opens. A spinner shows while card
+  values are calculated, then play is ready without a start button or time limit.
 - Begin with a card marked **COAST**, then add cards that border the last state.
 - Each state can appear only once in the route.
 - Clicking a played card in the hand or on the map removes it and all following cards.
@@ -52,19 +53,28 @@ replaying it. Pending penalties and zero-point cards persist across reloads.
 
 ## Points and records
 
-The score is the sum of the route's card values, excluding zero-point cards.
-Each invalid card selection subtracts the state's original point value, including
+Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
+total**, and is marked gold. Coastal hard cards retain a green background with a
+gold border so they remain recognizable as coastal cards.
+
+Hard cards occur in **more than zero but fewer than 10%** of this deal's winning
+routes. Exactly 10% is not hard; cards that cannot occur in a winning route stay
+at 1 point. Count all legal ordered winning routes from either coast, stopping at
+the first opposite coast. Reversed routes count separately when both are legal.
+
+Values are calculated exactly in a worker **before play**, then frozen for that
+game, including undo, hints, and reloads. If analysis fails or exceeds its work
+budget, a notice is shown and all cards are frozen at 1 point. Partial counts
+never grant bonuses. Existing games retain their original point values, and
+previous score records are not recalculated.
+
+The score is the sum of the route's assigned values, excluding zero-point cards.
+Hints zero the whole card, including any hard-card bonus.
+Each invalid card selection subtracts the card's assigned value (1 or 3), including
 invalid first cards and repeated mistakes. Hint penalties do not reduce this cost.
 Undoing cards is free and does not erase mistake deductions. Scores may be negative.
 Mistake deductions persist across reloads and reset with New game. Your final score
 and personal records include them; example solution scores do not include mistakes.
-
-| Points | States                                                                     |
-| ------ | -------------------------------------------------------------------------- |
-| 1      | AL, AR, CA, CO, GA, IN, KS, KY, LA, MD, MS, MO, NV, NC, SD, TN, VA, WV, WY |
-| 2      | AZ, DE, FL, ID, IL, IA, MN, MT, NE, NJ, ND, OH, OK, OR, SC, TX, UT         |
-| 3      | CT, MA, MI, NH, NM, NY, PA, RI, VT, WA, WI                                 |
-| 4      | ME                                                                         |
 
 Personal records keep the top 10 wins by points. Equal scores put the most recent
 game first. No countdown, elapsed duration, or completion time is tracked or stored

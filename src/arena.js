@@ -25,6 +25,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
   let currentRoute = [];
   let ended = false;
   let zeroCards = [];
+  let cardPoints;
 
   function effect(element, keyframes, options) {
     // Bound transient effects during fast tapping and clean them up on completion.
@@ -159,7 +160,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
       clone.remove();
       flights.delete(code);
       target.style.removeProperty('opacity');
-      sparkle(target, pointsFor(code, zeroCards));
+      sparkle(target, pointsFor(code, zeroCards, cardPoints));
     });
   }
 
@@ -200,10 +201,11 @@ export function createArena({ map, onPlay, reducedMotion }) {
     }
   }
 
-  function sync(route, isEnded, arrival, zeroPointCards = []) {
+  function sync(route, isEnded, arrival, zeroPointCards = [], dealPoints) {
     currentRoute = route;
     ended = isEnded;
     zeroCards = zeroPointCards;
+    cardPoints = dealPoints;
     map.querySelectorAll('.map-state').forEach((state) => {
       state.classList.toggle('on-route', route.includes(state.dataset.code));
     });
@@ -236,7 +238,8 @@ export function createArena({ map, onPlay, reducedMotion }) {
         layer.append(card);
       }
       card.disabled = ended;
-      const value = pointsFor(code, zeroCards);
+      const value = pointsFor(code, zeroCards, cardPoints);
+      card.classList.toggle('hard', Boolean(cardPoints && cardPoints[code] === 3));
       card.querySelector('small').textContent = `${value} PT${value === 1 ? '' : 'S'}`;
       card.classList.toggle('chain-tip', index === route.length - 1);
       card.style.zIndex = index + 1;

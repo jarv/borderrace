@@ -81,7 +81,7 @@ export function recordResult(save, game) {
   const record = {
     id: game.id,
     route: [...game.route],
-    points: score(game.route, game.zeroCards, game.mistakePoints),
+    points: score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints),
   };
   const records = won ? [record, ...save.records.filter((r) => r.id !== game.id)] : save.records;
   return {

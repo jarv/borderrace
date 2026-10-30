@@ -20,7 +20,11 @@ async function makeMap() {
 await rm('dist', { recursive: true, force: true });
 await mkdir('dist', { recursive: true });
 const context = await esbuild.context({
-  entryPoints: { app: 'src/main.js', 'solution-worker': 'src/solution-worker.js' },
+  entryPoints: {
+    app: 'src/main.js',
+    'solution-worker': 'src/solution-worker.js',
+    'scoring-worker': 'src/scoring-worker.js',
+  },
   bundle: true,
   outdir: 'dist',
   entryNames: '[name]',

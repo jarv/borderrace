@@ -14,6 +14,7 @@ import {
   pointsFor,
   findSolution,
   getHint,
+  validCardPoints,
 } from './game.js';
 import { loadSave, writeSave, recordResult } from './storage.js';
 import './style.css';
@@ -36,6 +37,7 @@ let confettiFrame;
 let hint = null;
 let solutionWorker;
 let solutionCache;
+let scoringWorker = null;
 let messageAnimation;
 let messageRevision = 0;
 const startMessage = 'Select cards to cross the map. Start with a green coastal card.';
@@ -123,12 +125,48 @@ function fresh() {
   solutionWorker?.terminate();
   solutionWorker = null;
   solutionCache = null;
+  scoringWorker?.terminate();
+  scoringWorker = null;
   hint = null;
   game = newGame();
   persist();
-  render(true);
-  audio.play('deal');
-  message(startMessage);
+  render();
+  prepareScoring(true);
+}
+
+function prepareScoring(dealAnimation = false) {
+  const gameId = game.id;
+  let worker = null;
+  const complete = (cardPoints) => {
+    if (game.id !== gameId || scoringWorker !== worker) return;
+    worker?.terminate();
+    scoringWorker = null;
+    const exact = validCardPoints(game.deal, cardPoints);
+    game = {
+      ...game,
+      scoring: exact ? 'hard-v1' : 'base-v1',
+      cardPoints: exact ? cardPoints : Object.fromEntries(game.deal.map((code) => [code, 1])),
+    };
+    persist();
+    render(dealAnimation);
+    if (dealAnimation) audio.play('deal');
+    message(exact ? startMessage : 'Bonus unavailable. All cards: 1 pt.');
+  };
+  message('Preparing cards…');
+  try {
+    worker = new Worker(new URL('./scoring-worker.js', document.baseURI), { type: 'module' });
+    scoringWorker = worker;
+    worker.onmessage = ({ data }) => {
+      if (data.gameId === gameId) complete(data.cardPoints);
+    };
+    worker.onerror = (event) => {
+      event.preventDefault();
+      complete(null);
+    };
+    worker.postMessage({ gameId, deal: game.deal });
+  } catch {
+    complete(null);
+  }
 }
 
 $('#new-game').addEventListener('click', () => fresh());
@@ -141,7 +179,7 @@ $('#play-again').addEventListener('click', () => {
 });
 
 function play(code) {
-  if (['won', 'lost'].includes(game.status)) return;
+  if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
   if (game.route.includes(code)) {
     hint = null;
     audio.play('undo');
@@ -159,7 +197,7 @@ function play(code) {
     const text = !last
       ? 'Choose a coastal card.'
       : `${STATES[code].name} doesn’t border ${STATES[last].name}.`;
-    message(`${text} −${STATES[code].points} pts`, true);
+    message(`${text} −${pointsFor(code, [], game.cardPoints)} pts`, true);
     audio.play('invalid');
     const card = $(`[data-card="${code}"]`);
     if (card && !reducedMotion.matches) animate(card, { x: [0, -5, 5, -3, 0] }, { duration: 0.28 });
@@ -183,7 +221,7 @@ function play(code) {
 }
 
 function finish(forceLoss = false, delayed = false) {
-  if (game.status !== 'playing') return;
+  if (game.status !== 'playing' || game.cardPoints === null) return;
   const won = !forceLoss && isComplete(game.deal, game.route);
   game = { ...game, status: won ? 'won' : 'lost' };
   save = recordResult(save, game);
@@ -204,7 +242,7 @@ $('#end-game').addEventListener('click', () => {
   else finish(true);
 });
 $('#hint-button').addEventListener('click', () => {
-  if (['won', 'lost'].includes(game.status)) return;
+  if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
   hint = getHint(game.deal, game.route);
   if (!hint || hint.type === 'complete') {
     message(hint ? 'Route complete.' : 'No hint available.');
@@ -226,25 +264,34 @@ $('#hint-button').addEventListener('click', () => {
 
 function render(dealAnimation = false, arrival) {
   const ended = ['won', 'lost'].includes(game.status);
+  const pending = game.cardPoints === null;
   $('.game-shell').classList.toggle('trip-ended', ended);
+  $('.game-shell').classList.toggle('loading', pending);
+  $('.board-layout').setAttribute('aria-busy', String(pending));
   $('#score').innerHTML =
-    `${score(game.route, game.zeroCards, game.mistakePoints)} <small>pts</small>`;
+    `${score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints)} <small>pts</small>`;
   $('#hint-cost').hidden = !game.hintPending || ended;
   const focusCode = document.activeElement?.dataset.card;
   $('#cards').innerHTML = game.deal
     .map((code) => {
       const state = STATES[code];
       const placed = game.route.includes(code);
-      const value = game.hintPending && !placed ? 0 : pointsFor(code, game.zeroCards);
-      return `<button class="state-card ${coast(code) ? 'coastal' : ''} ${placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${value} points${coast(code) ? `, ${coast(code)} coast` : ''}${placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${placed}" ${ended ? 'disabled' : ''}><span class="card-top"><span>${coast(code) ? 'COAST' : ''}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span><strong>${code}</strong><span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
+      const hard = game.scoring === 'hard-v1' && game.cardPoints?.[code] === 3;
+      const value = pending
+        ? '…'
+        : game.hintPending && !placed
+          ? 0
+          : pointsFor(code, game.zeroCards, game.cardPoints);
+      return `<button class="state-card ${coast(code) ? 'coastal' : ''} ${hard ? 'hard' : ''} ${placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${pending ? 'calculating points' : `${value} points`}${hard ? ', hard card' : ''}${coast(code) ? `, ${coast(code)} coast` : ''}${placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${placed}" ${ended || pending ? 'disabled' : ''}><span class="card-top"><span>${coast(code) ? 'COAST' : hard ? 'HARD' : ''}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span><strong>${code}</strong><span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
     })
     .join('');
   $$('[data-card]').forEach((button) =>
     button.addEventListener('click', () => play(button.dataset.card)),
   );
   if (focusCode) $(`[data-card="${focusCode}"]`)?.focus({ preventScroll: true });
-  $('#hint-button').disabled = ended;
-  arena.sync(game.route, ended, arrival, game.zeroCards);
+  $('#hint-button').disabled = ended || pending;
+  $('#end-game').disabled = pending;
+  arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
   $('#end-game').textContent = ended ? 'Results' : 'End game';
   if (dealAnimation) arena.deal();
 }
@@ -261,7 +308,7 @@ function showResult() {
 }
 
 function solutionCards(path, label, mistakePoints = 0) {
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.scoring === 'hard-v1' && game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {
@@ -376,7 +423,8 @@ function celebrate() {
 }
 
 persist();
-render(true);
-if (['won', 'lost'].includes(game.status)) showResult();
+render(game.cardPoints !== null);
+if (game.cardPoints === null) prepareScoring(true);
+else if (['won', 'lost'].includes(game.status)) showResult();
 else if (isComplete(game.deal, game.route)) finish();
 else if (!game.route.length) message(startMessage);
