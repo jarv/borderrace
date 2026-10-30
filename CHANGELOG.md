@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/jarv/borderrace/compare/v1.0.0...v1.1.0) (2026-10-30)
+
+
+### Features
+
+* optimize mobile landscape play and penalize invalid cards ([263eb2a](https://github.com/jarv/borderrace/commit/263eb2a8aeb8f2e2525006d9f2a0e3a655e5cc08))
+
 # 1.0.0 (2026-10-29)
 
 
