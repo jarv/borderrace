@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/jarv/borderrace/compare/v1.3.1...v1.4.0) (2026-10-30)
+
+
+### Features
+
+* guarantee gold hands at a 20% threshold ([c0481d2](https://github.com/jarv/borderrace/commit/c0481d2e28508386ca29fd026b1020138fcf7e44))
+
 ## [1.3.1](https://github.com/jarv/borderrace/compare/v1.3.0...v1.3.1) (2026-10-30)
 
 
