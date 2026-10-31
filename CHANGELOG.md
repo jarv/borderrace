@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/jarv/borderrace/compare/v1.8.0...v1.9.0) (2026-10-31)
+
+
+### Features
+
+* highlight coastlines and preserve hard-card colors ([b01eaea](https://github.com/jarv/borderrace/commit/b01eaea71a47a5c68bd7bce512505009ee6d5589))
+
 # [1.8.0](https://github.com/jarv/borderrace/compare/v1.7.0...v1.8.0) (2026-10-30)
 
 
