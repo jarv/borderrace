@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/jarv/borderrace/compare/v1.9.0...v1.10.0) (2026-10-31)
+
+
+### Features
+
+* add accelerating map deadline and automatic timeout restart ([0d0bc8d](https://github.com/jarv/borderrace/commit/0d0bc8d31586bc429fee27b793a8b0a3044caa11))
+
 # [1.9.0](https://github.com/jarv/borderrace/compare/v1.8.0...v1.9.0) (2026-10-31)
 
 
