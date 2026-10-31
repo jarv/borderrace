@@ -5,7 +5,6 @@ import {
   findLongestRoute,
   findMostPointsRoute,
   findContinuation,
-  planCompletion,
   createDeal,
   score,
 } from '../src/game.js';
@@ -34,7 +33,11 @@ const modernFixture = (overrides = {}) =>
 async function seed(page, game = fixture()) {
   await page.addInitScript(
     ({ key, data }) => {
-      if (!sessionStorage.getItem('test-seeded')) {
+      const next = sessionStorage.getItem('test-next-save');
+      if (next) {
+        localStorage.setItem(key, next);
+        sessionStorage.removeItem('test-next-save');
+      } else if (!sessionStorage.getItem('test-seeded')) {
         localStorage.setItem(key, JSON.stringify(data));
         sessionStorage.setItem('test-seeded', '1');
       }
@@ -173,7 +176,7 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
   await expect(page.locator('#message')).toHaveText('Preparing cards…');
   await expect(page.locator('.state-card').first()).toBeDisabled();
   await expect(page.locator('#hint-button')).toBeDisabled();
-  await expect(page.locator('#show-route')).toBeDisabled();
+  await expect(page.locator('#show-route')).toHaveCount(0);
   expect(
     await page
       .locator('#message')
@@ -214,7 +217,7 @@ test('connectors disappear on undo and New game, including normal and reduced mo
     await page.evaluate(
       ({ key, game }) => {
         const data = JSON.parse(localStorage.getItem(key));
-        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+        sessionStorage.setItem('test-next-save', JSON.stringify({ ...data, game }));
       },
       { key: STORAGE_KEY, game: fixture() },
     );
@@ -246,7 +249,9 @@ test('older hard-card games keep their saved points without a forced reroll', as
   await expect(page.locator('[data-chain="OR"] small')).toHaveText('1 PT');
   await expect(page.locator('.state-card.hard')).toHaveCount(0);
   await page.reload();
-  expect((await saved(page)).game).toEqual(original);
+  const { sweep, ...restored } = (await saved(page)).game;
+  expect(restored).toEqual(original);
+  expect(sweep.origin).toBe('OR');
 });
 
 test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {
@@ -299,7 +304,7 @@ test('hard-card values apply to results, reference solutions, and saved scores',
   expect((await saved(page)).records).toHaveLength(1);
 });
 
-test('games are playable immediately with no wildcard, timer, start, or finish controls', async ({
+test('games are playable immediately with no wildcard, numeric clock, start, or finish controls', async ({
   page,
   isMobile,
 }) => {
@@ -380,7 +385,7 @@ test('map messages never move the board and new games restore the starting promp
     await page.evaluate(
       ({ key, game }) => {
         const data = JSON.parse(localStorage.getItem(key));
-        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+        sessionStorage.setItem('test-next-save', JSON.stringify({ ...data, game }));
       },
       { key: STORAGE_KEY, game: fixture() },
     );
@@ -722,85 +727,17 @@ test('all-zero wins show most points and mobile reference cards stay smaller tha
   }
 });
 
-for (const motion of ['reduce', 'no-preference']) {
-  test(`Show route completes the map without a win or modal, motion=${motion}`, async ({
-    page,
-    isMobile,
-  }) => {
-    const blocked = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'];
-    await page.emulateMedia({ reducedMotion: motion });
-    await page.clock.install();
-    await seed(
-      page,
-      fixture({ route: blocked, hintPending: true, zeroCards: ['CA'], mistakePoints: 2 }),
-    );
-    await page.clock.runFor(1000);
-    await press(page.locator('#show-route'), isMobile);
-    await expect(page.locator('.game-toolbar button:enabled')).toHaveCount(1);
-    await expect(page.locator('#hint-button')).toBeDisabled();
-    await expect(page.locator('#show-route')).toBeDisabled();
-    if (motion === 'no-preference') {
-      await expect(page.locator('#message')).toHaveText('Completing route…');
-      await page.clock.runFor(401);
-      await expect(page.locator('[data-chain="MI"]')).toHaveCount(0);
-    }
-    await page.clock.runFor(15000);
-    await expect(page.locator('#message')).toBeEmpty();
-    const expected = planCompletion(deal, blocked).route;
-    expect(
-      await page
-        .locator('[data-chain]')
-        .evaluateAll((cards) => cards.map((card) => card.dataset.chain)),
-    ).toEqual(expected);
-    await expect(page.locator('#result-dialog')).not.toBeVisible();
-    await expect(page.locator('.game-toolbar button:enabled')).toHaveCount(1);
-    await expect(page.locator('#new-game')).toBeEnabled();
-    const data = await saved(page);
-    expect(data.game.route).toEqual(blocked);
-    expect(data.game.zeroCards).toEqual(['CA']);
-    expect(data.game.hintPending).toBe(true);
-    expect(data.game.mistakePoints).toBe(2);
-    expect(data.played).toBe(1);
-    expect(data.wins).toBe(0);
-    expect(data.records).toEqual([]);
-    await page.reload();
-    await expect(page.locator('#message')).toBeEmpty();
-    expect((await saved(page)).played).toBe(1);
-    await press(page.locator('#new-game'), isMobile);
-    await page.clock.runFor(15000);
-    expect((await saved(page)).game.route).toEqual([]);
-    await expect(page.locator('[data-chain]')).toHaveCount(0);
-  });
-}
-
-test('New game cancels an assisted completion in progress', async ({ page, isMobile }) => {
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.clock.install();
-  await seed(page, fixture({ route: ['ME'] }));
-  await page.clock.runFor(1000);
-  await press(page.locator('#show-route'), isMobile);
-  await press(page.locator('#new-game'), isMobile);
-  await page.clock.runFor(15000);
-  expect((await saved(page)).game.route).toEqual([]);
-  await expect(page.locator('[data-chain]')).toHaveCount(0);
-  await expect(page.locator('#result-dialog')).not.toBeVisible();
-});
-
-test('help, scores, ending a game, and clearing scores work', async ({ page, isMobile }) => {
-  await seed(page);
+test('help, scores, and clearing scores work', async ({ page, isMobile }) => {
+  await seed(page, fixture({ route: route.slice(0, -1) }));
+  await press(page.locator('[data-card="NC"]'), isMobile);
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  await press(page.locator('#play-again'), isMobile);
   await press(page.locator('#help-button'), isMobile);
   await expect(page.locator('#help-dialog')).toContainText('next card you add scores 0');
   await expect(page.locator('#help-dialog')).not.toContainText(/wildcard|Explorer|five minutes/);
   await press(page.locator('#help-dialog [data-close]').first(), isMobile);
-  await press(page.locator('#show-route'), isMobile);
-  await expect(page.locator('#confirm-dialog')).not.toBeVisible();
-  await expect(page.locator('#result-dialog')).not.toBeVisible();
-  await expect(page.locator('#message')).toBeEmpty({
-    timeout: 15000,
-  });
-  await press(page.locator('#new-game'), isMobile);
   await press(page.locator('#records-button'), isMobile);
-  await expect(page.locator('#record-summary')).toHaveText('0 wins · 1 game');
+  await expect(page.locator('#record-summary')).toHaveText('1 wins · 1 game');
   await expect(page.locator('#records-dialog h2')).toHaveText('Your scores');
   await press(page.locator('#clear-scores'), isMobile);
   await expect(page.locator('#confirm-dialog')).toHaveCount(0);
@@ -832,7 +769,7 @@ test('all win dialog dismissal controls start a new game and scores show the win
     await page.evaluate(
       ({ key, game }) => {
         const data = JSON.parse(localStorage.getItem(key));
-        localStorage.setItem(key, JSON.stringify({ ...data, game }));
+        sessionStorage.setItem('test-next-save', JSON.stringify({ ...data, game }));
       },
       { key: STORAGE_KEY, game: fixture({ id: `win-${method}`, route: route.slice(0, -1) }) },
     );
@@ -912,7 +849,7 @@ test('clearing scores preserves the current route, hint penalties, and sound set
     data.records = [{ id: 'previous', points: 8 }];
     data.wins = 1;
     data.played = 3;
-    localStorage.setItem(key, JSON.stringify(data));
+    sessionStorage.setItem('test-next-save', JSON.stringify(data));
   }, STORAGE_KEY);
   await page.reload();
   const before = await saved(page);
@@ -925,10 +862,14 @@ test('clearing scores preserves the current route, hint penalties, and sound set
   expect(after.records).toEqual([]);
   expect(after.wins).toBe(0);
   expect(after.played).toBe(0);
-  expect(after.game).toEqual(before.game);
+  expect({ ...after.game, sweep: before.game.sweep }).toEqual(before.game);
+  expect(after.game.sweep.progress).toBeGreaterThanOrEqual(before.game.sweep.progress);
+  expect(after.game.sweep.multiplier).toBe(before.game.sweep.multiplier);
   expect(after.soundEnabled).toBe(false);
   await page.reload();
-  expect((await saved(page)).game).toEqual(before.game);
+  const reloaded = (await saved(page)).game;
+  expect({ ...reloaded, sweep: before.game.sweep }).toEqual(before.game);
+  expect(reloaded.sweep.progress).toBeGreaterThanOrEqual(after.game.sweep.progress);
   await expect(page.locator('#sound-button')).toHaveText('Sound off');
 });
 
@@ -947,7 +888,7 @@ test('Your scores scrolls vertically on short screens and Clear is reachable wit
         route,
       }));
       data.wins = data.played = 10;
-      localStorage.setItem(key, JSON.stringify(data));
+      sessionStorage.setItem('test-next-save', JSON.stringify(data));
     },
     { key: STORAGE_KEY, route },
   );
@@ -1073,10 +1014,9 @@ test('reduced motion skips point pops', async ({ page }) => {
 
 test('phone and desktop layouts fit, with usable touch targets', async ({ page, isMobile }) => {
   await seed(page);
-  await expect(page.locator('#show-route')).toHaveText('Show route');
+  await expect(page.locator('#show-route')).toHaveCount(0);
   await expect(page.locator('#new-game')).toHaveClass('primary-button');
-  await expect(page.locator('#show-route')).toHaveClass('secondary-button');
-  await expect(page.locator('.hint-controls > button')).toHaveText(['Hint', 'Show route']);
+  await expect(page.locator('.hint-controls > button')).toHaveText(['Hint']);
   const sizes = isMobile
     ? [
         [320, 568],
@@ -1096,10 +1036,6 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
       ];
   for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
-    const hint = await page.locator('#hint-button').boundingBox();
-    const showRoute = await page.locator('#show-route').boundingBox();
-    expect(showRoute.x).toBeGreaterThanOrEqual(hint.x + hint.width);
-    expect(showRoute.y).toBe(hint.y);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -1118,9 +1054,7 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
       }
       expect(map.y + map.height).toBeLessThanOrEqual(height);
       const controls = await page
-        .locator(
-          '#hint-button, #sound-button, #records-button, #help-button, #new-game, #show-route',
-        )
+        .locator('#hint-button, #sound-button, #records-button, #help-button, #new-game')
         .evaluateAll((buttons) =>
           buttons.map((button) => {
             const { x, y, width, height } = button.getBoundingClientRect();

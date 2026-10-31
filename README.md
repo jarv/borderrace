@@ -93,7 +93,7 @@ estimate and Node/Chromium preparation results.
 ## Made for phones, too
 
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
-or beside them in landscape. Hint, Show route, sound, scores, **?** (help), and New game
+or beside them in landscape. Hint, sound, scores, **?** (help), and New game
 share one row; portrait uses a music-note sound toggle. The board fits Galaxy S25-sized
 viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
@@ -110,10 +110,20 @@ Messages remain above the cards.
 
 ## Rules and local data
 
-See [RULES.md](RULES.md) for complete rules. There is no timer. Every deal is
+See [RULES.md](RULES.md) for complete rules. Every deal is
 solvable. Bright green shoreline edges mark the Atlantic and Pacific coastal
 states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
+
+A moving deadline starts at the full map panel's left edge for a Pacific start,
+or right edge for an Atlantic start. Its base crossing time is 90 seconds. Valid
+additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
+capped at 3×. Point penalties remain unchanged. The
+furthest-forward state turns red as the line reaches it. Once overtaken, Game
+over appears for one second before a fresh game. The shaded sweep follows
+geographic states, not the zig-zag cards. It pauses while hidden, persists progress
+and pace across reloads, and never rewinds on undo. Reduced motion keeps this
+functional deadline but removes decorative effects. Wins stop it; New game resets it.
 
 **Hint** highlights the next playable card, or a card to remove when backtracking
 is needed. After a hint, the next added card scores zero, even if a different card
@@ -153,20 +163,15 @@ Use **Your scores → Clear** to clear scores and game counts without resetting 
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls
 vertically on shorter screens.
-Show route sits to the right of Hint; New game is the green primary action.
+New game is the green primary action. There is no assisted-route control.
 Card point pops zoom toward the score total; the visible total increases when
 they arrive. Scores are saved immediately, and reduced motion updates the total
 immediately without the effect.
-Show route records a loss immediately, then animates the map to a solution, keeping
-as much of your route as possible and removing its blocked suffix if needed.
-Assisted cards do not change your score, penalties, or winning records. Reduced
-motion shows the completed map immediately. Only New game remains enabled;
-reloading restores the completed map without recording another game.
-New game cancels completion immediately. Neither action asks for confirmation. Closing the You win
+New game cancels any pending timeout restart without confirmation. Closing the You win
 dialog starts the next game. Scores show each winning path alongside its points;
 older records without a saved path show a dash.
 Older saves are archived; compatible games and point records are migrated without
-time fields. New games and records do not track any time.
+duration fields. Scores remain point-based, with no completion-time records.
 
 ## Static builds and release archives
 

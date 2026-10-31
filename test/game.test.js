@@ -113,12 +113,13 @@ test('a hint zeros the next added card, including a different choice and undo/re
   assert.equal(score(route, ['NC']), 10);
 });
 
-test('new games begin playing with pending points and have no time fields', () => {
+test('new games begin playing with pending points and an unstarted sweep, without timestamps', () => {
   const game = newGame(seeded(23));
   assert.equal(game.status, 'playing');
   assert.deepEqual(game.route, []);
   assert.equal('startedAt' in game, false);
   assert.equal('finishedAt' in game, false);
+  assert.deepEqual(game.sweep, { origin: null, progress: 0, multiplier: 1 });
   assert.ok(validGame(game));
   assert.equal(validGame({ ...game, deal: Array(24).fill('CA') }), false);
   assert.equal(validGame({ ...game, zeroCards: ['AK'] }), false);

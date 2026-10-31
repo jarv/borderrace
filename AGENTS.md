@@ -29,7 +29,9 @@ for build/test tools), and commit both package files. No global npm packages.
 - `src/data.js`: state names, points, adjacency, coasts.
 - `src/game.js`: pure game logic, solvable deals, exact sequence validation,
   hints and zero-point penalties, exact shortest/most-points routes, backtracking,
-  snapshot validation. No time tracking or special cards.
+  snapshot validation. No duration-based scoring or special cards.
+- `src/sweep.js` / `src/sweep-view.js`: normalized moving deadline, geographic
+  frontier collision, panel-wide shading, visibility pause, and persisted pace.
 - `src/solution-worker.js`: exact most-points search, off the main thread. Cancel on
   new game and ignore stale results. Never label an approximate route “most points”.
 - `src/route-count.js` / `src/scoring.js` / `src/prepare-deal.js` / `src/scoring-worker.js`: exact winning-route
@@ -66,7 +68,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Start at either coast, append bordering states, finish at the opposite coast.
 - Validate the actual submitted sequence, not just connectivity of the deck.
 - Clicking a played card in the hand or map removes it and its suffix.
-- New game and Show route act immediately, without confirmation. Dismissing the
+- New game acts immediately, without confirmation. Dismissing the
   You win dialog starts a new game. Score clearing also acts immediately.
 - Keep unusual connections (AZ–CO, NM–UT, MI–MN, NY–RI). Gulf-only states are not
   valid coastal endpoints. Preserve original points for unversioned saved games.
@@ -79,8 +81,17 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   Successful new scoring (`hard-v2`) requires at least one gold card; re-deal
   without changing the rarity rule, bounded by 128 candidates and two seconds.
   Preserve frozen `hard-v1` saves without re-scoring or forcing a replacement.
-- New games are immediately `playing`. No start/finish button, countdown,
-  elapsed-time tracking, timestamps, or duration-based scoring/ranking.
+- New games are immediately `playing`. No start/finish button, numeric countdown,
+  timestamps, or duration-based scoring/ranking. A moving deadline starts at the
+  first coastal play, from the full panel's left edge for west starts or right
+  edge for east starts. Base crossing time is 90 seconds, +0.08 base speed per
+  subsequent valid addition and +0.35 per Hint or invalid card selection, capped
+  at 3x, in addition to existing point penalties. Undo never refunds
+  pace/progress or changes the original direction; with no route, chase the
+  original starting state. Pause while hidden; persist normalized progress/speed.
+  Turn the geographically furthest-forward current state red on entry and lose
+  when the line clears its far edge. Briefly show Game over, then start a new game
+  after one second. Record timeout losses once, never as assisted completions.
 - Reaching the opposite coast automatically wins and ends the route. Longest
   solutions must obey this in either direction: never continue past that coast.
 - Highlight only played states, removing highlights on undo. No map labels or
@@ -104,16 +115,14 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Win results show only the exact most-points reference route using frozen values
   and zeroCards, preferring fewer cards on score ties. No shortest reference.
   Mobile reference cards stay smaller than the player's route cards.
-- Show route, immediately to the right of Hint, records a loss then animates removal of the minimum
-  blocked suffix and adds a shortest continuation on the map. Preserve the actual
-  player route, score, and penalties in the save; never record an assisted win.
-  No loss dialog. Only New game is enabled during/after completion; it cancels
-  pending steps. Reduced motion and reloaded losses show completion immediately.
-  No completion message. New game is the green primary action.
+- No Show route control or assisted-completion animation. New game is the green
+  primary action. During timeout feedback only New game is enabled; it cancels the
+  pending automatic restart. Reloaded losses show brief feedback without recounting.
 - Show the player's actual route and its score above solutions, not a points/states
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
-- Save schema version 2 has no active time/mode fields. Archive old data and
-  migrate compatible games/point records without introducing new time tracking.
+- Save schema version 2 accepts optional validated sweep progress/pace and a
+  timeout loss reason. No wall-clock timestamps, elapsed-duration records, or mode
+  fields. Preserve old games/point records, starting legacy routes at zero progress.
 - “Your scores” scrolls vertically when needed and contains an immediate Clear
   action that resets scores and game counts only. Preserve the active game, hint
   penalties, and sound preference.
@@ -138,7 +147,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Keep copy literal and minimal throughout the app: no mode name, aphorisms,
   “adventures”, promotional headings, redundant chain strip, or reassurance about
   accounts/saving. No diamond icons on cards. Use short functional labels such as
-  Hint, Show route, Play again, and Your scores. Show a short initial
+  Hint, Play again, and Your scores. Show a short initial
   coastal-card prompt and one sentence explaining gold difficulty/value in the
   map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.

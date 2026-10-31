@@ -29,7 +29,6 @@
         <div class="game-toolbar">
           <div class="hint-controls">
             <button id="hint-button" class="secondary-button">Hint</button>
-            <button id="show-route" class="secondary-button">Show route</button>
           </div>
           <nav aria-label="Game controls">
             <button
@@ -66,6 +65,7 @@
           <section class="map-panel" aria-label="Map">
             <div class="map-wrap">
               <div id="map"></div>
+              <div id="sweep-over" role="status" aria-live="assertive" hidden>Game over</div>
               <div class="map-messages">
                 <div class="message-wrap" hidden>
                   <p id="message" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -114,10 +114,13 @@
       <p>
         Hint highlights the next card, or a card to remove if the route is blocked. After using
         Hint, the next card you add scores 0, even if you choose a different card. That card stays
-        at 0 if removed and replayed. There is no time limit.
+        at 0 if removed and replayed.
       </p>
-      <p class="fine-print">
-        Show route completes the map for you without a win. Select New game to play again.
+      <p>
+        Stay ahead of the moving line. Each added card speeds it up; Hint and invalid cards speed it
+        up more, by the same amount. Your furthest-forward state turns red when the line reaches it.
+        If the line passes it, the game ends and a new game starts. The line pauses while the page
+        is hidden. Undo does not rewind it.
       </p>
       <p class="fine-print">
         Every deal is solvable. Borders include AZ–CO, NM–UT, MI–MN and NY–RI.

@@ -276,6 +276,51 @@
 .coastline path {
   vector-effect: non-scaling-stroke;
 }
+.map-state.sweep-danger path {
+  fill: #b74049;
+  stroke: #ff9aa5;
+}
+.sweep-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sweep-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--sweep-progress);
+  background: rgb(5 9 20 / 65%);
+}
+.sweep-layer[data-direction='east'] .sweep-shade {
+  left: 0;
+}
+.sweep-layer[data-direction='west'] .sweep-shade {
+  right: 0;
+}
+.sweep-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  translate: -50% 0;
+  background: var(--orange);
+  box-shadow: 0 0 8px #ffc76a80;
+}
+#sweep-over {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: #ffb1b8;
+  font-size: clamp(28px, 5vw, 54px);
+  font-weight: 900;
+  background: #080e1d80;
+}
 #map-chain {
   position: absolute;
   inset: 0;

@@ -3,6 +3,8 @@ import mapSvg from 'border-map';
 import { STATES, coast } from './data.js';
 import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
+import { createSweepView } from './sweep-view.js';
+import { restoreSweep, accelerateSweep, PENALTY_ACCELERATION } from './sweep.js';
 import {
   newGame,
   canAdd,
@@ -12,7 +14,6 @@ import {
   isComplete,
   score,
   pointsFor,
-  planCompletion,
   getHint,
   validGame,
 } from './game.js';
@@ -32,10 +33,9 @@ try {
 }
 let save = loadSave(storage);
 let game = save.game ?? newGame();
+game = { ...game, sweep: restoreSweep(game) };
 let previousFocus;
 let resultTimeout;
-let completionTimeout;
-let completionRoute = null;
 let confettiFrame;
 let hint = null;
 let solutionWorker;
@@ -107,6 +107,16 @@ $('#map').innerHTML = mapSvg;
 // Also strip labels from an already-running dev server's older virtual SVG.
 $$('.map-state text, .map-state title').forEach((label) => label.remove());
 const arena = createArena({ map: $('#map'), onPlay: play, reducedMotion });
+const sweepView = createSweepView({
+  panel: $('.map-wrap'),
+  map: $('#map'),
+  getGame: () => game,
+  setSweep: (sweep) => {
+    game = { ...game, sweep };
+  },
+  persist,
+  onTimeout: timeout,
+});
 
 function persist() {
   save = { ...save, game };
@@ -164,8 +174,6 @@ $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
 function fresh() {
   for (const pending of pendingPoints.values()) clearTimeout(pending.timeout);
   pendingPoints.clear();
-  clearTimeout(completionTimeout);
-  completionRoute = null;
   clearTimeout(resultTimeout);
   solutionWorker?.terminate();
   solutionWorker = null;
@@ -227,6 +235,7 @@ $('#play-again').addEventListener('click', () => {
 });
 
 function play(code) {
+  sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
   if (game.route.includes(code)) {
     hint = null;
@@ -283,73 +292,37 @@ function finish(delayed = false) {
   celebrate();
 }
 
-function completeMap(animateRoute = true) {
-  const plan = planCompletion(game.deal, game.route);
-  if (!plan) {
-    render();
-    message('No solution. Select New game.');
-    return;
-  }
-  completionRoute = [...game.route];
+function restartAfterTimeout() {
+  clearTimeout(resultTimeout);
   const gameId = game.id;
-  const step = () => {
-    if (game.id !== gameId || game.status !== 'lost') return;
-    let arrival;
-    if (
-      completionRoute.length > plan.keep &&
-      completionRoute.some((code, index) => code !== plan.route[index])
-    ) {
-      completionRoute = completionRoute.slice(0, -1);
-      audio.play('undo');
-    } else if (completionRoute.length < plan.route.length) {
-      const code = plan.route[completionRoute.length];
-      const card = $(`[data-card="${code}"]`);
-      arrival = {
-        code,
-        source: { rect: card.getBoundingClientRect(), node: card.cloneNode(true) },
-      };
-      completionRoute = [...completionRoute, code];
-      audio.play('place', completionRoute.length);
-    }
-    render(false, arrival);
-    if (
-      completionRoute.length === plan.route.length &&
-      completionRoute.every((code, index) => code === plan.route[index])
-    ) {
-      message('');
-      return;
-    }
-    completionTimeout = setTimeout(step, 400);
-  };
-  if (!animateRoute || reducedMotion.matches) {
-    completionRoute = plan.route;
-    render();
-    message('');
-  } else {
-    render();
-    message('Completing route…');
-    completionTimeout = setTimeout(step, 400);
-  }
+  resultTimeout = setTimeout(() => {
+    if (game.id === gameId && game.status === 'lost') fresh();
+  }, 1000);
 }
 
-$('#show-route').addEventListener('click', () => {
-  if (game.status === 'won') return showResult();
-  if (game.status !== 'playing' || game.cardPoints === null) return;
+function timeout() {
+  if (game.status !== 'playing') return;
   hint = null;
-  game = { ...game, status: 'lost' };
+  game = { ...game, status: 'lost', lossReason: 'timeout' };
   save = recordResult(save, game);
   persist();
-  completeMap();
+  $$('dialog[open]').forEach((dialog) => dialog.close());
+  message('');
+  render();
+  audio.play('loss');
   $('#new-game').focus({ preventScroll: true });
-});
+  restartAfterTimeout();
+}
+
 $('#hint-button').addEventListener('click', () => {
+  sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
   hint = getHint(game.deal, game.route);
   if (!hint || hint.type === 'complete') {
     message(hint ? 'Route complete.' : 'No hint available.');
     return;
   }
-  game = { ...game, hintPending: true };
+  game = { ...game, hintPending: true, sweep: accelerateSweep(game.sweep, PENALTY_ACCELERATION) };
   persist();
   render();
   message(
@@ -364,9 +337,9 @@ function render(dealAnimation = false, arrival) {
   const ended = ['won', 'lost'].includes(game.status);
   const pending = game.cardPoints === null;
   const lost = game.status === 'lost';
-  const visibleRoute = completionRoute ?? game.route;
   $('.game-shell').classList.toggle('trip-ended', ended);
   $('.game-shell').classList.toggle('loading', pending);
+  $('#sweep-over').hidden = game.status !== 'lost';
   $('.board-layout').setAttribute('aria-busy', String(pending));
   renderScore();
   $('#hint-cost').hidden = !game.hintPending || ended;
@@ -374,7 +347,7 @@ function render(dealAnimation = false, arrival) {
   $('#cards').innerHTML = game.deal
     .map((code) => {
       const state = STATES[code];
-      const placed = visibleRoute.includes(code);
+      const placed = game.route.includes(code);
       const hard = game.cardPoints?.[code] === 3;
       const value = pending
         ? '…'
@@ -389,11 +362,10 @@ function render(dealAnimation = false, arrival) {
   );
   if (focusCode) $(`[data-card="${focusCode}"]`)?.focus({ preventScroll: true });
   $('#hint-button').disabled = ended || pending;
-  $('#show-route').disabled = pending || lost;
   for (const id of ['#sound-button', '#records-button', '#help-button']) $(id).disabled = lost;
-  arena.sync(visibleRoute, ended, arrival, game.zeroCards, game.cardPoints);
-  $('#show-route').textContent = game.status === 'won' ? 'Results' : 'Show route';
+  arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
   if (dealAnimation) arena.deal();
+  sweepView.sync();
 }
 
 function showResult() {
@@ -519,7 +491,7 @@ function celebrate() {
 persist();
 render(game.cardPoints !== null);
 if (game.cardPoints === null) prepareScoring(true);
-else if (game.status === 'lost') completeMap(false);
+else if (game.status === 'lost') restartAfterTimeout();
 else if (game.status === 'won') showResult();
 else if (isComplete(game.deal, game.route)) finish();
 else if (!game.route.length) message(startMessage);

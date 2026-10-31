@@ -1,5 +1,13 @@
 import { CODES, STATES, EAST, WEST, coast } from './data.js';
 import { SCORING_VERSION } from './scoring.js';
+import {
+  newSweep,
+  restoreSweep,
+  accelerateSweep,
+  CARD_ACCELERATION,
+  PENALTY_ACCELERATION,
+  validSweep,
+} from './sweep.js';
 
 export function findSolution(deal) {
   const allowed = new Set(deal);
@@ -53,15 +61,11 @@ export function planCompletion(deal, route) {
 
 export function getHint(deal, route) {
   if (isComplete(deal, route)) return { type: 'complete' };
-  for (let keep = route.length; keep >= 0; keep--) {
-    const prefix = route.slice(0, keep);
-    const solution = findContinuation(deal, prefix);
-    if (solution)
-      return keep < route.length
-        ? { type: 'undo', code: route[keep], playCode: solution[keep] }
-        : { type: 'play', code: solution[keep] };
-  }
-  return null;
+  const plan = planCompletion(deal, route);
+  if (!plan) return null;
+  return plan.keep < route.length
+    ? { type: 'undo', code: route[plan.keep], playCode: plan.route[plan.keep] }
+    : { type: 'play', code: plan.route[plan.keep] };
 }
 
 // Exact simple-route optimization. Stop on the first opposite coast in either
@@ -203,8 +207,10 @@ export const backtrack = (route, code) =>
 export function addCard(game, code) {
   if (game.status !== 'playing' || game.cardPoints === null || !canAdd(game.deal, game.route, code))
     return game;
+  const sweep = restoreSweep(game);
   return {
     ...game,
+    sweep: sweep.origin ? accelerateSweep(sweep, CARD_ACCELERATION) : { ...sweep, origin: code },
     route: [...game.route, code],
     hintPending: false,
     zeroCards:
@@ -226,6 +232,7 @@ export function penalizeInvalidCard(game, code) {
   return {
     ...game,
     mistakePoints: (game.mistakePoints ?? 0) + pointsFor(code, [], game.cardPoints),
+    sweep: accelerateSweep(restoreSweep(game), PENALTY_ACCELERATION),
   };
 }
 
@@ -240,6 +247,7 @@ export function newGame(random = Math.random) {
     hintPending: false,
     mistakePoints: 0,
     status: 'playing',
+    sweep: newSweep(),
   };
 }
 
@@ -262,6 +270,12 @@ export function validGame(game) {
     !['playing', 'won', 'lost'].includes(game.status)
   )
     return false;
+  if (game.sweep !== undefined && !validSweep(game.sweep, game.deal)) return false;
+  if (
+    game.lossReason !== undefined &&
+    (game.lossReason !== 'timeout' || game.status !== 'lost' || !game.sweep?.origin)
+  )
+    return false;
   if (game.scoring === undefined) {
     if (game.cardPoints !== undefined) return false;
   } else if (!['hard-v1', SCORING_VERSION, 'base-v1'].includes(game.scoring)) return false;
@@ -272,6 +286,7 @@ export function validGame(game) {
       game.zeroCards.length ||
       game.hintPending ||
       game.mistakePoints ||
+      game.sweep?.origin ||
       game.status !== 'playing'
     )
       return false;

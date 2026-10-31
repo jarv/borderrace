@@ -5,16 +5,12 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 ## Playing
 
 - A solvable deal is prepared when the page opens. A spinner shows while card
-  values are calculated, then play is ready without a start button or time limit.
+  values are calculated, then play is ready without a start button.
 - Begin with a card marked **COAST**, then add cards that border the last state.
 - Each state can appear only once in the route.
 - Clicking a played card in the hand or on the map removes it and all following cards.
 - Reaching the opposite coast **ends the game automatically**. You cannot extend
-  a route past that coast. **Show route**, beside Hint, immediately gives up, then animates a
-  completion on the map. It preserves the longest solvable prefix, removing
-  blocked cards before adding the shortest continuation. Reduced motion skips
-  the animation. Only **New game** remains enabled, including during completion.
-  Assisted completion is not a win and does not change your score or hint penalties.
+  a route past that coast. There is no assisted-completion control.
 - **New game** immediately replaces the current game. Abandoned games are not counted.
 - Dismissing the **You win** dialog starts a new game automatically.
 - Wins are saved immediately, with a two-second celebration before results appear.
@@ -61,6 +57,32 @@ penalty. Multiple hint requests before playing do not stack penalties.
 The zero-point card stays at zero for that game, including after undoing and
 replaying it. Pending penalties and zero-point cards persist across reloads.
 
+## Moving deadline
+
+The first coastal card starts a vertical line at the map panel's far left for a
+Pacific start, or far right for an Atlantic start—not at the US outline. It moves
+across the entire panel, darkening the area behind it. At its initial speed a full
+crossing takes **90 seconds**. Each additional valid card adds **8% of the base
+speed**; each Hint or invalid card selection adds **35%**, including penalties before
+starting and repeated hints or mistakes. Speed is capped at **3×**. Removals do not
+accelerate it. These speed penalties do not replace hint-zeroing or mistake point deductions.
+
+The line chases the geographically furthest-forward state in your current route,
+not the last card or the zig-zag card positions. It turns that state red when it
+touches the state's near edge. Once it passes the far edge, the game ends:
+**Game over** appears for one second, then a new game begins automatically. A
+timeout counts as one loss and does not reveal an assisted solution.
+
+Undo never rewinds the line, refunds acceleration, or changes its initial direction.
+Removing the entire route leaves the original coastal state as the danger target.
+The line pauses while the page is hidden (another tab, minimized browser, or locked
+phone), and resumes without charging hidden time. Progress and speed survive
+reloads; time spent away is not charged. Existing saves without a line start at
+zero progress. Wins stop the line; New game resets it.
+
+Reduced motion removes decorative effects but keeps the functional deadline.
+There is no numeric clock and time does not affect points or score rankings.
+
 ## Points and records
 
 Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
@@ -92,8 +114,7 @@ Mistake deductions persist across reloads and reset with New game. Your final sc
 and personal records include them; example solution scores do not include mistakes.
 
 Personal records keep the top 10 wins by points. Equal scores put the most recent
-game first. No countdown, elapsed duration, or completion time is tracked or stored
-for new games or records.
+game first. No elapsed duration or completion time is stored in score records.
 Each score shows its winning path and points. Older records without paths show a dash.
 
 ## Solutions
@@ -101,8 +122,7 @@ Each score shows its winning path and points. Older records without paths show a
 Win results show your played route and its points first. Below it is the
 most-points route using the dealt cards and frozen point values. Score ties
 prefer fewer cards. Routes stop at the first opposite coast. No shortest route
-is displayed. Show route leaves the completed map visible, without a result dialog
-or completion message. New game is the green primary action.
+is displayed. New game is the green primary action.
 
 Each route shows its point total using the game's zero-point cards from hints.
 Routes use small linked cards showing only state abbreviations, with smaller
@@ -120,8 +140,8 @@ scores and game counts immediately, keeping the current game, hint penalties,
 and sound setting. Clearing browser data removes all local data.
 Your scores scrolls vertically when the list is taller than the screen.
 Earlier-format saves are archived, and compatible
-games and point records are migrated without carrying time fields into active play.
+games and point records are migrated without carrying old duration fields into active play.
 
 Animations and sounds do not change scores. Reduced-motion settings disable
-animation. Sound starts after interaction and can be muted. There is no music,
+decorative animation, not the moving deadline. Sound starts after interaction and can be muted. There is no music,
 external audio download, analytics, or game server.
