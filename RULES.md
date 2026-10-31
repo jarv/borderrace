@@ -36,6 +36,8 @@ wrap into compact rows inside the map, without horizontal scrolling.
 Cards have translucent backgrounds with opaque borders and text.
 Undoing cards also removes their state highlights. Unplayed states have no
 deck or next-move coloring. The map has no state labels.
+Bright green shoreline edges mark the Atlantic and Pacific coastal states,
+without coloring their inland borders or changing played-state highlights.
 
 On phones, the map sits above smaller cards in portrait, or to their right in
 landscape. Controls share one row, with a music-note sound toggle in portrait.
@@ -62,8 +64,9 @@ replaying it. Pending penalties and zero-point cards persist across reloads.
 ## Points and records
 
 Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
-total**, and is marked gold. Coastal hard cards retain a green background with a
-gold border so they remain recognizable as coastal cards.
+total**, and is marked with a gold border. Hard cards keep their ordinary card
+colors everywhere: coastal hand cards stay green, other hand cards stay blue,
+and map/result cards keep their existing backgrounds and text colors.
 
 Hard cards occur in **more than zero but fewer than 20%** of this deal's winning
 routes. Exactly 20% is not hard; cards that cannot occur in a winning route stay

@@ -143,19 +143,6 @@
   background: linear-gradient(145deg, #2b4e50, #233c42);
   border-color: #528d80;
 }
-.state-card.hard:not(.placed) {
-  background: linear-gradient(145deg, #5b4728, #382d24);
-  border-color: #ffd279;
-  box-shadow:
-    0 3px 0 #3b2a12,
-    0 0 12px #ffc76a20;
-}
-.state-card.hard.coastal:not(.placed) {
-  background: linear-gradient(145deg, #40543f, #2c3b32);
-}
-.hard .card-points {
-  color: #ffe0a2;
-}
 .state-card:not(.placed):not(:disabled):hover {
   translate: 0 -4px;
   border-color: var(--cyan);
@@ -208,6 +195,10 @@
   border: 1px dashed #3b4a61;
   background: #171f31;
   box-shadow: none;
+}
+.state-card.hard,
+.state-card.hard:not(.placed):not(:disabled):hover {
+  border-color: #ffd279;
 }
 .state-card.placed > strong,
 .state-card.placed .card-name,
@@ -272,6 +263,18 @@
 .map-state.on-route path {
   fill: #347e80;
   stroke: #79c5c4;
+}
+.coastline {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 2px #9df37570);
+}
+.coastline path {
+  vector-effect: non-scaling-stroke;
 }
 #map-chain {
   position: absolute;
@@ -354,16 +357,10 @@
 }
 .map-card.hard {
   border-color: #ffd279;
-  background: linear-gradient(145deg, rgb(88 65 27 / 55%), rgb(50 36 17 / 45%));
-  box-shadow:
-    0 3px 0 #9a7840,
-    0 0 18px #ffc76a35;
 }
 .solution-card.hard,
 #result-route .solution-card.hard {
   border-color: #ffd279;
-  background: #4b3b26;
-  color: #ffe0a2;
 }
 .loading #message::before {
   content: '';

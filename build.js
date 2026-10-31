@@ -2,19 +2,22 @@ import * as esbuild from 'esbuild';
 import { readFile, mkdir, writeFile, copyFile, rm } from 'node:fs/promises';
 import { STATES } from './src/data.js';
 import { fingerprintAssets } from './build-assets.js';
+import { coastlinePaths } from './map-coasts.js';
 
 const serve = process.argv.includes('--serve');
 // Extract only known state paths, never scripts, inline styles, or event handlers.
 async function makeMap() {
   const sourceMap = await readFile('assets/us.svg', 'utf8');
+  const states = {};
   const shapes = [...sourceMap.matchAll(/<path\b[^>]*>/g)].flatMap(([tag]) => {
     const code = tag.match(/\bid="([A-Z]{2})"/)?.[1];
     const d = tag.match(/\bd="([^"]*)"/)?.[1];
     if (!STATES[code] || !d) return [];
+    states[code] = d;
     return [`<g class="map-state" data-code="${code}"><path d="${d}"/></g>`];
   });
   if (shapes.length !== 48) throw new Error('Expected all 48 contiguous states');
-  return `<svg viewBox="130 0 870 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of the contiguous United States"><!-- Map copyright 2017 Pareto Software, LLC DBA Simplemaps.com. https://simplemaps.com/resources/svg-license --><g id="state-shapes">${shapes.join('')}</g></svg>`;
+  return `<svg viewBox="130 0 870 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of the contiguous United States"><!-- Map copyright 2017 Pareto Software, LLC DBA Simplemaps.com. https://simplemaps.com/resources/svg-license --><g id="state-shapes">${shapes.join('')}</g><g class="coastline" aria-hidden="true">${coastlinePaths(states)}</g></svg>`;
 }
 
 // dist is generated only. A production build must not retain dev source maps.

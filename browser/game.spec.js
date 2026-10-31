@@ -79,6 +79,74 @@ test('hard cards are gold, worth three points, and retain their frozen values af
   expect((await saved(page)).game.zeroCards).toEqual(['CA']);
 });
 
+test('hard cards keep their original fills and text with gold borders everywhere', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, modernFixture());
+  const unchanged = (cards) =>
+    cards.evaluateAll((elements) =>
+      elements.every((element) => {
+        const snapshot = () => {
+          const css = getComputedStyle(element);
+          return [
+            css.backgroundImage,
+            css.backgroundColor,
+            css.color,
+            ...[...element.children].map((child) => getComputedStyle(child).color),
+          ];
+        };
+        const before = snapshot();
+        element.classList.remove('hard');
+        const after = snapshot();
+        element.classList.add('hard');
+        return JSON.stringify(before) === JSON.stringify(after);
+      }),
+    );
+  expect(await unchanged(page.locator('.state-card.hard'))).toBe(true);
+  await press(page.locator('[data-card="OR"]'), isMobile);
+  await expect(page.locator('[data-card="OR"]')).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
+  await expect(page.locator('[data-chain="OR"]')).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
+  expect(await unchanged(page.locator('.map-card.hard'))).toBe(true);
+  // Finish a real route to check both player and reference-result cards.
+  const path = findContinuation(hardDeal, ['OR']);
+  for (const code of path.slice(1)) await press(page.locator(`[data-card="${code}"]`), isMobile);
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
+  expect(await unchanged(page.locator('.solution-card.hard'))).toBe(true);
+  await expect(page.locator('.solution-card.hard').first()).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
+});
+
+test('green shoreline edges mark coastal states independently of route highlights', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page);
+  const shores = page.locator('.coastline [data-coast]');
+  expect(
+    await shores.evaluateAll((paths) => paths.map((path) => path.dataset.coast).sort()),
+  ).toEqual('CA OR WA ME NH MA RI CT NJ NY DE MD VA NC SC GA FL'.split(' ').sort());
+  await expect(shores.first()).toHaveCSS('stroke', 'rgb(157, 243, 117)');
+  await expect(shores.first()).toHaveCSS('fill', 'none');
+  await expect(shores.first()).toHaveCSS('vector-effect', 'non-scaling-stroke');
+  await expect(page.locator('.map-state.on-route')).toHaveCount(0);
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('.map-state.on-route')).toHaveCount(1);
+  await press(page.locator('[data-chain="CA"]'), isMobile);
+  await expect(page.locator('.map-state.on-route')).toHaveCount(0);
+  await expect(shores).toHaveCount(17);
+  await expect(shores.first()).toHaveCSS('stroke', 'rgb(157, 243, 117)');
+});
+
 test('preparation shows a spinner, blocks play, and ignores superseded scoring results', async ({
   page,
   isMobile,

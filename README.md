@@ -111,7 +111,8 @@ Messages remain above the cards.
 ## Rules and local data
 
 See [RULES.md](RULES.md) for complete rules. There is no timer. Every deal is
-solvable. Played states highlight on an unlabeled map beneath translucent cards
+solvable. Bright green shoreline edges mark the Atlantic and Pacific coastal
+states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
 
 **Hint** highlights the next playable card, or a card to remove when backtracking
@@ -125,6 +126,7 @@ Hint messages use abbreviations: `Play NC` or `Remove KY, play GA`. The zero-poi
 reminder appears once. A win celebrates for two seconds before results appear;
 reduced motion skips the animation delay. The result is saved immediately.
 
+Hard cards use a gold border without changing their original backgrounds or text.
 Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
 hard cards. A hard card appears in more than zero but fewer than 20% of its deal's
 winning routes. Values are calculated exactly before play, with a loading spinner,

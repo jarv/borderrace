@@ -86,6 +86,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Highlight only played states, removing highlights on undo. No map labels or
   unplayed-state deck/next-move colors. Map cards have semi-transparent backgrounds
   but opaque text and solid opaque borders; do not set whole-card opacity.
+  Permanent bright green Atlantic/Pacific shoreline edges mark coastal states,
+  not their inland/international borders or Gulf-only shores. Hard cards use gold
+  borders only; preserve normal hand/map/result backgrounds and text colors.
 - Finished games are recorded once. Preserve compatible records and keep old
   discontinued-mode saves in the local archive rather than deleting them.
   New winning records include their actual route; show paths and points in scores,
