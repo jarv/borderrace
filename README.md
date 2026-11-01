@@ -119,7 +119,7 @@ A single narrow red deadline line starts at the full map panel's left edge for a
 or right edge for an Atlantic start. Its base crossing time is 90 seconds. Valid
 additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
 capped at 3×. Point penalties remain unchanged. The
-furthest-forward state pulses red as the line reaches it. Once overtaken,
+furthest-forward state pulses dark red as the line reaches it. Once overtaken,
 **You Lose!** appears for one second before a fresh game. The shaded sweep follows
 geographic states, not the zig-zag cards. It pauses while hidden, persists progress
 and pace across reloads, and never rewinds on undo. Reduced motion keeps this

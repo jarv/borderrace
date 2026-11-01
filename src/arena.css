@@ -277,19 +277,19 @@
   vector-effect: non-scaling-stroke;
 }
 .map-state.sweep-danger path {
-  fill: #b74049;
-  stroke: #ff9aa5;
+  fill: #62313b;
+  stroke: #92515e;
   animation: sweep-danger-pulse 1.2s ease-in-out infinite;
 }
 @keyframes sweep-danger-pulse {
   0%,
   100% {
-    fill: #b74049;
-    stroke: #ff9aa5;
+    fill: #62313b;
+    stroke: #92515e;
   }
   50% {
-    fill: #f16a72;
-    stroke: #ffe1dd;
+    fill: #8b3d49;
+    stroke: #b36b78;
   }
 }
 .sweep-layer {

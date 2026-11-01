@@ -72,7 +72,7 @@ for (const [code, direction] of [
     await expect(page.locator(`.map-state[data-code="${code}"]`)).toHaveClass(/sweep-danger/);
     await expect(page.locator(`.map-state[data-code="${code}"] path`)).toHaveCSS(
       'fill',
-      'rgb(183, 64, 73)',
+      'rgb(98, 49, 59)',
     );
     const shade = await page.locator('.sweep-shade').boundingBox();
     expect(shade.width).toBeGreaterThan(0);
@@ -247,7 +247,7 @@ test('a single narrow sweep line has no internal animation; threatened states pu
   expect(pulse.fills.length).toBeGreaterThan(1);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(danger).toHaveCSS('animation-name', 'none');
-  await expect(danger).toHaveCSS('fill', 'rgb(183, 64, 73)');
+  await expect(danger).toHaveCSS('fill', 'rgb(98, 49, 59)');
   expect(
     await line.evaluate((element) => getComputedStyle(element, '::before').animationName),
   ).toBe('none');

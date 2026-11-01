@@ -68,7 +68,7 @@ starting and repeated hints or mistakes. Speed is capped at **3×**. Removals do
 accelerate it. These speed penalties do not replace hint-zeroing or mistake point deductions.
 
 The line chases the geographically furthest-forward state in your current route,
-not the last card or the zig-zag card positions. It makes that state pulse red when it
+not the last card or the zig-zag card positions. It makes that state pulse dark red when it
 touches the state's near edge. Once it passes the far edge, the game ends:
 **You Lose!** appears for one second, then a new game begins automatically. A
 timeout counts as one loss and does not reveal an assisted solution.
