@@ -79,6 +79,7 @@ for (const [code, direction] of [
     const state = await saved(page);
     await page.clock.runFor(Math.max(0, (threshold.far - state.game.sweep.progress) * 90000) + 150);
     await expect(page.locator('#sweep-over')).toBeVisible();
+    await expect(page.locator('#sweep-over')).toHaveText('You Lose!');
     expect((await saved(page)).played).toBe(1);
     expect((await saved(page)).wins).toBe(0);
     expect((await saved(page)).game.lossReason).toBe('timeout');
@@ -206,4 +207,52 @@ test('reloading a timeout does not recount it and New game cancels the automatic
   expect((await saved(page)).game.id).toBe(id);
   expect((await saved(page)).played).toBe(1);
   await expect(page.locator('#sweep-over')).not.toBeVisible();
+});
+
+test('a single narrow sweep line has no internal animation; threatened states pulse', async ({
+  page,
+}) => {
+  await seed(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await click(page, '[data-card="CA"]');
+  const line = page.locator('.sweep-line');
+  await expect(line).toHaveCSS('background-color', 'rgb(255, 73, 64)');
+  await expect(line).toHaveCSS('width', '2px');
+  await expect(line).toHaveCSS('animation-name', 'none');
+  for (const pseudo of ['::before', '::after']) {
+    expect(
+      await line.evaluate((element, pseudo) => getComputedStyle(element, pseudo).content, pseudo),
+    ).toBe('none');
+    expect(
+      await line.evaluate(
+        (element, pseudo) => getComputedStyle(element, pseudo).animationName,
+        pseudo,
+      ),
+    ).toBe('none');
+  }
+  const threshold = await bounds(page, 'CA', 'east');
+  await page.clock.runFor(threshold.near * 90000 + 100);
+  const danger = page.locator('.map-state.sweep-danger path');
+  await expect(danger).toHaveCSS('animation-name', 'sweep-danger-pulse');
+  const pulse = await danger.evaluate((element) => {
+    const animation = element
+      .getAnimations()
+      .find((animation) => animation.animationName === 'sweep-danger-pulse');
+    return {
+      duration: animation.effect.getTiming().duration,
+      fills: [...new Set(animation.effect.getKeyframes().map((keyframe) => keyframe.fill))],
+    };
+  });
+  expect(pulse.duration).toBe(1200);
+  expect(pulse.fills.length).toBeGreaterThan(1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(danger).toHaveCSS('animation-name', 'none');
+  await expect(danger).toHaveCSS('fill', 'rgb(183, 64, 73)');
+  expect(
+    await line.evaluate((element) => getComputedStyle(element, '::before').animationName),
+  ).toBe('none');
+  expect(await line.evaluate((element) => getComputedStyle(element, '::after').animationName)).toBe(
+    'none',
+  );
+  await expect(page.locator('.sweep-layer')).toBeVisible();
 });

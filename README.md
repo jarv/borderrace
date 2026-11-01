@@ -115,15 +115,16 @@ solvable. Bright green shoreline edges mark the Atlantic and Pacific coastal
 states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
 
-A moving deadline starts at the full map panel's left edge for a Pacific start,
+A single narrow red deadline line starts at the full map panel's left edge for a Pacific start,
 or right edge for an Atlantic start. Its base crossing time is 90 seconds. Valid
 additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
 capped at 3×. Point penalties remain unchanged. The
-furthest-forward state turns red as the line reaches it. Once overtaken, Game
-over appears for one second before a fresh game. The shaded sweep follows
+furthest-forward state pulses red as the line reaches it. Once overtaken,
+**You Lose!** appears for one second before a fresh game. The shaded sweep follows
 geographic states, not the zig-zag cards. It pauses while hidden, persists progress
 and pace across reloads, and never rewinds on undo. Reduced motion keeps this
-functional deadline but removes decorative effects. Wins stop it; New game resets it.
+functional deadline but uses a solid red warning instead of pulsing. The line
+has a subtle glow and no internal animation. Wins stop it; New game resets it.
 
 **Hint** highlights the next playable card, or a card to remove when backtracking
 is needed. After a hint, the next added card scores zero, even if a different card

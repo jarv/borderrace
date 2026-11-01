@@ -279,6 +279,18 @@
 .map-state.sweep-danger path {
   fill: #b74049;
   stroke: #ff9aa5;
+  animation: sweep-danger-pulse 1.2s ease-in-out infinite;
+}
+@keyframes sweep-danger-pulse {
+  0%,
+  100% {
+    fill: #b74049;
+    stroke: #ff9aa5;
+  }
+  50% {
+    fill: #f16a72;
+    stroke: #ffe1dd;
+  }
 }
 .sweep-layer {
   position: absolute;
@@ -306,8 +318,8 @@
   bottom: 0;
   width: 2px;
   translate: -50% 0;
-  background: var(--orange);
-  box-shadow: 0 0 8px #ffc76a80;
+  background: #ff4940;
+  box-shadow: 0 0 6px #ff393980;
 }
 #sweep-over {
   position: absolute;

@@ -89,9 +89,11 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   at 3x, in addition to existing point penalties. Undo never refunds
   pace/progress or changes the original direction; with no route, chase the
   original starting state. Pause while hidden; persist normalized progress/speed.
-  Turn the geographically furthest-forward current state red on entry and lose
-  when the line clears its far edge. Briefly show Game over, then start a new game
+  Show a single narrow red line with subtle glow and no internal animation;
+  pulse the geographically furthest-forward current state
+  red on entry and lose when the line clears its far edge. Briefly show You Lose!, then start a new game
   after one second. Record timeout losses once, never as assisted completions.
+  Reduced motion uses a solid red warning, without changing timing.
 - Reaching the opposite coast automatically wins and ends the route. Longest
   solutions must obey this in either direction: never continue past that coast.
 - Highlight only played states, removing highlights on undo. No map labels or

@@ -59,7 +59,7 @@ replaying it. Pending penalties and zero-point cards persist across reloads.
 
 ## Moving deadline
 
-The first coastal card starts a vertical line at the map panel's far left for a
+The first coastal card starts a single narrow red vertical line at the map panel's far left for a
 Pacific start, or far right for an Atlantic start—not at the US outline. It moves
 across the entire panel, darkening the area behind it. At its initial speed a full
 crossing takes **90 seconds**. Each additional valid card adds **8% of the base
@@ -68,9 +68,9 @@ starting and repeated hints or mistakes. Speed is capped at **3×**. Removals do
 accelerate it. These speed penalties do not replace hint-zeroing or mistake point deductions.
 
 The line chases the geographically furthest-forward state in your current route,
-not the last card or the zig-zag card positions. It turns that state red when it
+not the last card or the zig-zag card positions. It makes that state pulse red when it
 touches the state's near edge. Once it passes the far edge, the game ends:
-**Game over** appears for one second, then a new game begins automatically. A
+**You Lose!** appears for one second, then a new game begins automatically. A
 timeout counts as one loss and does not reveal an assisted solution.
 
 Undo never rewinds the line, refunds acceleration, or changes its initial direction.
@@ -80,7 +80,8 @@ phone), and resumes without charging hidden time. Progress and speed survive
 reloads; time spent away is not charged. Existing saves without a line start at
 zero progress. Wins stop the line; New game resets it.
 
-Reduced motion removes decorative effects but keeps the functional deadline.
+The line has a subtle glow without internal animation. Reduced motion keeps the
+functional deadline and uses a solid red warning instead of pulsing.
 There is no numeric clock and time does not affect points or score rankings.
 
 ## Points and records
