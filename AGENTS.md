@@ -1,8 +1,9 @@
 # Working on Border Race
 
 Border Race is a browser-only US geography card game. The previous Python/Django
-implementation has been removed. Do not reintroduce a backend, accounts,
-analytics, or server-side game state. All persistence is local storage.
+implementation has been removed. Optional Supabase Google login and a daily
+leaderboard are allowed; no custom backend, analytics, or server-side game state.
+Gameplay and personal records stay local. Online features must never block play.
 
 ## Entry points
 
@@ -41,7 +42,12 @@ for build/test tools), and commit both package files. No global npm packages.
   participation and frozen deal points, prepared off-thread before play.
 - `src/storage.js`: versioned local save, defensive loading, personal records.
 - `src/main.js`: interaction, SVG map, rendering, dialogs, Motion animations,
-  canvas celebration. No API requests.
+  canvas celebration. Remote features stay in dedicated online modules.
+- `src/auth.js`, `src/leaderboard.js`, `src/online.js`: optional Supabase auth,
+  account-bound win outbox, daily leaderboard UI. Only completed wins count;
+  server receipt assigns UTC day, equal totals share ranks. No retroactive uploads.
+- `supabase/migrations/`, `supabase/tests/`: schema, RLS, narrow database RPCs,
+  permission/scoring tests. Never apply migrations remotely without approval.
 - `src/chain.js`: touch-sized zig-zag route placement; long routes wrap to fit the map.
 - `src/arena.js`: keyed map-card chain, flying cards, energy bursts, score pops,
   and completion payoff. Bound and clean up transient effects; never block gameplay on animation.
@@ -168,6 +174,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   the HUD. Handle fast play, undo, and new games without stale additions; reduced
   motion updates the total immediately. Interrupted effects must not strand points.
 - Bundle assets; no external fonts, map tiles, scripts, or runtime CDN calls.
+  Only configured Supabase and explicit Google OAuth navigation may use the network.
+  Never bundle OAuth secrets, admin keys, database passwords, or access tokens.
 - Keep asset URLs relative so both domain roots and subpaths work.
 - `dist/` is generated, ignored, and the only deployment artifact. Never publish
   `node_modules/`, source, test artifacts, or local configuration as the site.

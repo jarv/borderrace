@@ -136,6 +136,19 @@ so the page stays responsive.
 
 ## Local data and effects
 
+When the optional online leaderboard is configured, **Daily leaderboard**, beside
+**Your scores**, shows cumulative winning points for the current UTC day, even
+when logged out. Use the top-bar login/logout icon to sign in with Google before
+winning to contribute. First login assigns a random pet-style public name to the
+account; click the name in the top bar to change it. Chosen names persist across
+logins. Each game counts once; timeout losses,
+abandoned games, and previous anonymous wins do not count. Hint and mistake
+deductions still apply, including negative winning totals. Ties share a rank.
+The board changes at midnight UTC without deleting history. Queued offline wins
+count on the day the server first receives them. Your public player name and
+total are visible to everyone; Google names/emails are not published. Scores are
+browser-reported, not cheat-resistant. Local score clearing affects no online data.
+
 The visible score increases when animated points reach the total. Scores and
 wins are saved immediately; reduced motion updates the total immediately.
 

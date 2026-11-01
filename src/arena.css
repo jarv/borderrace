@@ -267,7 +267,7 @@
 .coastline {
   fill: none;
   stroke: var(--green);
-  stroke-width: 2;
+  stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
@@ -671,17 +671,37 @@
   (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
   body {
     height: 100dvh;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     overflow: hidden;
     padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
       max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
   }
   .site-header {
+    display: flex;
+    flex: 0 0 44px;
+    height: 44px;
+    padding: 0 4px;
+    gap: 8px;
+  }
+  .site-header .brand {
     display: none;
+  }
+  .score-links {
+    gap: 8px;
+  }
+  .site-header .text-button {
+    font-size: 10px;
+  }
+  #account-name {
+    max-width: 120px;
+    min-width: 0;
   }
   main {
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     padding: 0;
     position: relative;
   }
@@ -750,7 +770,7 @@
     gap: 4px;
   }
   .state-card {
-    height: clamp(48px, calc((100dvh - 112px) / 4), 68px);
+    height: clamp(44px, calc((100dvh - 156px) / 4), 68px);
     min-height: 44px;
     padding: 4px;
     border-radius: 5px;
@@ -784,7 +804,7 @@
     padding: 0 0 72px;
   }
   #map {
-    width: min(100%, calc((100dvh - 150px) * 870 / 560));
+    width: min(100%, calc((100dvh - 194px) * 870 / 560));
     max-height: 100%;
   }
   .map-card strong {
@@ -861,11 +881,11 @@
   }
   .map-panel {
     order: -1;
-    flex: 0 0 calc(50dvh - 52px);
+    flex: 0 0 calc(50dvh - 96px);
     min-height: 120px;
   }
   #map {
-    width: min(100%, calc((50dvh - 144px) * 870 / 560));
+    width: min(100%, calc((50dvh - 188px) * 870 / 560));
   }
   .hand {
     flex: 1;

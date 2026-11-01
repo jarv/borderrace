@@ -5,7 +5,10 @@ A frontend-only geography game. Connect the Atlantic and Pacific coasts with
 Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
 gems, and a canvas celebration — not a literal casino table.
-No Python, backend, accounts, tracking, or remote game state.
+No Python, custom backend, tracking, or remote game state. Optional Supabase Google
+login adds a daily cumulative leaderboard; play and personal records remain local.
+See [Supabase setup](docs/supabase-setup.md) for configuration, UTC scoring,
+credential handling, database tests, and deployment. Unconfigured builds stay local-only.
 
 ## Play locally
 
@@ -162,7 +165,11 @@ There is no music, autoplay, or external audio download.
 
 The current game and top 10 wins are saved to local storage.
 Reloading resumes the game and preserves hint penalties. Blocked/full storage
-falls back to in-memory play. There is no shared leaderboard or cross-device sync.
+falls back to in-memory play. Game saves do not sync across devices.
+When configured, **Daily leaderboard** beside **Your scores** opens the public board,
+including while logged out. The top-bar login/logout icon controls Google sign-in.
+First login assigns an account-bound random pet-style player name; click your name
+in the top bar to edit it. Existing chosen names are preserved across logins/devices.
 Use **Your scores → Clear** to clear scores and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls

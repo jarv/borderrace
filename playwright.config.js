@@ -22,6 +22,10 @@ export default defineConfig({
   ],
   webServer: {
     command: 'PORT=4174 node build.js --serve',
+    env: {
+      SUPABASE_URL: 'http://127.0.0.1:55431',
+      SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_browser_test',
+    },
     url: 'http://127.0.0.1:4174',
     reuseExistingServer: !process.env.CI,
   },

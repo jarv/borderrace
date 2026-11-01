@@ -3,8 +3,10 @@ import { readFile, mkdir, writeFile, copyFile, rm } from 'node:fs/promises';
 import { STATES } from './src/data.js';
 import { fingerprintAssets } from './build-assets.js';
 import { coastlinePaths } from './map-coasts.js';
+import { onlineConfig } from './build-config.js';
 
 const serve = process.argv.includes('--serve');
+const publicConfig = onlineConfig();
 // Extract only known state paths, never scripts, inline styles, or event handlers.
 async function makeMap() {
   const sourceMap = await readFile('assets/us.svg', 'utf8');
@@ -39,6 +41,19 @@ const context = await esbuild.context({
   metafile: true,
   plugins: [
     {
+      name: 'online-config',
+      setup(build) {
+        build.onResolve({ filter: /^online-config$/ }, () => ({
+          path: 'config',
+          namespace: 'online-config',
+        }));
+        build.onLoad({ filter: /.*/, namespace: 'online-config' }, () => ({
+          contents: `export default ${JSON.stringify(publicConfig)};`,
+          loader: 'js',
+        }));
+      },
+    },
+    {
       name: 'border-map',
       setup(build) {
         build.onResolve({ filter: /^border-map$/ }, () => ({ path: 'map', namespace: 'map' }));
@@ -64,6 +79,14 @@ const context = await esbuild.context({
               'motion-utils/LICENSE.md',
               'tslib/CopyrightNotice.txt',
               'tslib/LICENSE.txt',
+              '@supabase/supabase-js/LICENSE',
+              '@supabase/auth-js/LICENSE',
+              '@supabase/postgrest-js/LICENSE',
+              '@supabase/realtime-js/LICENSE',
+              '@supabase/storage-js/LICENSE',
+              '@supabase/functions-js/LICENSE',
+              '@supabase/phoenix/LICENSE.md',
+              'iceberg-js/LICENSE',
             ].map(async (file) => `${file}\n\n${await readFile(`node_modules/${file}`, 'utf8')}`),
           );
           await writeFile('dist/LICENSES.txt', licenses.join('\n\n--------------------\n\n'));

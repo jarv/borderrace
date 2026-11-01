@@ -20,6 +20,35 @@
   </head>
   <body>
     <header class="site-header">
+      <nav class="score-links" aria-label="Scores">
+        <button class="text-button" id="records-button">Your scores</button>
+        <button class="text-button" id="daily-button" hidden>Daily leaderboard</button>
+      </nav>
+      <div class="account-controls" id="account-controls" hidden>
+        <button class="text-button" id="account-name" aria-haspopup="dialog" hidden></button>
+        <button
+          class="text-button account-button"
+          id="account-button"
+          aria-label="Log in with Google"
+          title="Log in with Google"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path class="account-door" d="M15 3h5v18h-5" />
+            <path d="m10 8 4 4-4 4M14 12H3" />
+          </svg>
+        </button>
+      </div>
+      <span id="account-status" role="status" aria-live="polite"></span>
       <a class="brand" href="./" aria-label="Border Race home"
         ><span class="brand-icon" aria-hidden="true">ϟ</span> border<span>race</span></a
       >
@@ -39,9 +68,7 @@
             >
               Sound on
             </button>
-            <button class="text-button" id="records-button" aria-label="Your scores">
-              <span class="scores-label">Your </span>scores</button
-            ><button class="text-button" id="help-button" aria-label="How to play">
+            <button class="text-button" id="help-button" aria-label="How to play">
               <span class="question-icon" aria-hidden="true">?</span>
             </button>
           </nav>
@@ -145,6 +172,51 @@
       <div id="record-list"></div>
       <p class="fine-print">Top 10 wins, ranked by points.</p>
       <button id="clear-scores" class="secondary-button">Clear</button>
+    </dialog>
+    <dialog id="daily-dialog" aria-labelledby="daily-title">
+      <div class="daily-header">
+        <h2 id="daily-title">Daily leaderboard</h2>
+        <button
+          id="daily-refresh"
+          class="close-button"
+          aria-label="Refresh leaderboard"
+          title="Refresh leaderboard"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 7v5h-5M4 17v-5h5" />
+            <path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" />
+          </svg>
+        </button>
+        <button class="close-button" data-close aria-label="Close leaderboard">×</button>
+      </div>
+      <p class="fine-print">Winning points add up each UTC day.</p>
+      <p id="daily-status" role="status" aria-live="polite"></p>
+      <p id="daily-loading" hidden>Loading…</p>
+      <div id="daily-list" class="record-section"></div>
+    </dialog>
+    <dialog id="profile-dialog" aria-labelledby="profile-title">
+      <div class="dialog-top">
+        <button class="close-button" data-close aria-label="Close player name">×</button>
+      </div>
+      <h2 id="profile-title">Player name</h2>
+      <form id="profile-form">
+        <label for="display-name">Public player name</label>
+        <div class="profile-fields">
+          <input id="display-name" name="display-name" maxlength="24" required autocomplete="off" />
+          <button id="save-display-name" class="secondary-button" type="submit">Save</button>
+        </div>
+      </form>
+      <p id="profile-status" role="status" aria-live="polite"></p>
     </dialog>
     <canvas id="confetti" aria-hidden="true"></canvas>
     <noscript

@@ -1,5 +1,6 @@
 [tools]
 node = "24.16.0"
+supabase = "2.122.0"
 
 [tasks.install]
 description = "Install the pinned frontend dependencies"
@@ -75,3 +76,15 @@ run = "node verify-release.js"
 description = "Publish a semantic release (CI on master)"
 depends = ["install"]
 run = "npx semantic-release"
+
+[tasks."db:start"]
+description = "Start the isolated local Supabase stack (Docker required)"
+run = "supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor"
+
+[tasks."db:reset"]
+description = "Recreate only the local Supabase database from migrations"
+run = "supabase db reset --local"
+
+[tasks."test:db"]
+description = "Run database permission and leaderboard tests against local Supabase"
+run = "supabase test db --local"

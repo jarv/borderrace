@@ -1065,14 +1065,12 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
         expect(hand.y + hand.height).toBeLessThanOrEqual(height);
       }
       expect(map.y + map.height).toBeLessThanOrEqual(height);
-      const controls = await page
-        .locator('#hint-button, #sound-button, #records-button, #help-button, #new-game')
-        .evaluateAll((buttons) =>
-          buttons.map((button) => {
-            const { x, y, width, height } = button.getBoundingClientRect();
-            return { x, y, width, height };
-          }),
-        );
+      const controls = await page.locator('.game-toolbar button').evaluateAll((buttons) =>
+        buttons.map((button) => {
+          const { x, y, width, height } = button.getBoundingClientRect();
+          return { x, y, width, height };
+        }),
+      );
       expect(
         Math.max(...controls.map((b) => b.y)) - Math.min(...controls.map((b) => b.y)),
       ).toBeLessThan(1);
