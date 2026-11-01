@@ -3,6 +3,9 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select no_plan();
 
+-- Isolate fixtures from local play; rollback below restores all existing rows.
+truncate public.profiles, public.score_submissions;
+
 insert into auth.users(id) values
   ('00000000-0000-0000-0000-000000000001'),
   ('00000000-0000-0000-0000-000000000002');
@@ -10,6 +13,7 @@ insert into auth.users(id) values
 select is((public.get_daily_leaderboard()->'entries'), '[]'::jsonb, 'empty daily board');
 set local role anon;
 select lives_ok('select public.get_daily_leaderboard()', 'anonymous aggregate reads allowed');
+select throws_ok($$select public.ensure_display_name('Sunny Otter 1234')$$, '42501', null, 'anonymous profile initialization denied');
 select throws_ok($$select public.submit_score('x', 1, 'wins-v1')$$, '42501', null, 'anonymous submissions denied');
 select throws_ok($$select * from public.score_submissions$$, '42501', null, 'raw scores not public');
 select throws_ok($$select * from public.profiles$$, '42501', null, 'raw profiles not public');
@@ -17,8 +21,12 @@ reset role;
 
 set local role authenticated;
 select throws_ok($$select public.submit_score('x', 1, 'wins-v1')$$, '42501', null, 'authenticated role still needs a user');
+select throws_ok($$select public.ensure_display_name('Sunny Otter 1234')$$, '42501', null, 'profile initialization requires a user');
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+select is(public.ensure_display_name('Sunny Otter 1234'), 'Sunny Otter 1234', 'first login creates a pet name');
+select is(public.ensure_display_name('Lucky Cat 5678'), 'Sunny Otter 1234', 'repeat initialization preserves the name');
 select lives_ok($$select public.set_display_name('Alice')$$, 'own profile created');
+select is(public.ensure_display_name('Lucky Cat 5678'), 'Alice', 'login never replaces a chosen name');
 select lives_ok($$select public.submit_score('one', 10, 'wins-v1')$$, 'first win accepted');
 select lives_ok($$select public.submit_score('two', -2, 'wins-v1')$$, 'negative win accepted');
 select lives_ok($$select public.submit_score('one', 999, 'wins-v1')$$, 'retry is idempotent');
@@ -31,6 +39,8 @@ select is((public.get_daily_leaderboard()->'entries'->0->>'own'), 'true', 'ident
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
 select is((select count(*) from public.profiles), 0::bigint, 'other account cannot read profile');
+select is(public.ensure_display_name('Cozy Corgi 0001'), 'Cozy Corgi 0001', 'second account gets its own name');
+select is((select count(*) from public.profiles), 1::bigint, 'only own initialized profile is visible');
 select lives_ok($$select public.submit_score('one', 8, 'wins-v1')$$, 'second account may use its own game id');
 select lives_ok($$select public.set_display_name('<script>')$$, 'names are data, not markup');
 select is((public.get_daily_leaderboard()->'entries'->0->>'rank'), '1', 'first tied rank is one');

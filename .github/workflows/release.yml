@@ -24,6 +24,9 @@ jobs:
       - run: mise run test:browser
       - run: mise run test:release
       - name: Test local database permissions and scoring
+        env:
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ci-only.apps.googleusercontent.com
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ci-only-not-a-real-secret
         run: |
           mise run db:start
           mise run test:db

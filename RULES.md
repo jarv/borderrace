@@ -136,9 +136,12 @@ so the page stays responsive.
 
 ## Local data and effects
 
-When the optional online leaderboard is configured, **Your scores → Daily
-leaderboard** shows cumulative winning points for the current UTC day. Sign in
-with Google before winning to contribute. Each game counts once; Show route,
+When the optional online leaderboard is configured, **Daily leaderboard**, beside
+**Your scores**, shows cumulative winning points for the current UTC day, even
+when logged out. Use the top-bar login/logout icon to sign in with Google before
+winning to contribute. First login assigns a random pet-style public name to the
+account; click the name in the top bar to change it. Chosen names persist across
+logins. Each game counts once; timeout losses,
 abandoned games, and previous anonymous wins do not count. Hint and mistake
 deductions still apply, including negative winning totals. Ties share a rank.
 The board changes at midnight UTC without deleting history. Queued offline wins

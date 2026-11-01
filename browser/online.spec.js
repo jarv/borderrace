@@ -20,7 +20,7 @@ const session = {
   },
 };
 
-async function setup(page, { loggedIn = false, gameRoute = [], rpc } = {}) {
+async function setup(page, { loggedIn = false, gameRoute = [], rpc, profileName = null } = {}) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(
     ({ key, save, session }) => {
@@ -46,12 +46,21 @@ async function setup(page, { loggedIn = false, gameRoute = [], rpc } = {}) {
       session: loggedIn ? session : null,
     },
   );
+  let storedName = profileName;
   await page.route('http://127.0.0.1:55431/**', async (request) => {
     const url = new URL(request.request().url());
     const name = url.pathname.split('/').at(-1);
     if (url.pathname.startsWith('/rest/v1/rpc/')) {
       const response = await rpc?.(name, request.request());
       if (response) return request.fulfill(response);
+      if (name === 'ensure_display_name') {
+        storedName ??= request.request().postDataJSON().p_display_name;
+        return request.fulfill({ json: storedName });
+      }
+      if (name === 'set_display_name') {
+        storedName = request.request().postDataJSON().p_display_name;
+        return request.fulfill({ status: 204 });
+      }
       if (name === 'get_daily_leaderboard')
         return request.fulfill({
           json: {
@@ -76,7 +85,6 @@ async function setup(page, { loggedIn = false, gameRoute = [], rpc } = {}) {
 }
 
 async function openBoard(page) {
-  await page.locator('#records-button').click();
   await page.locator('#daily-button').click();
   await expect(page.locator('#daily-dialog')).toBeVisible();
 }
@@ -89,30 +97,86 @@ test('public daily board uses text-only names and fits small phones', async ({
   await openBoard(page);
   await expect(page.locator('#daily-list')).toContainText('<script>alert(1)</script>');
   await expect(page.locator('#daily-list script')).toHaveCount(0);
-  await expect(page.locator('#daily-date')).toContainText('00:00 UTC');
-  await expect(page.locator('#google-sign-in')).toBeVisible();
-  await expect(page.locator('#profile-form')).not.toBeVisible();
+  await expect(page.locator('#daily-dialog .fine-print')).toHaveText(
+    'Winning points add up each UTC day.',
+  );
+  await expect(page.locator('#daily-date')).toHaveCount(0);
+  await expect(page.locator('#daily-refresh')).toHaveAccessibleName('Refresh leaderboard');
+  await expect(page.locator('#daily-refresh')).toHaveText('');
   if (isMobile) {
     for (const width of [320, 360, 650]) {
       await page.setViewportSize({ width, height: 780 });
       expect(
         await page.locator('#daily-dialog').evaluate((el) => el.scrollWidth <= el.clientWidth),
       ).toBe(true);
+      const title = await page.locator('#daily-title').boundingBox();
+      const refresh = await page.locator('#daily-refresh').boundingBox();
+      expect(refresh.width).toBeGreaterThanOrEqual(44);
+      expect(refresh.height).toBeGreaterThanOrEqual(44);
+      expect(title.x + title.width).toBeLessThanOrEqual(refresh.x);
     }
   }
   await page.keyboard.press('Escape');
   await expect(page.locator('#daily-dialog')).not.toBeVisible();
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log in with Google');
+  await expect(page.locator('#account-name')).not.toBeVisible();
+  await page.locator('#records-button').click();
+  await expect(page.locator('#records-dialog #daily-button')).toHaveCount(0);
 });
 
 test('Google sign-in uses PKCE and the current application redirect', async ({ page }) => {
   await setup(page);
-  await openBoard(page);
-  await page.locator('#google-sign-in').click();
+  await page.locator('#account-button').click();
   await expect(page).toHaveURL(/\/auth\/v1\/authorize/);
   const url = new URL(page.url());
   expect(url.searchParams.get('provider')).toBe('google');
   expect(url.searchParams.get('redirect_to')).toBe('http://127.0.0.1:4174/');
   expect(url.searchParams.get('code_challenge_method')).toBe('s256');
+});
+
+test('existing names stay account-bound and the top bar fits small screens', async ({ page }) => {
+  await setup(page, { loggedIn: true, profileName: 'A very long player name!!' });
+  await expect(page.locator('#account-name')).toHaveText('A very long player name!!');
+  for (const width of [320, 360, 650, 820, 1440]) {
+    await page.setViewportSize({ width, height: 780 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await expect(page.locator('#daily-button')).toBeInViewport();
+    await expect(page.locator('#account-button')).toBeInViewport();
+    const name = await page.locator('#account-name').boundingBox();
+    const login = await page.locator('#account-button').boundingBox();
+    expect(name.x + name.width).toBeLessThanOrEqual(login.x);
+  }
+  await page.locator('#account-name').click();
+  await expect(page.locator('#display-name')).toHaveValue('A very long player name!!');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#account-name')).toBeFocused();
+  await page.reload();
+  await expect(page.locator('#account-name')).toHaveText('A very long player name!!');
+});
+
+test('profile failures allow name recovery without blocking gameplay', async ({ page }) => {
+  let fail = true;
+  await setup(page, {
+    loggedIn: true,
+    rpc(name) {
+      if (name === 'ensure_display_name' || (name === 'set_display_name' && fail))
+        return { status: 503, json: { message: 'unavailable' } };
+    },
+  });
+  await expect(page.locator('#account-name')).toHaveText('Set name');
+  await page.locator('#account-name').click();
+  await expect(page.locator('#profile-status')).toContainText('Name unavailable');
+  await page.locator('#display-name').fill('Sunny Otter');
+  await page.locator('#save-display-name').click();
+  await expect(page.locator('#profile-status')).toContainText('Name not saved');
+  fail = false;
+  await page.locator('#save-display-name').click();
+  await expect(page.locator('#profile-dialog')).not.toBeVisible();
+  await expect(page.locator('#account-name')).toHaveText('Sunny Otter');
+  await page.locator('[data-card="CA"]').click();
+  await expect(page.locator('[data-chain="CA"]')).toHaveCount(1);
 });
 
 test('signed-in wins submit once without waiting for results and never publish Google identity', async ({
@@ -127,15 +191,17 @@ test('signed-in wins submit once without waiting for results and never publish G
         submissions.push({ body: request.postDataJSON(), token: request.headers().authorization });
     },
   });
-  await openBoard(page);
-  await expect(page.locator('#online-sign-out')).toBeVisible();
-  await expect(page.locator('#daily-dialog')).not.toContainText(
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
+  await expect(page.locator('.site-header')).not.toContainText(
     /private@example.com|Private Google Name/,
   );
-  await expect(page.locator('#display-name')).toHaveValue('');
+  await expect(page.locator('#account-name')).toHaveText(/^[A-Z][a-z]+ [A-Z][a-z]+ \d{4}$/);
+  await page.locator('#account-name').click();
+  await expect(page.locator('#display-name')).toHaveValue(/^[A-Z][a-z]+ [A-Z][a-z]+ \d{4}$/);
   await page.locator('#display-name').fill('Map player');
   await page.locator('#profile-form').evaluate((form) => form.requestSubmit());
-  await page.keyboard.press('Escape');
+  await expect(page.locator('#profile-dialog')).not.toBeVisible();
+  await expect(page.locator('#account-name')).toHaveText('Map player');
   await page.locator('[data-card="NC"]').click();
   await expect.poll(() => submissions.length).toBe(1);
   expect(submissions[0].body).toEqual({
@@ -146,6 +212,7 @@ test('signed-in wins submit once without waiting for results and never publish G
   expect(submissions[0].token).toBe('Bearer test-user-token');
   await page.reload();
   await expect(page.locator('#result-dialog')).toBeVisible();
+  await expect(page.locator('#account-name')).toHaveText('Map player');
   expect(submissions.length).toBe(1);
 });
 
@@ -177,9 +244,7 @@ test('signed-in timeout losses do not submit scores', async ({ page }) => {
       if (name === 'submit_score') submissions.push(name);
     },
   });
-  await openBoard(page);
-  await expect(page.locator('#online-sign-out')).toBeVisible();
-  await page.keyboard.press('Escape');
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await page.locator('[data-card="CA"]').dispatchEvent('click');
   await page.clock.runFor(90000);
@@ -204,9 +269,7 @@ test('network failure queues signed-in wins and refresh retries without losing l
       }
     },
   });
-  await openBoard(page);
-  await expect(page.locator('#online-sign-out')).toBeVisible();
-  await page.keyboard.press('Escape');
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
   await page.locator('[data-card="NC"]').click();
   await expect.poll(() => submissions).toBeGreaterThan(0);
   expect(
@@ -253,11 +316,10 @@ test('sign-out keeps the active game and personal records', async ({ page }) => 
       if (name === 'submit_score') submissions.push(name);
     },
   });
-  await openBoard(page);
-  await expect(page.locator('#online-sign-out')).toBeVisible();
-  await page.locator('#online-sign-out').click();
-  await expect(page.locator('#google-sign-in')).toBeVisible();
-  await page.keyboard.press('Escape');
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
+  await page.locator('#account-button').click();
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log in with Google');
+  await expect(page.locator('#account-name')).not.toBeVisible();
   await expect(page.locator('[data-chain="CA"]')).toHaveCount(1);
   expect(
     await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).game.route, STORAGE_KEY),
@@ -284,8 +346,7 @@ test('a visible board switches days using the server reset time', async ({ page 
     },
   });
   await openBoard(page);
-  await expect(page.locator('#daily-date')).toContainText('2026-10-30');
+  await expect(page.locator('#daily-list')).toContainText('Yesterday');
   await page.clock.runFor(2000);
-  await expect(page.locator('#daily-date')).toContainText('2026-10-31');
   await expect(page.locator('#daily-list')).toHaveText('No scores today.');
 });

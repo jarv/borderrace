@@ -1,11 +1,13 @@
 import config from 'online-config';
 import { createAuth } from './auth.js';
 import { createOutbox, LEADERBOARD_RULES, OUTBOX_KEY } from './leaderboard.js';
+import { randomPlayerName } from './player-name.js';
 
 export function createOnline({ storage, openDialog }) {
   const $ = (selector) => document.querySelector(selector);
   if (!config) return { recordWin() {} };
   $('#daily-button').hidden = false;
+  $('#account-controls').hidden = false;
   let auth;
   let session = null;
   let revision = 0;
@@ -17,6 +19,8 @@ export function createOnline({ storage, openDialog }) {
   let ready = false;
   let signing = false;
   let profileRevision = 0;
+  let playerName = '';
+  let profileLoading = false;
   const dialog = $('#daily-dialog');
   const status = () => {
     $('#daily-status').textContent = [
@@ -31,30 +35,48 @@ export function createOnline({ storage, openDialog }) {
       .join(' ');
   };
   function renderAccount() {
-    $('#google-sign-in').hidden = Boolean(session);
-    $('#google-sign-in').disabled = !ready || signing;
-    $('#online-sign-out').hidden = !session;
-    $('#online-sign-out').disabled = !ready || signing;
-    $('#profile-form').hidden = !session;
-    $('#daily-account').textContent = session
-      ? 'Signed in'
-      : 'Sign in with Google to add winning points.';
+    const label = session ? 'Log out' : 'Log in with Google';
+    $('#account-button').setAttribute('aria-label', label);
+    $('#account-button').title = label;
+    $('#account-button').classList.toggle('signed-in', Boolean(session));
+    $('#account-button').disabled = !ready || signing;
+    $('#account-name').hidden = !session;
+    $('#account-name').textContent = playerName || (profileLoading ? 'Loading…' : 'Set name');
+    $('#account-name').setAttribute('aria-label', `${playerName || 'Player name'}, change name`);
+    $('#account-name').disabled = profileLoading || signing;
+    $('#account-status').textContent = authError;
     status();
   }
   async function loadProfile() {
     const current = ++profileRevision;
+    const boundSession = session;
+    playerName = '';
     $('#display-name').value = '';
-    if (!session) return;
+    $('#profile-status').textContent = '';
+    profileLoading = Boolean(boundSession);
+    renderAccount();
+    if (!boundSession) {
+      $('#profile-dialog').close();
+      return;
+    }
     try {
       const { data, error } = await auth.client
-        .from('profiles')
-        .select('display_name')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-      if (error) throw error;
-      if (current === profileRevision) $('#display-name').value = data?.display_name ?? '';
+        .rpc('ensure_display_name', { p_display_name: randomPlayerName() })
+        .setHeader('Authorization', `Bearer ${boundSession.access_token}`);
+      if (error || typeof data !== 'string' || !data.trim())
+        throw error ?? new Error('Invalid name');
+      if (current === profileRevision) {
+        playerName = data;
+        $('#display-name').value = data;
+      }
     } catch {
-      /* Player is the public fallback; do not expose Google metadata. */
+      if (current === profileRevision)
+        $('#profile-status').textContent = 'Name unavailable. Choose a name and try Save.';
+    } finally {
+      if (current === profileRevision) {
+        profileLoading = false;
+        renderAccount();
+      }
     }
   }
   const outbox = createOutbox({
@@ -101,7 +123,6 @@ export function createOnline({ storage, openDialog }) {
     boardError = '';
     $('#daily-loading').hidden = false;
     $('#daily-list').replaceChildren();
-    $('#daily-date').textContent = '';
     status();
     try {
       const { data, error } = await auth.client.rpc('get_daily_leaderboard');
@@ -114,7 +135,6 @@ export function createOnline({ storage, openDialog }) {
       )
         throw error ?? new Error('Invalid leaderboard');
       if (current !== revision || !dialog.open) return;
-      $('#daily-date').textContent = `${data.day} UTC · Resets at 00:00 UTC`;
       if (!data.entries.length) $('#daily-list').textContent = 'No scores today.';
       else {
         const table = document.createElement('table');
@@ -165,24 +185,24 @@ export function createOnline({ storage, openDialog }) {
     outbox.retry();
     void refresh();
   });
-  $('#google-sign-in').addEventListener('click', async () => {
+  $('#account-button').addEventListener('click', async () => {
     signing = true;
     renderAccount();
-    await auth.signIn();
+    if (session) await auth.signOut();
+    else await auth.signIn();
     signing = false;
     renderAccount();
   });
-  $('#online-sign-out').addEventListener('click', async () => {
-    signing = true;
-    renderAccount();
-    await auth.signOut();
-    signing = false;
-    renderAccount();
+  $('#account-name').addEventListener('click', () => {
+    if (!session) return;
+    $('#display-name').value = playerName;
+    openDialog('#profile-dialog');
   });
   $('#profile-form').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const userId = session?.user.id;
-    if (!userId) return;
+    const boundSession = session;
+    const current = profileRevision;
+    if (!boundSession) return;
     const button = $('#save-display-name');
     button.disabled = true;
     try {
@@ -191,15 +211,18 @@ export function createOnline({ storage, openDialog }) {
         throw new Error('Invalid name');
       const { error } = await auth.client
         .rpc('set_display_name', { p_display_name: name })
-        .setHeader('Authorization', `Bearer ${session.access_token}`);
+        .setHeader('Authorization', `Bearer ${boundSession.access_token}`);
       if (error) throw error;
-      if (session?.user.id === userId) {
-        boardError = '';
+      if (current === profileRevision) {
+        playerName = name;
+        $('#profile-status').textContent = '';
+        renderAccount();
+        $('#profile-dialog').close();
         void refresh();
       }
     } catch {
-      if (session?.user.id === userId)
-        boardError = 'Name not saved. Use 1–24 characters and try again.';
+      if (current === profileRevision)
+        $('#profile-status').textContent = 'Name not saved. Use 1–24 characters and try again.';
     } finally {
       button.disabled = false;
       status();

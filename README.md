@@ -165,7 +165,11 @@ There is no music, autoplay, or external audio download.
 
 The current game and top 10 wins are saved to local storage.
 Reloading resumes the game and preserves hint penalties. Blocked/full storage
-falls back to in-memory play. There is no shared leaderboard or cross-device sync.
+falls back to in-memory play. Game saves do not sync across devices.
+When configured, **Daily leaderboard** beside **Your scores** opens the public board,
+including while logged out. The top-bar login/logout icon controls Google sign-in.
+First login assigns an account-bound random pet-style player name; click your name
+in the top bar to edit it. Existing chosen names are preserved across logins/devices.
 Use **Your scores → Clear** to clear scores and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls

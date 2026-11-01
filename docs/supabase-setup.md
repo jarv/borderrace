@@ -13,9 +13,11 @@ Use a dedicated new Border Race project when ready.
 
 ## Daily scoring
 
-- Open **Your scores → Daily leaderboard**. Sign in with Google to contribute;
-  anonymous players may view the board. Choose a public player name, or appear as
-  “Player”. Google names, email addresses, and avatars are not published.
+- Open **Daily leaderboard** beside **Your scores**, including while logged out.
+  Use the top-bar login/logout icon to sign in with Google to contribute. First
+  login assigns a random pet-style name saved to the account. Click your top-bar
+  name to edit it; later logins preserve it. Google names, email addresses, and
+  avatars are not published. Apply the player-name migration before using this UI.
 - Sum completed-win scores, including frozen gold values, zero-point hints, and
   mistake deductions. Negative winning scores stay negative. Unlimited games.
 - Timeout losses and abandoned games do not contribute. Previous local records and
@@ -101,6 +103,8 @@ mise run test:db
 Keep local credentials local. CLI startup/status prints local keys; don't copy
 that output into documentation. Local Google login additionally needs provider
 configuration; regular browser tests mock Supabase and Google navigation instead.
+CI supplies dummy Google credentials only to start the disposable local Auth service;
+production Google credentials are never needed by the test jobs.
 
 Run `mise run check`, `mise run test:browser`, `mise run test:db`, and
 `mise run test:release` before rollout. Browser tests use fake public configuration
