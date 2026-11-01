@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/jarv/borderrace/compare/v1.13.0...v1.14.0) (2026-11-01)
+
+
+### Features
+
+* guarantee a winning route from every coastal start ([b9d3a35](https://github.com/jarv/borderrace/commit/b9d3a35585f7599368a34de4523501266a4bf387))
+
 # [1.13.0](https://github.com/jarv/borderrace/compare/v1.12.0...v1.13.0) (2026-11-01)
 
 
