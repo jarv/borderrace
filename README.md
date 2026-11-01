@@ -124,7 +124,10 @@ furthest-forward state pulses red as the line reaches it. Once overtaken,
 geographic states, not the zig-zag cards. It pauses while hidden, persists progress
 and pace across reloads, and never rewinds on undo. Reduced motion keeps this
 functional deadline but uses a solid red warning instead of pulsing. The line
-has a subtle glow and no internal animation. Wins stop it; New game resets it.
+has a subtle glow and no repeating internal animation. On the first play it slams
+down into place with a small impact burst, then sheds sparks as it sweeps. These
+effects never delay the deadline or block play, and are skipped for reduced motion.
+Wins stop it; New game resets it.
 
 **Hint** highlights the next playable card, or a card to remove when backtracking
 is needed. After a hint, the next added card scores zero, even if a different card

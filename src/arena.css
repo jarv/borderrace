@@ -321,6 +321,34 @@
   background: #ff4940;
   box-shadow: 0 0 6px #ff393980;
 }
+.sweep-line.sweep-entering {
+  box-shadow:
+    0 0 8px #ff5a4a,
+    0 0 20px #ff393980;
+}
+.sweep-effects {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sweep-spark {
+  position: absolute;
+  width: 2px;
+  height: 5px;
+  translate: -50% -50%;
+  border-radius: 1px;
+  box-shadow: 0 0 5px #ff784ac0;
+}
+.sweep-impact {
+  position: absolute;
+  width: 22px;
+  height: 10px;
+  translate: -50% -50%;
+  border: 2px solid #ffab7a;
+  border-radius: 50%;
+  box-shadow: 0 0 14px #ff4940b0;
+}
 #sweep-over {
   position: absolute;
   inset: 0;

@@ -256,3 +256,74 @@ test('a single narrow sweep line has no internal animation; threatened states pu
   );
   await expect(page.locator('.sweep-layer')).toBeVisible();
 });
+
+test('first play slams the line down, impacts, and sheds bounded sparks with cleanup', async ({
+  page,
+}) => {
+  await seed(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const entering = await page.evaluate(() => {
+    window.sweepObserved = { sparks: 0, impacts: 0, peak: 0 };
+    const effects = document.querySelector('.sweep-effects');
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes) {
+          if (node.classList?.contains('sweep-spark')) window.sweepObserved.sparks++;
+          if (node.classList?.contains('sweep-impact')) window.sweepObserved.impacts++;
+        }
+      window.sweepObserved.peak = Math.max(window.sweepObserved.peak, effects.childElementCount);
+    }).observe(effects, { childList: true });
+    document.querySelector('[data-card="CA"]').click();
+    return document.querySelector('.sweep-line').classList.contains('sweep-entering');
+  });
+  expect(entering).toBe(true);
+  await page.clock.runFor(450);
+  await expect.poll(() => page.evaluate(() => window.sweepObserved.impacts)).toBe(1);
+  await expect(page.locator('.sweep-entering')).toHaveCount(0);
+  await page.clock.runFor(3000);
+  await expect.poll(() => page.evaluate(() => window.sweepObserved.sparks)).toBeGreaterThan(14);
+  expect(await page.evaluate(() => window.sweepObserved.peak)).toBeLessThanOrEqual(32);
+  const impacts = await page.evaluate(() => window.sweepObserved.impacts);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('.sweep-effects > *')).toHaveCount(0);
+  await page.clock.runFor(1000);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.clock.runFor(300);
+  expect(await page.evaluate(() => window.sweepObserved.impacts)).toBe(impacts);
+  await page.reload();
+  await expect(page.locator('.sweep-entering')).toHaveCount(0);
+  await expect(page.locator('.sweep-line')).toHaveCSS('transform', 'none');
+  for (const code of path.slice(1)) await click(page, `[data-card="${code}"]`);
+  await expect(page.locator('.sweep-effects > *')).toHaveCount(0);
+  await page.clock.runFor(2100);
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  await click(page, '#play-again');
+  await expect(page.locator('.sweep-effects > *, .sweep-entering')).toHaveCount(0);
+});
+
+test('reduced motion skips sweep effects, and interrupted entrances never burst later', async ({
+  page,
+}) => {
+  await seed(page);
+  await click(page, '[data-card="CA"]');
+  await page.clock.runFor(2000);
+  await expect(page.locator('.sweep-effects > *, .sweep-entering')).toHaveCount(0);
+  await expect(page.locator('.sweep-layer')).toBeVisible();
+  await click(page, '#new-game');
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => {
+    document.querySelector('.state-card.coastal').click();
+    document.querySelector('#new-game').click();
+  });
+  await expect(page.locator('.sweep-effects > *, .sweep-entering')).toHaveCount(0);
+  await page.clock.runFor(1000);
+  await expect(page.locator('.sweep-effects > *, .sweep-entering')).toHaveCount(0);
+  await expect(page.locator('.sweep-line')).toHaveCSS('transform', 'none');
+});

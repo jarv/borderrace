@@ -80,8 +80,12 @@ phone), and resumes without charging hidden time. Progress and speed survive
 reloads; time spent away is not charged. Existing saves without a line start at
 zero progress. Wins stop the line; New game resets it.
 
-The line has a subtle glow without internal animation. Reduced motion keeps the
-functional deadline and uses a solid red warning instead of pulsing.
+The narrow line has a subtle glow without repeating internal animation. On the
+first coastal play it slams down to the panel's bottom with a brief impact burst;
+sparks shed from it while it moves. These effects do not delay the deadline or
+change collision rules. Reloading resumes the line without replaying its entrance.
+Reduced motion skips the slam, impact, and sparks, and uses a solid red warning
+instead of pulsing while keeping the functional deadline.
 There is no numeric clock and time does not affect points or score rankings.
 
 ## Points and records

@@ -116,6 +116,7 @@ const sweepView = createSweepView({
   },
   persist,
   onTimeout: timeout,
+  reducedMotion,
 });
 
 function persist() {

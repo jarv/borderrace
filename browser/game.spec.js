@@ -961,17 +961,29 @@ test('card point pops zoom toward the score total and clean up', async ({ page }
   const pop = page.locator('.score-pop');
   await expect(pop).toHaveText('+1');
   await expect(page.locator('#score')).toHaveText('0 pts');
-  const distance = () =>
-    pop.evaluate((element) => {
+  const distances = await pop.evaluate(async (element) => {
+    // Seek all animated properties together instead of racing an 850ms effect.
+    const animations = element.getAnimations();
+    for (const animation of animations) animation.pause();
+    const distance = () => {
       const box = element.getBoundingClientRect();
       const score = document.querySelector('#score').getBoundingClientRect();
       return Math.hypot(
         box.x + box.width / 2 - score.x - score.width / 2,
         box.y + box.height / 2 - score.y - score.height / 2,
       );
-    });
-  const start = await distance();
-  await expect.poll(distance).toBeLessThan(start / 2);
+    };
+    for (const animation of animations) animation.currentTime = 100;
+    await new Promise(requestAnimationFrame);
+    const start = distance();
+    for (const animation of animations) animation.currentTime = 700;
+    await new Promise(requestAnimationFrame);
+    const nearTotal = distance();
+    for (const animation of animations) animation.finish();
+    return { start, nearTotal, animations: animations.length };
+  });
+  expect(distances.animations).toBeGreaterThan(0);
+  expect(distances.nearTotal).toBeLessThan(distances.start / 2);
   expect((await saved(page)).game.route).toEqual(['CA']);
   await expect(page.locator('#score')).toHaveText('1 pts');
   await expect(pop).toHaveCount(0);

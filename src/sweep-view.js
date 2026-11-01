@@ -1,13 +1,24 @@
 import { coast } from './data.js';
 import { advanceSweep, sweepFrontier } from './sweep.js';
+import { createSweepEffects } from './sweep-effects.js';
 
-export function createSweepView({ panel, map, getGame, setSweep, persist, onTimeout }) {
+export function createSweepView({
+  panel,
+  map,
+  getGame,
+  setSweep,
+  persist,
+  onTimeout,
+  reducedMotion,
+}) {
   const layer = document.createElement('div');
   layer.className = 'sweep-layer';
   layer.hidden = true;
   layer.setAttribute('aria-hidden', 'true');
   layer.innerHTML = '<div class="sweep-shade"></div><div class="sweep-line"></div>';
   panel.append(layer);
+  const line = layer.querySelector('.sweep-line');
+  const effects = createSweepEffects({ layer, line, reducedMotion });
   const warning = document.createElement('span');
   warning.className = 'sr-only';
   warning.setAttribute('role', 'status');
@@ -50,12 +61,15 @@ export function createSweepView({ panel, map, getGame, setSweep, persist, onTime
       if (danger) map.querySelector(`[data-code="${danger}"]`)?.classList.add('sweep-danger');
       warning.textContent = danger ? `${danger}: the line is catching up.` : '';
     }
-    if (layer.hidden) return;
+    if (layer.hidden) {
+      effects.update(game, false);
+      return;
+    }
     const eastward = coast(sweep.origin) === 'west';
     layer.dataset.direction = eastward ? 'east' : 'west';
     layer.style.setProperty('--sweep-progress', `${sweep.progress * 100}%`);
-    layer.querySelector('.sweep-line').style.left =
-      `${(eastward ? sweep.progress : 1 - sweep.progress) * 100}%`;
+    line.style.left = `${(eastward ? sweep.progress : 1 - sweep.progress) * 100}%`;
+    effects.update(game, !hidden && running());
     if (!hidden && running() && frontier && sweep.progress >= frontier.far) onTimeout();
   }
   function advance(now) {
@@ -106,6 +120,7 @@ export function createSweepView({ panel, map, getGame, setSweep, persist, onTime
     checkpoint();
     persist();
     stop();
+    effects.clear();
   });
   window.addEventListener('pageshow', () => {
     // Back/forward-cache restores must resume without charging time away.

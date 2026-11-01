@@ -32,6 +32,9 @@ for build/test tools), and commit both package files. No global npm packages.
   snapshot validation. No duration-based scoring or special cards.
 - `src/sweep.js` / `src/sweep-view.js`: normalized moving deadline, geographic
   frontier collision, panel-wide shading, visibility pause, and persisted pace.
+- `src/sweep-effects.js`: decorative one-time slam/impact and bounded drifting
+  sparks. Clean up on new game, hidden page, finished game, and reduced motion;
+  never delay gameplay or replay the entrance on reload/resume.
 - `src/solution-worker.js`: exact most-points search, off the main thread. Cancel on
   new game and ignore stale results. Never label an approximate route “most points”.
 - `src/route-count.js` / `src/scoring.js` / `src/prepare-deal.js` / `src/scoring-worker.js`: exact winning-route
@@ -89,11 +92,13 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   at 3x, in addition to existing point penalties. Undo never refunds
   pace/progress or changes the original direction; with no route, chase the
   original starting state. Pause while hidden; persist normalized progress/speed.
-  Show a single narrow red line with subtle glow and no internal animation;
-  pulse the geographically furthest-forward current state
+  Show a single narrow red line with subtle glow and no repeating internal animation;
+  slam it down on first play, burst at the bottom, and shed sparks as it sweeps.
+  Effects are decorative, bounded, and never alter deadline timing or geometry.
+  Pulse the geographically furthest-forward current state
   red on entry and lose when the line clears its far edge. Briefly show You Lose!, then start a new game
   after one second. Record timeout losses once, never as assisted completions.
-  Reduced motion uses a solid red warning, without changing timing.
+  Reduced motion skips slam/impact/sparks and uses a solid red warning, without changing timing.
 - Reaching the opposite coast automatically wins and ends the route. Longest
   solutions must obey this in either direction: never continue past that coast.
 - Highlight only played states, removing highlights on undo. No map labels or
