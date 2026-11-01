@@ -1,3 +1,11 @@
+# [1.12.0](https://github.com/jarv/borderrace/compare/v1.11.0...v1.12.0) (2026-11-01)
+
+
+### Features
+
+* adds sweep effects ([dff81d5](https://github.com/jarv/borderrace/commit/dff81d54b1701a9f086e41f6681dc9f3aadfb677))
+* dark red ([2c02a7b](https://github.com/jarv/borderrace/commit/2c02a7b00b1d0bc0a56a3ba8cf04af96d3168c34))
+
 # [1.11.0](https://github.com/jarv/borderrace/compare/v1.10.0...v1.11.0) (2026-11-01)
 
 
