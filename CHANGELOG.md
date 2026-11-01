@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/jarv/borderrace/compare/v1.10.0...v1.11.0) (2026-11-01)
+
+
+### Features
+
+* refine sweep warnings and simplify the red deadline line ([285e16c](https://github.com/jarv/borderrace/commit/285e16cfc0db0e25ac26046211966c0e8e300970))
+
 # [1.10.0](https://github.com/jarv/borderrace/compare/v1.9.0...v1.10.0) (2026-10-31)
 
 
