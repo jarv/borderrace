@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/jarv/borderrace/compare/v1.14.0...v1.14.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* move phone score into controls and enlarge the map ([e702364](https://github.com/jarv/borderrace/commit/e7023645a86d675592c11de235371317f4367ec2))
+
 # [1.14.0](https://github.com/jarv/borderrace/compare/v1.13.0...v1.14.0) (2026-11-01)
 
 
