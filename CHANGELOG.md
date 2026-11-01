@@ -1,3 +1,11 @@
+## [1.14.2](https://github.com/jarv/borderrace/compare/v1.14.1...v1.14.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* keep portrait maps full-width with overlapping messages ([7725645](https://github.com/jarv/borderrace/commit/7725645c8c332cac5cc1667967bdb6016ead6104))
+* use map emoji for favicon ([6fcdc85](https://github.com/jarv/borderrace/commit/6fcdc85e029155008f0ef100eeb1c78800988a38))
+
 ## [1.14.1](https://github.com/jarv/borderrace/compare/v1.14.0...v1.14.1) (2026-11-01)
 
 
