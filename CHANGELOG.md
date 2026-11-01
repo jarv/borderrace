@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/jarv/borderrace/compare/v1.14.2...v1.15.0) (2026-11-01)
+
+
+### Features
+
+* show winning route counts in the intro and update header logo ([c641d99](https://github.com/jarv/borderrace/commit/c641d99a6738bd045f940d4192b440554f67307e))
+
 ## [1.14.2](https://github.com/jarv/borderrace/compare/v1.14.1...v1.14.2) (2026-11-01)
 
 
