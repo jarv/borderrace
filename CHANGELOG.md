@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/jarv/borderrace/compare/v1.12.0...v1.13.0) (2026-11-01)
+
+
+### Features
+
+* add public daily leaderboard and account names ([b81abe4](https://github.com/jarv/borderrace/commit/b81abe4b8d52bd2fd336974e1d478b129d28c321))
+
 # [1.12.0](https://github.com/jarv/borderrace/compare/v1.11.0...v1.12.0) (2026-11-01)
 
 
