@@ -3,6 +3,7 @@ import mapSvg from 'border-map';
 import { STATES, coast } from './data.js';
 import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
+import { introMessage } from './intro.js';
 import { createSweepView } from './sweep-view.js';
 import { restoreSweep, accelerateSweep, PENALTY_ACCELERATION } from './sweep.js';
 import { createOnline } from './online.js';
@@ -81,8 +82,6 @@ reducedMotion.addEventListener('change', () => {
   pendingPoints.clear();
   renderScore();
 });
-const startMessage =
-  'Select cards to cross the map. Start with a green coastal card. Gold cards are harder to use and worth 3 points.';
 const audio = createAudio({ enabled: save.soundEnabled });
 document.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 document.addEventListener('keydown', () => audio.unlock(), { once: true });
@@ -199,11 +198,17 @@ function fresh() {
 function prepareScoring(dealAnimation = false) {
   const gameId = game.id;
   let worker = null;
-  const complete = (cardPoints, deal) => {
+  const complete = (cardPoints, deal, winningRoutes) => {
     if (game.id !== gameId || scoringWorker !== worker) return;
     worker?.terminate();
     scoringWorker = null;
-    const candidate = { ...game, deal, scoring: SCORING_VERSION, cardPoints };
+    const candidate = {
+      ...game,
+      deal,
+      scoring: SCORING_VERSION,
+      cardPoints,
+      ...(winningRoutes === undefined ? {} : { winningRoutes }),
+    };
     const exact = Boolean(cardPoints && validGame(candidate));
     game = exact
       ? candidate
@@ -215,14 +220,14 @@ function prepareScoring(dealAnimation = false) {
     persist();
     render(dealAnimation);
     if (dealAnimation) audio.play('deal');
-    message(exact ? startMessage : 'Bonus unavailable. All cards: 1 pt.');
+    message(exact ? introMessage(game) : 'Bonus unavailable. All cards: 1 pt.');
   };
   message('Preparing cards…');
   try {
     worker = new Worker(new URL('./scoring-worker.js', document.baseURI), { type: 'module' });
     scoringWorker = worker;
     worker.onmessage = ({ data }) => {
-      if (data.gameId === gameId) complete(data.cardPoints, data.deal);
+      if (data.gameId === gameId) complete(data.cardPoints, data.deal, data.winningRoutes);
     };
     worker.onerror = (event) => {
       event.preventDefault();
@@ -506,4 +511,4 @@ if (game.cardPoints === null) prepareScoring(true);
 else if (game.status === 'lost') restartAfterTimeout();
 else if (game.status === 'won') showResult();
 else if (isComplete(game.deal, game.route)) finish();
-else if (!game.route.length) message(startMessage);
+else if (!game.route.length) message(introMessage(game));

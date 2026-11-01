@@ -83,6 +83,7 @@ test('preparation only accepts exact, solvable gold-containing hands and bounds 
   assert.equal(draws, 1);
   assert.deepEqual(result.deal, deal);
   assert.deepEqual(result.cardPoints, cardPoints);
+  assert.equal(result.winningRoutes, counts.routes.toString());
   assert.ok(allCoastalStartsSolvable(result.deal));
   assert.ok(validGame(fixture({ deal: result.deal, cardPoints: result.cardPoints })));
   const kept = prepareGoldDeal(deal, {
@@ -97,9 +98,11 @@ test('preparation only accepts exact, solvable gold-containing hands and bounds 
   assert.equal(exhausted.reason, 'attempt limit');
   assert.equal(exhausted.attempts, 2);
   assert.equal(exhausted.cardPoints, undefined);
+  assert.equal(exhausted.winningRoutes, undefined);
   const cancelled = prepareGoldDeal(noGold, { shouldStop: () => true });
   assert.equal(cancelled.complete, false);
   assert.equal(cancelled.attempts, 0);
+  assert.equal(cancelled.winningRoutes, undefined);
   assert.throws(() => prepareGoldDeal(noGold, { maxAttempts: 0 }));
 });
 
@@ -139,6 +142,22 @@ test('pending, completed, and fallback scoring saves validate defensively', () =
       }),
     ),
   );
+});
+
+test('optional exact winning-route counts validate and survive local storage', () => {
+  const game = fixture({ winningRoutes: counts.routes.toString() });
+  assert.ok(validGame(game));
+  for (const winningRoutes of [null, 0, 42, '', '0', '-1', '1.5', '1e6', '01', '9'.repeat(26)])
+    assert.equal(validGame({ ...game, winningRoutes }), false);
+  let value;
+  const storage = {
+    getItem: () => value,
+    setItem: (_, data) => {
+      value = data;
+    },
+  };
+  assert.ok(writeSave(storage, { ...emptySave(), game }));
+  assert.deepEqual(loadSave(storage).game, game);
 });
 
 test('frozen deal points persist and winning records use the same penalized score', () => {

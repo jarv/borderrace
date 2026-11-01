@@ -10,6 +10,7 @@ self.onmessage = ({ data }) => {
       gameId: data.gameId,
       deal: result.deal,
       cardPoints: result.complete ? result.cardPoints : null,
+      winningRoutes: result.complete ? result.winningRoutes : undefined,
     });
   } catch {
     // Never award a rarity bonus using partial counts.

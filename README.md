@@ -104,8 +104,10 @@ screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 Instructions and error messages appear below the map's states without shifting
-the board. The starting prompt explains coastal and gold cards, then fades after
-the first valid card. Mobile dialogs put a smaller visual close button beside the
+the board. The starting prompt explains coastal and gold cards and shows the deal's
+exact winning-route count after successful analysis, then fades after the first
+valid card. The count survives reloads; older saves and incomplete analyses omit it.
+Mobile dialogs put a smaller visual close button beside the
 heading while preserving its touch target.
 In portrait, messages sit at the map panel's lower edge and may overlap the US when space is tight. The
 route follows a slight zig-zag about two-thirds down the map and overlaps Texas slightly.

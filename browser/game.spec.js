@@ -194,16 +194,19 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
       data: {
         gameId: data.gameId,
         cardPoints: Object.fromEntries(data.deal.map((code) => [code, 3])),
+        winningRoutes: '999',
       },
     });
   });
   expect((await saved(page)).game.cardPoints).toBeNull();
+  expect((await saved(page)).game.winningRoutes).toBeUndefined();
   await page.evaluate(() => window.releaseScoring());
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
   const game = (await saved(page)).game;
   expect(game.scoring).toBe(SCORING_VERSION);
   expect(Object.values(game.cardPoints)).toContain(3);
   expect(game.cardPoints).toEqual(pointsFromCounts(game.deal, countWinningRoutes(game.deal)));
+  expect(game.winningRoutes).toBe(countWinningRoutes(game.deal).routes.toString());
   await expect(page.locator('.state-card').first()).toBeEnabled();
 });
 
@@ -266,6 +269,23 @@ test('new games offer a winning route from every coastal start', async ({ page }
   }
 });
 
+test('intro shows the final deal route count, preserves it on reload, and fades after play', async ({
+  page,
+  isMobile,
+}) => {
+  await seed(page, fixture({ deal: hardDeal, scoring: SCORING_VERSION, cardPoints: null }));
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  const game = (await saved(page)).game;
+  const exactCount = countWinningRoutes(game.deal).routes;
+  expect(game.winningRoutes).toBe(exactCount.toString());
+  const message = `Select cards to cross the map using connecting states. There are ${new Intl.NumberFormat('en-US').format(exactCount)} winning routes. Start with a green coastal card. Gold cards are harder to use and worth 3 points.`;
+  await expect(page.locator('#message')).toHaveText(message);
+  await page.reload();
+  await expect(page.locator('#message')).toHaveText(message);
+  await press(page.locator('.state-card.coastal').first(), isMobile);
+  await expect(page.locator('#message')).toBeEmpty();
+});
+
 test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
@@ -283,6 +303,7 @@ test('unavailable analysis falls back explicitly to fixed one-point cards', asyn
   const game = (await saved(page)).game;
   expect(game.scoring).toBe('base-v1');
   expect(Object.values(game.cardPoints)).toEqual(Array(24).fill(1));
+  expect(game.winningRoutes).toBeUndefined();
   expect(allCoastalStartsSolvable(game.deal)).toBe(true);
 });
 
@@ -323,8 +344,9 @@ test('games are playable immediately with no wildcard, numeric clock, start, or 
 }) => {
   await seed(page);
   await expect(page.locator('#wild, #clock, #time-fill, #finish, #start')).toHaveCount(0);
+  await expect(page.locator('.brand-icon')).toHaveText('🗺️');
   await expect(page.locator('#message')).toHaveText(
-    'Select cards to cross the map. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
+    'Select cards to cross the map using connecting states. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
   );
   await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
   await press(page.locator('[data-card="CA"]'), isMobile);

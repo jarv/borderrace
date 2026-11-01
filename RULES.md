@@ -43,7 +43,10 @@ toggle in portrait; the counter does not cover the map. Portrait maps use the
 available width, including on shorter screens.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
-changing the board height. The starting prompt fades after your first valid card.
+changing the board height. The starting prompt shows the exact number of winning
+routes for the deal after successful analysis, counting both directions separately
+and stopping at the first opposite coast. It survives reloads and fades after your
+first valid card. Older saves and incomplete analyses omit the count.
 In portrait this area stays at the panel's lower edge and may overlap the US. Messages
 appear above any overlapping route cards.
 

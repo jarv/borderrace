@@ -122,10 +122,10 @@ footer {
   color: var(--cyan);
 }
 .brand-icon {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   color: var(--green);
   font-size: 33px;
   margin-right: 7px;
-  text-shadow: 0 0 20px #9df37550;
 }
 .game-toolbar nav {
   display: flex;

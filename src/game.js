@@ -309,6 +309,11 @@ export function validGame(game) {
     return false;
   if (game.sweep !== undefined && !validSweep(game.sweep, game.deal)) return false;
   if (
+    game.winningRoutes !== undefined &&
+    (typeof game.winningRoutes !== 'string' || !/^[1-9][0-9]{0,24}$/.test(game.winningRoutes))
+  )
+    return false;
+  if (
     game.lossReason !== undefined &&
     (game.lossReason !== 'timeout' || game.status !== 'lost' || !game.sweep?.origin)
   )

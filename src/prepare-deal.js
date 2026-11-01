@@ -22,7 +22,14 @@ export function prepareGoldDeal(
       return { complete: false, reason: counts.reason, attempts: attempt, visits };
     const cardPoints = pointsFromCounts(deal, counts);
     if (Object.values(cardPoints).includes(3))
-      return { complete: true, deal, cardPoints, attempts: attempt, visits };
+      return {
+        complete: true,
+        deal,
+        cardPoints,
+        winningRoutes: counts.routes.toString(),
+        attempts: attempt,
+        visits,
+      };
     if (attempt < maxAttempts) deal = nextDeal();
   }
   return { complete: false, reason: 'attempt limit', attempts: maxAttempts, visits };
