@@ -166,9 +166,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   map's bottom message area, fading after play starts.
   Keep messages inside the map without changing board height.
 - The map's route cards form a gentle zig-zag about two-thirds down, wrapping to
-  fit without horizontal scrolling, not geographic anchors. In portrait,
-  messages stay below the US in the upper
-  half of the screen, above overlapping route cards.
+  fit without horizontal scrolling, not geographic anchors. In portrait, keep
+  the US full-width; messages stay at the panel's lower edge and may overlap the
+  artwork when space is tight, above overlapping route cards.
 - Effects and audio never grant bonuses or change game rules. Respect reduced
   motion, provide a persistent mute control, and degrade safely without Web Audio.
   Save points immediately but defer visible additions until their point pop reaches

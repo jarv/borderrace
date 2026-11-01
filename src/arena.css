@@ -876,11 +876,16 @@
   }
   .map-panel {
     order: -1;
-    flex: 0 0 calc(50dvh - 96px);
+    flex: 0 0 max(calc(50dvh - 96px), calc((100vw - 26px) * 560 / 870 + 12px));
     min-height: 120px;
   }
+  .map-wrap {
+    align-items: flex-start;
+    padding-bottom: 0;
+  }
   #map {
-    width: min(100%, calc((50dvh - 188px) * 870 / 560));
+    width: 100%;
+    max-height: none;
   }
   .hand {
     flex: 1;
@@ -896,12 +901,6 @@
   }
 }
 @media (pointer: coarse) and (max-width: 650px) and (min-height: 700px) and (orientation: portrait) {
-  .map-wrap {
-    padding-bottom: 56px;
-  }
-  #map {
-    width: min(100%, calc((50dvh - 172px) * 870 / 560));
-  }
   #message {
     line-height: 1.25;
   }

@@ -98,7 +98,7 @@ estimate and Node/Chromium preparation results.
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
 or beside them in landscape. Hint, sound, **?** (help), New game, and the points total
 share one row, keeping the score off the map; portrait uses a music-note sound toggle.
-Taller phones use more of the available space for the US map. The board fits Galaxy S25-sized
+Portrait maps use the available width even with browser controls reducing screen height. The board fits Galaxy S25-sized
 viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or
@@ -107,7 +107,7 @@ Instructions and error messages appear below the map's states without shifting
 the board. The starting prompt explains coastal and gold cards, then fades after
 the first valid card. Mobile dialogs put a smaller visual close button beside the
 heading while preserving its touch target.
-In portrait, messages stay below the US in the upper half of the screen. The
+In portrait, messages sit at the map panel's lower edge and may overlap the US when space is tight. The
 route follows a slight zig-zag about two-thirds down the map and overlaps Texas slightly.
 Long routes wrap into compact rows inside the map, without horizontal scrolling.
 Messages remain above the cards.

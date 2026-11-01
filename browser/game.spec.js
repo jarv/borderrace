@@ -421,7 +421,8 @@ test('map messages never move the board and new games restore the starting promp
     const text = await page.locator('.map-messages').boundingBox();
     const map = await page.locator('.map-wrap').boundingBox();
     const texas = await page.locator('.map-state[data-code="TX"]').boundingBox();
-    expect(text.y).toBeGreaterThanOrEqual(texas.y + texas.height);
+    if (!isMobile || width > height) expect(text.y).toBeGreaterThanOrEqual(texas.y + texas.height);
+    expect(text.y).toBeGreaterThanOrEqual(map.y);
     expect(text.y + text.height).toBeLessThanOrEqual(map.y + map.height);
     await press(page.locator('[data-card="CA"]'), isMobile);
     await expect(page.locator('#message')).toBeEmpty();
@@ -834,8 +835,10 @@ test('long routes fit inside the map without scrolling and remain keyboard acces
   expect(card.y + card.height).toBeLessThanOrEqual(map.y + map.height);
   const messages = await page.locator('.map-messages').boundingBox();
   const us = await page.locator('#state-shapes').boundingBox();
-  expect(messages.y).toBeGreaterThanOrEqual(us.y + us.height);
-  expect(messages.y + messages.height).toBeLessThanOrEqual(568 / 2);
+  expect(messages.y).toBeGreaterThanOrEqual(map.y);
+  expect(messages.y + messages.height).toBeLessThanOrEqual(map.y + map.height);
+  expect(us.y).toBeGreaterThanOrEqual(map.y);
+  expect(us.y + us.height).toBeLessThanOrEqual(map.y + map.height);
   for (const element of await page.locator('[data-chain]').all()) {
     const bounds = await element.boundingBox();
     expect(bounds.x).toBeGreaterThanOrEqual(map.x);
@@ -1124,10 +1127,38 @@ test('phone score stays in the controls row and the map uses the taller portrait
   expect(map.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
   const previousWidthLimit = ((780 / 2 - 188) * 870) / 560;
   expect(map.width).toBeGreaterThan(previousWidthLimit + 16);
-  const us = await page.locator('#state-shapes').boundingBox();
   const message = await page.locator('.map-messages').boundingBox();
-  expect(message.y).toBeGreaterThanOrEqual(us.y + us.height);
+  expect(message.y).toBeGreaterThanOrEqual(map.y);
   expect(message.y + message.height).toBeLessThanOrEqual(780 / 2);
+});
+
+test('portrait maps stay full-width with messages allowed over the lower artwork', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Portrait phone map');
+  await seed(page);
+  for (const [width, height] of [
+    [320, 568],
+    [360, 640],
+    [360, 700],
+    [360, 780],
+    [393, 852],
+    [650, 844],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const wrap = await page.locator('.map-wrap').boundingBox();
+    const svg = await page.locator('#map > svg').boundingBox();
+    const artwork = await page.locator('#state-shapes').boundingBox();
+    const message = await page.locator('.map-messages').boundingBox();
+    expect(svg.width).toBeGreaterThanOrEqual(wrap.width - 1);
+    expect(artwork.width).toBeGreaterThan(wrap.width * 0.95);
+    expect(artwork.y).toBeGreaterThanOrEqual(wrap.y);
+    expect(artwork.y + artwork.height).toBeLessThanOrEqual(wrap.y + wrap.height);
+    expect(message.y).toBeGreaterThanOrEqual(wrap.y);
+    expect(message.y + message.height).toBeLessThanOrEqual(wrap.y + wrap.height);
+    if (width === 360 && height === 640) expect(message.y).toBeLessThan(artwork.y + artwork.height);
+  }
 });
 
 test('portrait phones fit the map above the cards and keep play usable after rotation', async ({
@@ -1157,9 +1188,14 @@ test('portrait phones fit the map above the cards and keep play usable after rot
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    await expect
-      .poll(() => page.locator('.hand').evaluate((hand) => hand.scrollHeight <= hand.clientHeight))
-      .toBe(true);
+    await expect(page.locator('.hand')).toHaveCSS('overflow-y', 'auto');
+    await page.locator('.hand').evaluate((hand) => {
+      hand.scrollTop = hand.scrollHeight;
+    });
+    await expect(page.locator('.state-card').last()).toBeInViewport();
+    await page.locator('.hand').evaluate((hand) => {
+      hand.scrollTop = 0;
+    });
     const controls = await page.locator('.game-toolbar button').evaluateAll((buttons) =>
       buttons.map((button) => {
         const { x, y, width, height } = button.getBoundingClientRect();

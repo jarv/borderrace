@@ -39,12 +39,12 @@ without coloring their inland borders or changing played-state highlights.
 
 On phones, the map sits above smaller cards in portrait, or to their right in
 landscape. Controls and the points total share one row, with a music-note sound
-toggle in portrait; the counter does not cover the map. Taller portrait screens
-give more of the map panel to the US artwork.
+toggle in portrait; the counter does not cover the map. Portrait maps use the
+available width, including on shorter screens.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
 changing the board height. The starting prompt fades after your first valid card.
-In portrait this area stays below the US in the screen's upper half. Messages
+In portrait this area stays at the panel's lower edge and may overlap the US. Messages
 appear above any overlapping route cards.
 
 ## Hints
