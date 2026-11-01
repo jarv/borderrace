@@ -96,8 +96,9 @@ estimate and Node/Chromium preparation results.
 ## Made for phones, too
 
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
-or beside them in landscape. Hint, sound, scores, **?** (help), and New game
-share one row; portrait uses a music-note sound toggle. The board fits Galaxy S25-sized
+or beside them in landscape. Hint, sound, **?** (help), New game, and the points total
+share one row, keeping the score off the map; portrait uses a music-note sound toggle.
+Taller phones use more of the available space for the US map. The board fits Galaxy S25-sized
 viewports, with an independently scrolling hand on shorter
 screens, safe-area padding, and responsive dialogs. Everything is also usable
 with a keyboard. Reduced-motion preferences disable animation. No WebGL or

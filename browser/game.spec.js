@@ -1109,6 +1109,27 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
   }
 });
 
+test('phone score stays in the controls row and the map uses the taller portrait space', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Phone HUD layout');
+  await page.setViewportSize({ width: 360, height: 780 });
+  await seed(page);
+  const toolbar = await page.locator('.game-toolbar').boundingBox();
+  const score = await page.locator('.trip-stats').boundingBox();
+  const map = await page.locator('#map').boundingBox();
+  expect(score.y).toBeGreaterThanOrEqual(toolbar.y);
+  expect(score.y + score.height).toBeLessThanOrEqual(toolbar.y + toolbar.height);
+  expect(map.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
+  const previousWidthLimit = ((780 / 2 - 188) * 870) / 560;
+  expect(map.width).toBeGreaterThan(previousWidthLimit + 16);
+  const us = await page.locator('#state-shapes').boundingBox();
+  const message = await page.locator('.map-messages').boundingBox();
+  expect(message.y).toBeGreaterThanOrEqual(us.y + us.height);
+  expect(message.y + message.height).toBeLessThanOrEqual(780 / 2);
+});
+
 test('portrait phones fit the map above the cards and keep play usable after rotation', async ({
   page,
   isMobile,

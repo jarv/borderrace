@@ -38,7 +38,9 @@ Bright green shoreline edges mark the Atlantic and Pacific coastal states,
 without coloring their inland borders or changing played-state highlights.
 
 On phones, the map sits above smaller cards in portrait, or to their right in
-landscape. Controls share one row, with a music-note sound toggle in portrait.
+landscape. Controls and the points total share one row, with a music-note sound
+toggle in portrait; the counter does not cover the map. Taller portrait screens
+give more of the map panel to the US artwork.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
 changing the board height. The starting prompt fades after your first valid card.

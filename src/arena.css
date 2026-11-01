@@ -866,14 +866,9 @@
     text-decoration: line-through;
   }
   .trip-stats {
-    position: absolute;
-    top: 62px;
-    right: 12px;
-    z-index: 5;
-    padding: 5px 8px;
-    background: #171d2fe6;
-    border-radius: 6px;
-    pointer-events: none;
+    position: static;
+    margin-left: 4px;
+    flex-shrink: 0;
   }
   .board-layout {
     display: flex;
@@ -898,6 +893,17 @@
   }
   .state-card {
     height: clamp(48px, 8.5dvh, 72px);
+  }
+}
+@media (pointer: coarse) and (max-width: 650px) and (min-height: 700px) and (orientation: portrait) {
+  .map-wrap {
+    padding-bottom: 56px;
+  }
+  #map {
+    width: min(100%, calc((50dvh - 172px) * 870 / 560));
+  }
+  #message {
+    line-height: 1.25;
   }
 }
 @media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) and (max-width: 740px) {
