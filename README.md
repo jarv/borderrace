@@ -114,7 +114,9 @@ Messages remain above the cards.
 ## Rules and local data
 
 See [RULES.md](RULES.md) for complete rules. Every deal is
-solvable. Bright green shoreline edges mark the Atlantic and Pacific coastal
+solvable from every dealt coastal starting card, including all-1-point fallback
+games. Later choices can still lead to dead ends requiring backtracking. Existing
+saves keep their original deals. Bright green shoreline edges mark the Atlantic and Pacific coastal
 states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
 

@@ -7,6 +7,8 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 - A solvable deal is prepared when the page opens. A spinner shows while card
   values are calculated, then play is ready without a start button.
 - Begin with a card marked **COAST**, then add cards that border the last state.
+- Every coastal card in a new deal has at least one winning route when selected
+  first. Later choices can still require backtracking. Existing saves are unchanged.
 - Each state can appear only once in the route.
 - Clicking a played card in the hand or on the map removes it and all following cards.
 - Reaching the opposite coast **ends the game automatically**. You cannot extend

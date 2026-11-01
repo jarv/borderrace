@@ -6,6 +6,7 @@ import {
   findMostPointsRoute,
   findContinuation,
   createDeal,
+  allCoastalStartsSolvable,
   score,
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
@@ -254,6 +255,17 @@ test('older hard-card games keep their saved points without a forced reroll', as
   expect(sweep.origin).toBe('OR');
 });
 
+test('new games offer a winning route from every coastal start', async ({ page }) => {
+  await page.goto('/');
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+    const game = (await saved(page)).game;
+    expect(allCoastalStartsSolvable(game.deal)).toBe(true);
+    expect(new Set(game.deal).size).toBe(24);
+    if (attempt < 2) await page.locator('#new-game').click();
+  }
+});
+
 test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
@@ -271,6 +283,7 @@ test('unavailable analysis falls back explicitly to fixed one-point cards', asyn
   const game = (await saved(page)).game;
   expect(game.scoring).toBe('base-v1');
   expect(Object.values(game.cardPoints)).toEqual(Array(24).fill(1));
+  expect(allCoastalStartsSolvable(game.deal)).toBe(true);
 });
 
 test('hard-card values apply to results, reference solutions, and saved scores', async ({

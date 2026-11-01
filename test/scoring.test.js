@@ -10,6 +10,7 @@ import {
   score,
   validGame,
   findContinuation,
+  allCoastalStartsSolvable,
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
 import { pointsFromCounts, SCORING_VERSION } from '../src/scoring.js';
@@ -82,6 +83,7 @@ test('preparation only accepts exact, solvable gold-containing hands and bounds 
   assert.equal(draws, 1);
   assert.deepEqual(result.deal, deal);
   assert.deepEqual(result.cardPoints, cardPoints);
+  assert.ok(allCoastalStartsSolvable(result.deal));
   assert.ok(validGame(fixture({ deal: result.deal, cardPoints: result.cardPoints })));
   const kept = prepareGoldDeal(deal, {
     nextDeal: () => {
@@ -89,6 +91,7 @@ test('preparation only accepts exact, solvable gold-containing hands and bounds 
     },
   });
   assert.equal(kept.attempts, 1);
+  assert.ok(allCoastalStartsSolvable(kept.deal));
   const exhausted = prepareGoldDeal(noGold, { maxAttempts: 2, nextDeal: () => noGold });
   assert.equal(exhausted.complete, false);
   assert.equal(exhausted.reason, 'attempt limit');

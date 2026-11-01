@@ -161,6 +161,43 @@ function findBestRoute(deal, valueFor) {
   return best;
 }
 
+export function allCoastalStartsSolvable(deal) {
+  const starts = deal.filter((code) => coast(code));
+  return (
+    starts.some((code) => coast(code) === 'east') &&
+    starts.some((code) => coast(code) === 'west') &&
+    starts.every((code) => findContinuation(deal, [code]) !== null)
+  );
+}
+
+// A verified coast-to-coast hand keeps generation bounded even with a poor RNG.
+const fallbackDeal = [
+  'AR',
+  'AZ',
+  'CA',
+  'CT',
+  'GA',
+  'ID',
+  'KS',
+  'KY',
+  'LA',
+  'MA',
+  'MN',
+  'MT',
+  'NJ',
+  'NM',
+  'NY',
+  'OH',
+  'OK',
+  'OR',
+  'PA',
+  'RI',
+  'SC',
+  'TN',
+  'VA',
+  'WY',
+];
+
 export function createDeal(random = Math.random) {
   for (let attempt = 0; attempt < 10_000; attempt++) {
     const shuffled = [...CODES];
@@ -169,9 +206,9 @@ export function createDeal(random = Math.random) {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     const deal = shuffled.slice(0, 24).sort();
-    if (findSolution(deal)) return deal;
+    if (allCoastalStartsSolvable(deal)) return deal;
   }
-  throw new Error('Unable to deal a solvable board. Please try again.');
+  return [...fallbackDeal];
 }
 
 export function canAdd(deal, route, code) {

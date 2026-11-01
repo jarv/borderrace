@@ -4,6 +4,8 @@ import { CODES, STATES, EAST, WEST, coast } from '../src/data.js';
 import {
   createDeal,
   findSolution,
+  findContinuation,
+  allCoastalStartsSolvable,
   findLongestRoute,
   findMostPointsRoute,
   planCompletion,
@@ -51,13 +53,53 @@ test('geography covers 48 states with symmetric borders and original points', ()
     assert.ok(STATES[a].neighbors.includes(b));
 });
 
-test('100 reproducible deals contain 24 unique states and valid solutions', () => {
+test('100 reproducible deals contain 24 unique states and a solution from every coast', () => {
   const random = seeded(42);
   for (let i = 0; i < 100; i++) {
     const hand = createDeal(random);
     assert.equal(new Set(hand).size, 24);
     assert.ok(isComplete(hand, findSolution(hand)));
+    assert.ok(allCoastalStartsSolvable(hand));
+    for (const start of hand.filter((code) => coast(code))) {
+      const route = findContinuation(hand, [start]);
+      assert.equal(route[0], start);
+      assert.ok(isComplete(hand, route));
+    }
   }
+});
+
+test('coastal-start validation rejects stranded coasts without invalidating legacy saves', () => {
+  assert.ok(findSolution(deal));
+  assert.equal(findContinuation(deal, ['ME']), null);
+  assert.equal(allCoastalStartsSolvable(deal), false);
+  assert.equal(allCoastalStartsSolvable(['CA', 'OR']), false);
+  assert.equal(allCoastalStartsSolvable(['NC', 'VA']), false);
+  assert.equal(allCoastalStartsSolvable(['AZ', 'NM']), false);
+  const legacy = fixture({ route: ['ME'] });
+  assert.ok(validGame(legacy));
+  const storage = { getItem: () => JSON.stringify({ ...emptySave(), game: legacy }) };
+  assert.deepEqual(loadSave(storage).game, legacy);
+});
+
+test('bounded generation falls back to a fresh hand with every coastal start solvable', () => {
+  let calls = 0;
+  const hand = createDeal(() => {
+    calls++;
+    return 0;
+  });
+  assert.equal(calls, 10_000 * (CODES.length - 1));
+  assert.equal(new Set(hand).size, 24);
+  assert.ok(allCoastalStartsSolvable(hand));
+  hand.pop();
+  assert.equal(createDeal(() => 0).length, 24);
+  const game = newGame(() => 0);
+  const fallback = {
+    ...game,
+    scoring: 'base-v1',
+    cardPoints: Object.fromEntries(game.deal.map((code) => [code, 1])),
+  };
+  assert.ok(validGame(fallback));
+  assert.ok(allCoastalStartsSolvable(fallback.deal));
 });
 
 test('routes require exact borders, no wildcard/repeats, and stop on the opposite coast', () => {
@@ -242,7 +284,33 @@ test('completion preserves the longest solvable prefix without mutating the play
 });
 
 test('a shorter gold route can score more than the longest route', () => {
-  const codes = createDeal(seeded(10));
+  // Keep the scoring example independent of the current deal-generation policy.
+  const codes = [
+    'AL',
+    'AR',
+    'DE',
+    'GA',
+    'IL',
+    'IN',
+    'KY',
+    'MI',
+    'MN',
+    'MO',
+    'NC',
+    'ND',
+    'NJ',
+    'NV',
+    'OK',
+    'OR',
+    'SC',
+    'SD',
+    'TN',
+    'TX',
+    'UT',
+    'WA',
+    'WV',
+    'WY',
+  ];
   const points = Object.fromEntries(codes.map((code) => [code, code === 'WA' ? 3 : 1]));
   const longest = findLongestRoute(codes);
   const best = findMostPointsRoute(codes, points);

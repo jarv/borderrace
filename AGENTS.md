@@ -73,7 +73,8 @@ for build/test tools), and commit both package files. No global npm packages.
 
 Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 
-- Deal 24 unique states with a guaranteed coast-to-coast solution. No wildcard.
+- Deal 24 unique states with a winning coast-to-coast route from every dealt coastal
+  starting card, including scoring fallbacks. Preserve existing saves. No wildcard.
 - Start at either coast, append bordering states, finish at the opposite coast.
 - Validate the actual submitted sequence, not just connectivity of the deck.
 - Clicking a played card in the hand or map removes it and its suffix.
