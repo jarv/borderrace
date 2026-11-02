@@ -427,6 +427,15 @@ test('games are playable immediately with no wildcard, numeric clock, start, or 
   await seed(page);
   await expect(page.locator('#wild, #clock, #time-fill, #finish, #start')).toHaveCount(0);
   await expect(page.locator('.brand-icon')).toHaveText('🗺️');
+  const github = page.getByRole('link', { name: 'Border Race on GitHub', includeHidden: true });
+  await expect(github).toHaveAttribute('href', 'https://github.com/jarv/borderrace');
+  await expect(github).toHaveAttribute('target', '_blank');
+  await expect(github).toHaveAttribute('rel', 'noopener noreferrer');
+  if (!isMobile) {
+    await expect(github).toBeVisible();
+    await github.focus();
+    await expect(github).toBeFocused();
+  }
   await expect(page.locator('#message')).toHaveText(
     'Select cards to cross the map using connecting states. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
   );

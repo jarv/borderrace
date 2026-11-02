@@ -108,6 +108,18 @@ footer {
   padding: 8px;
   font-size: 12px;
 }
+.brand-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.github-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+}
 .brand {
   flex-shrink: 0;
   margin-left: auto;
