@@ -4,6 +4,7 @@ import { STATES, coast } from './data.js';
 import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
 import { introMessage } from './intro.js';
+import { createCoastalIntro } from './coastal-intro.js';
 import { createSweepView } from './sweep-view.js';
 import { restoreSweep, accelerateSweep, PENALTY_ACCELERATION } from './sweep.js';
 import { createOnline } from './online.js';
@@ -107,6 +108,7 @@ $('#map').innerHTML = mapSvg;
 // Also strip labels from an already-running dev server's older virtual SVG.
 $$('.map-state text, .map-state title').forEach((label) => label.remove());
 const arena = createArena({ map: $('#map'), onPlay: play, reducedMotion });
+const coastalIntro = createCoastalIntro({ hand: $('#cards'), reducedMotion });
 const sweepView = createSweepView({
   panel: $('.map-wrap'),
   map: $('#map'),
@@ -276,6 +278,7 @@ function play(code) {
   }
   const sourceCard = $(`[data-card="${code}"]`);
   const source = { rect: sourceCard.getBoundingClientRect(), node: sourceCard.cloneNode(true) };
+  source.node.classList.remove('coastal-intro');
   hint = null;
   game = addCard(game, code);
   persist();
@@ -382,6 +385,7 @@ function render(dealAnimation = false, arrival) {
   $('#account-controls').inert = lost;
   arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
   if (dealAnimation) arena.deal();
+  coastalIntro.sync(game);
   sweepView.sync();
 }
 

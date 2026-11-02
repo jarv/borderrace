@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { CODES } from '../src/data.js';
 import { STORAGE_KEY, emptySave } from '../src/storage.js';
+import { CROSSING_SECONDS } from '../src/sweep.js';
+
+const crossingMs = CROSSING_SECONDS * 1000;
 
 const path = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...path, ...CODES])].slice(0, 24).sort();
@@ -66,7 +69,7 @@ for (const [code, direction] of [
       Math.abs(line.x + line.width / 2 - (direction === 'east' ? panel.x : panel.x + panel.width)),
     ).toBeLessThan(2);
     const threshold = await bounds(page, code, direction);
-    await page.clock.runFor(Math.max(0, Math.floor(threshold.near * 90000) - 100));
+    await page.clock.runFor(Math.max(0, Math.floor(threshold.near * crossingMs) - 100));
     await expect(page.locator('.sweep-danger')).toHaveCount(0);
     await page.clock.runFor(200);
     await expect(page.locator(`.map-state[data-code="${code}"]`)).toHaveClass(/sweep-danger/);
@@ -76,8 +79,12 @@ for (const [code, direction] of [
     );
     const shade = await page.locator('.sweep-shade').boundingBox();
     expect(shade.width).toBeGreaterThan(0);
-    const state = await saved(page);
-    await page.clock.runFor(Math.max(0, (threshold.far - state.game.sweep.progress) * 90000) + 150);
+    // Saved progress can lag the live line by up to a second; do not skip
+    // past the entire one-second loss message when advancing to collision.
+    const progress = await page
+      .locator('.sweep-layer')
+      .evaluate((layer) => parseFloat(layer.style.getPropertyValue('--sweep-progress')) / 100);
+    await page.clock.runFor(Math.max(0, (threshold.far - progress) * crossingMs) + 150);
     await expect(page.locator('#sweep-over')).toBeVisible();
     await expect(page.locator('#sweep-over')).toHaveText('You Lose!');
     expect((await saved(page)).played).toBe(1);
@@ -173,7 +180,7 @@ test('a farther state clears the warning, and rotation preserves sweep progress'
   await seed(page);
   await click(page, '[data-card="CA"]');
   const threshold = await bounds(page, 'CA', 'east');
-  await page.clock.runFor(threshold.near * 90000 + 200);
+  await page.clock.runFor(threshold.near * crossingMs + 200);
   await expect(page.locator('.map-state[data-code="CA"]')).toHaveClass(/sweep-danger/);
   await click(page, '[data-card="AZ"]');
   await expect(page.locator('.sweep-danger')).toHaveCount(0);
@@ -195,7 +202,7 @@ test('reloading a timeout does not recount it and New game cancels the automatic
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await click(page, '[data-card="CA"]');
   const threshold = await bounds(page, 'CA', 'east');
-  await page.clock.runFor(threshold.far * 90000 + 100);
+  await page.clock.runFor(threshold.far * crossingMs + 100);
   await expect(page.locator('#sweep-over')).toBeVisible();
   expect((await saved(page)).played).toBe(1);
   await page.reload();
@@ -231,7 +238,7 @@ test('a single narrow sweep line has no internal animation; threatened states pu
     ).toBe('none');
   }
   const threshold = await bounds(page, 'CA', 'east');
-  await page.clock.runFor(threshold.near * 90000 + 100);
+  await page.clock.runFor(threshold.near * crossingMs + 100);
   const danger = page.locator('.map-state.sweep-danger path');
   await expect(danger).toHaveCSS('animation-name', 'sweep-danger-pulse');
   const pulse = await danger.evaluate((element) => {

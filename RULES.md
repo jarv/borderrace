@@ -7,6 +7,10 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 - A solvable deal is prepared when the page opens. A spinner shows while card
   values are calculated, then play is ready without a start button.
 - Begin with a card marked **COAST**, then add cards that border the last state.
+- Coastal hand cards receive a brief shine sweep every few seconds while play is
+  ready and no card has been played, marking the starting choices. It never blocks
+  selection and stops on first play; undo does not restart it. It pauses while
+  the page is hidden, and reduced motion skips it.
 - Every coastal card in a new deal has at least one winning route when selected
   first. Later choices can still require backtracking. Existing saves are unchanged.
 - Each state can appear only once in the route.
@@ -43,8 +47,9 @@ toggle in portrait; the counter does not cover the map. Portrait maps use the
 available width, including on shorter screens.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
-changing the board height. The starting prompt shows the exact number of winning
-routes for the deal after successful analysis, counting both directions separately
+changing the board height. The starting prompt shows a rounded-down lower bound
+on the number of winning routes after successful exact analysis (for example,
+“more than 7,000”). Counts include both directions separately
 and stopping at the first opposite coast. It survives reloads and fades after your
 first valid card. Older saves and incomplete analyses omit the count.
 In portrait this area stays at the panel's lower edge and may overlap the US. Messages
@@ -69,7 +74,7 @@ replaying it. Pending penalties and zero-point cards persist across reloads.
 The first coastal card starts a single narrow red vertical line at the map panel's far left for a
 Pacific start, or far right for an Atlantic start—not at the US outline. It moves
 across the entire panel, darkening the area behind it. At its initial speed a full
-crossing takes **90 seconds**. Each additional valid card adds **8% of the base
+crossing takes **100 seconds**. Each additional valid card adds **8% of the base
 speed**; each Hint or invalid card selection adds **35%**, including penalties before
 starting and repeated hints or mistakes. Speed is capped at **3×**. Removals do not
 accelerate it. These speed penalties do not replace hint-zeroing or mistake point deductions.

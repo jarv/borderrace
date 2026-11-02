@@ -1,6 +1,6 @@
 import { coast } from './data.js';
 
-export const CROSSING_SECONDS = 90;
+export const CROSSING_SECONDS = 100;
 export const CARD_ACCELERATION = 0.08;
 export const PENALTY_ACCELERATION = 0.35;
 export const MAX_MULTIPLIER = 3;

@@ -177,6 +177,7 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
   await expect(page.locator('#message')).toHaveText('Preparing cards…');
   await expect(page.locator('.state-card').first()).toBeDisabled();
   await expect(page.locator('#hint-button')).toBeDisabled();
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
   await expect(page.locator('#show-route')).toHaveCount(0);
   expect(
     await page
@@ -208,6 +209,84 @@ test('preparation shows a spinner, blocks play, and ignores superseded scoring r
   expect(game.cardPoints).toEqual(pointsFromCounts(game.deal, countWinningRoutes(game.deal)));
   expect(game.winningRoutes).toBe(countWinningRoutes(game.deal).routes.toString());
   await expect(page.locator('.state-card').first()).toBeEnabled();
+});
+
+test('coastal cards shimmer periodically through hints and mistakes until first play, never after undo', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.install({ time: new Date('2026-11-01T12:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-11-01T12:01:00Z'));
+  await seed(page);
+  const coastalCount = await page.locator('.state-card.coastal').count();
+  await expect(page.locator('.coastal-intro')).toHaveCount(coastalCount);
+  await expect(page.locator('.state-card:not(.coastal).coastal-intro')).toHaveCount(0);
+  const shine = await page
+    .locator('.coastal-intro')
+    .first()
+    .evaluate((card) => {
+      const style = getComputedStyle(card, '::before');
+      return {
+        name: style.animationName,
+        iterations: style.animationIterationCount,
+        duration: style.animationDuration,
+        pointerEvents: style.pointerEvents,
+      };
+    });
+  expect(shine).toEqual({
+    name: 'coastal-shine',
+    iterations: 'infinite',
+    duration: '4.8s',
+    pointerEvents: 'none',
+  });
+  await page.clock.runFor(12000);
+  await expect(page.locator('.coastal-intro')).toHaveCount(coastalCount);
+  await page.locator('#hint-button').dispatchEvent('click');
+  await page.locator('[data-card="AZ"]').dispatchEvent('click');
+  await expect(page.locator('.coastal-intro')).toHaveCount(coastalCount);
+  await page.locator('#new-game').dispatchEvent('click');
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.coastal-intro').first()).toBeVisible();
+  const start = await page.locator('.coastal-intro').first().getAttribute('data-card');
+  await page.locator(`[data-card="${start}"]`).dispatchEvent('click');
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
+  await page.locator(`[data-card="${start}"]`).dispatchEvent('click');
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
+});
+
+test('coastal shine respects reduced motion and pauses while the page is hidden', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.install({ time: new Date('2026-11-01T12:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-11-01T12:01:00Z'));
+  await seed(page);
+  await expect(page.locator('.coastal-intro').first()).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
+  await page.locator('#new-game').dispatchEvent('click');
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.locator('#new-game').dispatchEvent('click');
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.coastal-intro').first()).toBeVisible();
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.clock.runFor(3000);
+  await expect(page.locator('.coastal-intro').first()).toBeVisible();
+  const start = await page.locator('.coastal-intro').first().getAttribute('data-card');
+  await page.locator(`[data-card="${start}"]`).dispatchEvent('click');
+  await page.locator(`[data-card="${start}"]`).dispatchEvent('click');
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.locator('.coastal-intro')).toHaveCount(0);
 });
 
 test('connectors disappear on undo and New game, including normal and reduced motion', async ({
@@ -269,7 +348,7 @@ test('new games offer a winning route from every coastal start', async ({ page }
   }
 });
 
-test('intro shows the final deal route count, preserves it on reload, and fades after play', async ({
+test('intro rounds the final deal route count, preserves it on reload, and fades after play', async ({
   page,
   isMobile,
 }) => {
@@ -278,7 +357,10 @@ test('intro shows the final deal route count, preserves it on reload, and fades 
   const game = (await saved(page)).game;
   const exactCount = countWinningRoutes(game.deal).routes;
   expect(game.winningRoutes).toBe(exactCount.toString());
-  const message = `Select cards to cross the map using connecting states. There are ${new Intl.NumberFormat('en-US').format(exactCount)} winning routes. Start with a green coastal card. Gold cards are harder to use and worth 3 points.`;
+  const below = exactCount - 1n;
+  const magnitude = 10n ** BigInt(below.toString().length - 1);
+  const minimum = (below / magnitude) * magnitude;
+  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a green coastal card. Gold cards are harder to use and worth 3 points.`;
   await expect(page.locator('#message')).toHaveText(message);
   await page.reload();
   await expect(page.locator('#message')).toHaveText(message);
@@ -617,10 +699,10 @@ test('backtracking hints name the suffix to remove and the exact next abbreviati
 for (const reducedMotion of ['no-preference', 'reduce']) {
   test(`win results wait for the celebration with motion=${reducedMotion}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion });
-    await page.clock.install();
+    await page.clock.install({ time: new Date('2026-11-01T12:00:00Z') });
+    await page.clock.pauseAt(new Date('2026-11-01T12:01:00Z'));
     await seed(page, fixture({ route: route.slice(0, -1) }));
-    await page.clock.fastForward(2000);
-    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+    await page.clock.runFor(2000);
     await page.locator('[data-card="NC"]').dispatchEvent('click');
     expect((await saved(page)).game.status).toBe('won');
     expect((await saved(page)).wins).toBe(1);

@@ -9,6 +9,7 @@ import {
   validSweep,
   CARD_ACCELERATION,
   PENALTY_ACCELERATION,
+  CROSSING_SECONDS,
 } from '../src/sweep.js';
 import { addCard, penalizeInvalidCard, newGame, validGame } from '../src/game.js';
 import { CODES } from '../src/data.js';
@@ -23,7 +24,8 @@ const fixture = () => ({
   cardPoints: Object.fromEntries(deal.map((code) => [code, 1])),
 });
 
-test('sweep starts only with the first valid coastal card and crosses in 90 base seconds', () => {
+test('sweep starts only with the first valid coastal card and crosses in 100 base seconds', () => {
+  assert.equal(CROSSING_SECONDS, 100);
   let game = fixture();
   assert.deepEqual(game.sweep, newSweep());
   assert.equal(addCard(game, 'AZ'), game);
@@ -31,8 +33,8 @@ test('sweep starts only with the first valid coastal card and crosses in 90 base
   game = addCard(game, 'CA');
   assert.equal(game.sweep.origin, 'CA');
   assert.equal(game.sweep.multiplier, 1);
-  assert.equal(advanceSweep(game.sweep, 45).progress, 0.5);
-  assert.equal(advanceSweep(game.sweep, 90).progress, 1);
+  assert.equal(advanceSweep(game.sweep, 50).progress, 0.5);
+  assert.equal(advanceSweep(game.sweep, 100).progress, 1);
   assert.equal(advanceSweep(game.sweep, 1000).progress, 1);
 });
 
@@ -51,7 +53,7 @@ test('valid plays and hints accelerate permanently, with a 3x cap and no point c
   const hinted = accelerateSweep(game.sweep, PENALTY_ACCELERATION);
   assert.ok(hinted.multiplier > game.sweep.multiplier + CARD_ACCELERATION);
   assert.equal(accelerateSweep(hinted, 100).multiplier, 3);
-  assert.equal(advanceSweep({ ...hinted, multiplier: 3 }, 30).progress, 1);
+  assert.equal(advanceSweep({ ...hinted, multiplier: 3 }, CROSSING_SECONDS / 3).progress, 1);
 });
 
 test('invalid cards apply the same 35% speed penalty as hints while retaining point and hint rules', () => {

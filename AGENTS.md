@@ -94,7 +94,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - New games are immediately `playing`. No start/finish button, numeric countdown,
   timestamps, or duration-based scoring/ranking. A moving deadline starts at the
   first coastal play, from the full panel's left edge for west starts or right
-  edge for east starts. Base crossing time is 90 seconds, +0.08 base speed per
+  edge for east starts. Base crossing time is 100 seconds, +0.08 base speed per
   subsequent valid addition and +0.35 per Hint or invalid card selection, capped
   at 3x, in addition to existing point penalties. Undo never refunds
   pace/progress or changes the original direction; with no route, chase the

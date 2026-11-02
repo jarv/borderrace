@@ -143,6 +143,23 @@
   background: linear-gradient(145deg, #2b4e50, #233c42);
   border-color: #528d80;
 }
+.cards .state-card.coastal.coastal-intro::before {
+  content: '';
+  position: absolute;
+  inset: -25% 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 25%, #e3fff580 50%, transparent 75%);
+  animation: coastal-shine 4.8s 0.6s infinite both;
+}
+@keyframes coastal-shine {
+  from {
+    transform: translateX(-150%);
+  }
+  25%,
+  100% {
+    transform: translateX(150%);
+  }
+}
 .state-card:not(.placed):not(:disabled):hover {
   translate: 0 -4px;
   border-color: var(--cyan);

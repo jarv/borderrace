@@ -105,8 +105,12 @@ with a keyboard. Reduced-motion preferences disable animation. No WebGL or
 large 3D engine is required; Motion, SVG, CSS, and canvas provide the effects.
 Instructions and error messages appear below the map's states without shifting
 the board. The starting prompt explains coastal and gold cards and shows the deal's
-exact winning-route count after successful analysis, then fades after the first
-valid card. The count survives reloads; older saves and incomplete analyses omit it.
+a rounded-down winning-route estimate after successful analysis (for example,
+“more than 7,000”), then fades after the first valid card. The exact count is saved
+for consistent estimates across reloads; older saves and incomplete analyses omit it.
+Coastal hand cards get a brief shine sweep every few seconds while waiting for
+the first play, marking the starting choices. It pauses while hidden and is skipped
+for reduced motion. Undo does not restart it after play begins.
 Mobile dialogs put a smaller visual close button beside the
 heading while preserving its touch target.
 In portrait, messages sit at the map panel's lower edge and may overlap the US when space is tight. The
@@ -124,7 +128,7 @@ states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
 
 A single narrow red deadline line starts at the full map panel's left edge for a Pacific start,
-or right edge for an Atlantic start. Its base crossing time is 90 seconds. Valid
+or right edge for an Atlantic start. Its base crossing time is 100 seconds. Valid
 additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
 capped at 3×. Point penalties remain unchanged. The
 furthest-forward state pulses dark red as the line reaches it. Once overtaken,

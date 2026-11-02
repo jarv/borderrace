@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { CODES } from '../src/data.js';
 import { STORAGE_KEY, emptySave } from '../src/storage.js';
 import { OUTBOX_KEY } from '../src/leaderboard.js';
+import { CROSSING_SECONDS } from '../src/sweep.js';
 
 const userId = '00000000-0000-0000-0000-000000000001';
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
@@ -247,7 +248,7 @@ test('signed-in timeout losses do not submit scores', async ({ page }) => {
   await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
   await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
   await page.locator('[data-card="CA"]').dispatchEvent('click');
-  await page.clock.runFor(90000);
+  await page.clock.runFor(CROSSING_SECONDS * 1000);
   const save = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY);
   expect(save.played).toBe(1);
   expect(save.wins).toBe(0);
