@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/jarv/borderrace/compare/v1.17.1...v1.18.0) (2026-11-02)
+
+
+### Features
+
+* link leaderboard login and label desktop account controls ([df9ef45](https://github.com/jarv/borderrace/commit/df9ef450322e7ade966d33b7b5ee42b70691eae7))
+
 ## [1.17.1](https://github.com/jarv/borderrace/compare/v1.17.0...v1.17.1) (2026-11-02)
 
 
