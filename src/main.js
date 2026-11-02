@@ -254,21 +254,28 @@ function play(code) {
   sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
   if (game.route.includes(code)) {
+    const route = backtrack(game.route, code);
+    if (route === game.route) {
+      message('Starting coastal card is locked.');
+      return;
+    }
     hint = null;
     audio.play('undo');
-    game = { ...game, route: backtrack(game.route, code) };
+    game = { ...game, route };
     persist();
     render();
     message('');
     return;
   }
-  if (!canAdd(game.deal, game.route, code)) {
+  if (!canAdd(game.deal, game.route, code, game.sweep?.origin)) {
     game = penalizeInvalidCard(game, code);
     persist();
     render();
     const last = game.route.at(-1);
     const text = !last
-      ? 'Choose a coastal card.'
+      ? game.sweep?.origin
+        ? `Start with ${game.sweep.origin}.`
+        : 'Choose a coastal card.'
       : `${STATES[code].name} doesn’t border ${STATES[last].name}.`;
     message(`${text} −${pointsFor(code, [], game.cardPoints)} pts`, true);
     audio.play('invalid');
@@ -335,7 +342,7 @@ function timeout() {
 $('#hint-button').addEventListener('click', () => {
   sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
-  hint = getHint(game.deal, game.route);
+  hint = getHint(game.deal, game.route, game.sweep?.origin);
   if (!hint || hint.type === 'complete') {
     message(hint ? 'Route complete.' : 'No hint available.');
     return;
@@ -378,6 +385,14 @@ function render(dealAnimation = false, arrival) {
   $$('[data-card]').forEach((button) =>
     button.addEventListener('click', () => play(button.dataset.card)),
   );
+  const startingCard = $(`[data-card="${game.route[0]}"]`);
+  if (startingCard)
+    startingCard.setAttribute(
+      'aria-label',
+      startingCard
+        .getAttribute('aria-label')
+        .replace(', click to undo', ', starting coastal card, locked'),
+    );
   if (focusCode) $(`[data-card="${focusCode}"]`)?.focus({ preventScroll: true });
   $('#hint-button').disabled = ended || pending;
   for (const id of ['#sound-button', '#records-button', '#daily-button', '#help-button'])

@@ -59,10 +59,11 @@ export function planCompletion(deal, route) {
   return null;
 }
 
-export function getHint(deal, route) {
+export function getHint(deal, route, origin) {
+  if (!route.length && origin) return { type: 'play', code: origin };
   if (isComplete(deal, route)) return { type: 'complete' };
   const plan = planCompletion(deal, route);
-  if (!plan) return null;
+  if (!plan || (route.length && plan.keep === 0)) return null;
   return plan.keep < route.length
     ? { type: 'undo', code: route[plan.keep], playCode: plan.route[plan.keep] }
     : { type: 'play', code: plan.route[plan.keep] };
@@ -211,9 +212,9 @@ export function createDeal(random = Math.random) {
   return [...fallbackDeal];
 }
 
-export function canAdd(deal, route, code) {
+export function canAdd(deal, route, code, origin) {
   if (!STATES[code] || !deal.includes(code) || route.includes(code)) return false;
-  if (!route.length) return Boolean(coast(code));
+  if (!route.length) return Boolean(coast(code)) && (!origin || code === origin);
   const last = route.at(-1);
   if (coast(last) && coast(last) !== coast(route[0])) return false;
   return STATES[last]?.neighbors.includes(code) ?? false;
@@ -239,10 +240,14 @@ export const pointsFor = (code, zeroCards = [], cardPoints) =>
 export const score = (route, zeroCards = [], mistakePoints = 0, cardPoints) =>
   route.reduce((total, code) => total + pointsFor(code, zeroCards, cardPoints), 0) - mistakePoints;
 export const backtrack = (route, code) =>
-  route.includes(code) ? route.slice(0, route.indexOf(code)) : route;
+  route.indexOf(code) > 0 ? route.slice(0, route.indexOf(code)) : route;
 
 export function addCard(game, code) {
-  if (game.status !== 'playing' || game.cardPoints === null || !canAdd(game.deal, game.route, code))
+  if (
+    game.status !== 'playing' ||
+    game.cardPoints === null ||
+    !canAdd(game.deal, game.route, code, game.sweep?.origin)
+  )
     return game;
   const sweep = restoreSweep(game);
   return {
@@ -263,7 +268,7 @@ export function penalizeInvalidCard(game, code) {
     game.cardPoints === null ||
     !game.deal.includes(code) ||
     game.route.includes(code) ||
-    canAdd(game.deal, game.route, code)
+    canAdd(game.deal, game.route, code, game.sweep?.origin)
   )
     return game;
   return {

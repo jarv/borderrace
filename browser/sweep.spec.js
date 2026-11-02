@@ -144,12 +144,12 @@ test('hints and invalid cards share the stronger penalty, while undo never refun
   await click(page, '[data-card="NC"]');
   expect((await saved(page)).game.sweep.multiplier).toBeCloseTo(2.13);
   await page.clock.runFor(1000);
-  await click(page, '[data-card="CA"]');
+  await click(page, '[data-card="AZ"]');
   const undone = (await saved(page)).game.sweep;
   expect(undone.origin).toBe('CA');
   expect(undone.progress).toBeGreaterThan(0);
   expect(undone.multiplier).toBeCloseTo(2.13);
-  await click(page, '[data-card="CA"]');
+  await click(page, '[data-card="AZ"]');
   expect((await saved(page)).game.sweep.multiplier).toBeCloseTo(2.21);
 });
 

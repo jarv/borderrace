@@ -275,7 +275,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
       card.style.zIndex = index + 1;
       card.setAttribute(
         'aria-label',
-        `${STATES[code].name}, ${value} points, stop ${index + 1}, remove this card and following cards`,
+        `${STATES[code].name}, ${value} points, stop ${index + 1}, ${index === 0 ? 'starting coastal card, locked' : 'remove this card and following cards'}`,
       );
     });
     positionCards();

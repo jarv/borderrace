@@ -145,8 +145,9 @@ test('green shoreline edges mark coastal states independently of route highlight
   await expect(page.locator('.map-state.on-route')).toHaveCount(0);
   await press(page.locator('[data-card="CA"]'), isMobile);
   await expect(page.locator('.map-state.on-route')).toHaveCount(1);
-  await press(page.locator('[data-chain="CA"]'), isMobile);
-  await expect(page.locator('.map-state.on-route')).toHaveCount(0);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  await press(page.locator('[data-chain="AZ"]'), isMobile);
+  await expect(page.locator('.map-state.on-route')).toHaveCount(1);
   await expect(shores).toHaveCount(17);
   await expect(shores.first()).toHaveCSS('stroke', 'rgb(157, 243, 117)');
 });
@@ -471,6 +472,59 @@ test('connecting the coasts wins automatically and saves the result exactly once
   expect(errors).toEqual([]);
 });
 
+test('starting coast stays locked on the hand and map without changing penalties or pace', async ({
+  page,
+  isMobile,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.clock.install({ time: new Date('2026-11-01T12:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-11-01T12:01:00Z'));
+  await seed(
+    page,
+    fixture({
+      route: ['CA', 'AZ'],
+      zeroCards: ['AZ'],
+      hintPending: true,
+      mistakePoints: 2,
+      sweep: { origin: 'CA', progress: 0.01, multiplier: 1.5 },
+    }),
+  );
+  const before = (await saved(page)).game;
+  await expect(page.locator('[data-card="CA"]')).toHaveAccessibleName(
+    /starting coastal card, locked/,
+  );
+  await expect(page.locator('[data-chain="CA"]')).toHaveAccessibleName(
+    /starting coastal card, locked/,
+  );
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Starting coastal card is locked.');
+  await page.locator('[data-chain="CA"]').focus();
+  await page.keyboard.press('Enter');
+  expect((await saved(page)).game).toEqual(before);
+  await page.reload();
+  await press(page.locator('[data-chain="CA"]'), isMobile);
+  expect((await saved(page)).game.route).toEqual(['CA', 'AZ']);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
+  expect((await saved(page)).game.route).toEqual(['CA']);
+});
+
+test('legacy empty routes must resume at their original coast, never the opposite side', async ({
+  page,
+  isMobile,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page, fixture({ sweep: { origin: 'CA', progress: 0.01, multiplier: 1.5 } }));
+  await press(page.locator('[data-card="NC"]'), isMobile);
+  expect((await saved(page)).game.route).toEqual([]);
+  await expect(page.locator('#message')).toContainText('Start with CA.');
+  await press(page.locator('#hint-button'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Play CA');
+  await press(page.locator('[data-card="CA"]'), isMobile);
+  expect((await saved(page)).game.route).toEqual(['CA']);
+  expect((await saved(page)).game.sweep.origin).toBe('CA');
+  await expect(page.locator('.sweep-layer')).toHaveAttribute('data-direction', 'east');
+});
+
 test('invalid cards are rejected and undo removes a suffix', async ({ page, isMobile }) => {
   await seed(page);
   await press(page.locator('[data-card="AZ"]'), isMobile);
@@ -665,8 +719,7 @@ test('a hint zeros any next chosen card and the penalty survives undo and reload
   expect((await saved(page)).game.zeroCards).toEqual(['CA']);
   await press(page.locator('[data-card="AZ"]'), isMobile);
   await expect(page.locator('#score')).toContainText('2');
-  await press(page.locator('[data-card="CA"]'), isMobile);
-  await press(page.locator('[data-card="CA"]'), isMobile);
+  await press(page.locator('[data-card="AZ"]'), isMobile);
   await expect(page.locator('#score')).toContainText('0');
   await expect(page.locator('[data-chain="CA"] small')).toHaveText('0 PTS');
 });
@@ -675,16 +728,16 @@ test('a backtracking hint charges the next added card, not the removal', async (
   page,
   isMobile,
 }) => {
-  await seed(page, fixture({ route: ['ME'] }));
+  await seed(page, fixture({ route: ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'] }));
   await press(page.locator('#hint-button'), isMobile);
-  await expect(page.locator('#message')).toHaveText('Remove ME, play NC');
-  await expect(page.locator('[data-card="ME"]')).toHaveClass(/hinted/);
-  await press(page.locator('[data-card="ME"]'), isMobile);
+  await expect(page.locator('#message')).toHaveText('Remove KY, play GA');
+  await expect(page.locator('[data-card="KY"]')).toHaveClass(/hinted/);
+  await press(page.locator('[data-card="KY"]'), isMobile);
   await expect(page.locator('#message')).toBeEmpty();
   await expect(page.locator('#hint-cost')).toBeVisible();
   expect((await saved(page)).game.hintPending).toBe(true);
-  await press(page.locator('[data-card="CA"]'), isMobile);
-  expect((await saved(page)).game.zeroCards).toEqual(['CA']);
+  await press(page.locator('[data-card="GA"]'), isMobile);
+  expect((await saved(page)).game.zeroCards).toEqual(['GA']);
 });
 
 test('backtracking hints name the suffix to remove and the exact next abbreviation', async ({
@@ -890,6 +943,7 @@ test('all win dialog dismissal controls start a new game and scores show the win
   page,
   isMobile,
 }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await seed(page);
   for (const method of ['close', 'escape', 'play-again']) {
     await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
@@ -1125,10 +1179,10 @@ test('fast placements settle independently and undo cancels pending points', asy
   await page.locator('[data-card="AZ"]').dispatchEvent('click');
   await expect(page.locator('#score')).toHaveText('0 pts');
   await expect(page.locator('#score')).toHaveText('3 pts');
-  await page.locator('[data-card="CA"]').dispatchEvent('click');
-  await page.locator('[data-card="CA"]').dispatchEvent('click');
-  await expect(page.locator('#score')).toHaveText('0 pts');
+  await page.locator('[data-card="AZ"]').dispatchEvent('click');
+  await page.locator('[data-card="AZ"]').dispatchEvent('click');
   await expect(page.locator('#score')).toHaveText('1 pts');
+  await expect(page.locator('#score')).toHaveText('3 pts');
   await page.locator('[data-card="AZ"]').dispatchEvent('click');
   await page.locator('#new-game').dispatchEvent('click');
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
@@ -1221,7 +1275,8 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
     await press(page.locator('[data-card="CA"]'), true);
     await expect(page.locator('[data-chain="CA"]')).toBeVisible();
     await press(page.locator('[data-chain="CA"]'), true);
-    await expect(page.locator('[data-chain]')).toHaveCount(0);
+    await expect(page.locator('[data-chain]')).toHaveCount(1);
+    await expect(page.locator('#message')).toHaveText('Starting coastal card is locked.');
   }
 });
 

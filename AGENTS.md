@@ -77,7 +77,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   starting card, including scoring fallbacks. Preserve existing saves. No wildcard.
 - Start at either coast, append bordering states, finish at the opposite coast.
 - Validate the actual submitted sequence, not just connectivity of the deck.
-- Clicking a played card in the hand or map removes it and its suffix.
+- Lock the first coastal card in both hand and map. Later played cards can be
+  removed with their suffix. Legacy empty-route saves with a started sweep may
+  resume only at the original starting card, never switch coastal starts.
 - New game acts immediately, without confirmation. Dismissing the
   You win dialog starts a new game. Score clearing also acts immediately.
 - Keep unusual connections (AZ–CO, NM–UT, MI–MN, NY–RI). Gulf-only states are not

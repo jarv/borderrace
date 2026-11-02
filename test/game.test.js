@@ -127,7 +127,7 @@ test('hints lead to a solution and identify backtracking without mutating the ro
   }
   assert.ok(isComplete(deal, path));
   assert.deepEqual(getHint(deal, path), { type: 'complete' });
-  assert.deepEqual(getHint(deal, ['ME']), { type: 'undo', code: 'ME', playCode: 'NC' });
+  assert.equal(getHint(deal, ['ME']), null);
   const blocked = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'KY', 'IN', 'MI'];
   assert.ok(isLegalRoute(deal, blocked));
   const undo = getHint(deal, blocked);
@@ -148,11 +148,41 @@ test('a hint zeros the next added card, including a different choice and undo/re
   assert.equal(score(game.route, game.zeroCards), 0);
   game = addCard(game, 'AZ');
   assert.equal(score(game.route, game.zeroCards), 2);
-  game = { ...game, route: backtrack(game.route, 'CA') };
-  game = addCard(game, 'CA');
+  assert.equal(backtrack(game.route, 'CA'), game.route);
+  game = { ...game, route: backtrack(game.route, 'AZ') };
   assert.equal(score(game.route, game.zeroCards), 0);
   assert.deepEqual(game.zeroCards, ['CA']);
   assert.equal(score(route, ['NC']), 10);
+});
+
+test('the starting coastal card is locked, while later coastal and inland cards can be undone', () => {
+  const path = ['CA', 'OR', 'ID'];
+  assert.equal(backtrack(path, 'CA'), path);
+  assert.deepEqual(backtrack(path, 'OR'), ['CA']);
+  assert.deepEqual(backtrack(path, 'ID'), ['CA', 'OR']);
+  assert.equal(backtrack(path, 'NC'), path);
+  const eastStart = ['NC', 'TN'];
+  assert.equal(backtrack(eastStart, 'NC'), eastStart);
+});
+
+test('legacy empty routes cannot restart from a different coast after the sweep has begun', () => {
+  const game = fixture({
+    sweep: { origin: 'CA', progress: 0.2, multiplier: 1.5 },
+    hintPending: true,
+  });
+  assert.ok(validGame(game));
+  assert.equal(canAdd(game.deal, [], 'NC', 'CA'), false);
+  assert.equal(addCard(game, 'NC'), game);
+  assert.deepEqual(getHint(game.deal, [], 'CA'), { type: 'play', code: 'CA' });
+  const restored = addCard(game, 'CA');
+  assert.deepEqual(restored.route, ['CA']);
+  assert.equal(restored.sweep.origin, 'CA');
+  assert.equal(restored.sweep.progress, 0.2);
+  assert.ok(restored.sweep.multiplier > 1.5);
+  assert.deepEqual(restored.zeroCards, ['CA']);
+  const eastGame = { ...game, sweep: { ...game.sweep, origin: 'NC' } };
+  assert.equal(addCard(eastGame, 'CA'), eastGame);
+  assert.deepEqual(addCard(eastGame, 'NC').route, ['NC']);
 });
 
 test('new games begin playing with pending points and an unstarted sweep, without timestamps', () => {

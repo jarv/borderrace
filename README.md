@@ -142,7 +142,10 @@ effects never delay the deadline or block play, and are skipped for reduced moti
 Wins stop it; New game resets it.
 
 **Hint** highlights the next playable card, or a card to remove when backtracking
-is needed. After a hint, the next added card scores zero, even if a different card
+is needed. The first coastal card is locked on both the hand and map; later cards
+can still be removed with their suffix. Old empty-route saves must resume at their
+original coastal start, so the sweep cannot be switched to the other side.
+After a hint, the next added card scores zero, even if a different card
 is chosen. That card stays at zero after undo/replay. Results show small linked
 abbreviations for the most-points route using
 frozen values and hint penalties. Score ties prefer fewer cards. The exact

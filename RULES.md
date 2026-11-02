@@ -14,7 +14,9 @@ Connect the Atlantic and Pacific coasts using 24 state cards.
 - Every coastal card in a new deal has at least one winning route when selected
   first. Later choices can still require backtracking. Existing saves are unchanged.
 - Each state can appear only once in the route.
-- Clicking a played card in the hand or on the map removes it and all following cards.
+- The first coastal card is locked for the game. Clicking it in the hand or map
+  does not remove it or its suffix. Clicking any later played card removes that
+  card and its suffix, including later coastal cards.
 - Reaching the opposite coast **ends the game automatically**. You cannot extend
   a route past that coast. There is no assisted-completion control.
 - **New game** immediately replaces the current game. Abandoned games are not counted.
@@ -86,7 +88,8 @@ touches the state's near edge. Once it passes the far edge, the game ends:
 timeout counts as one loss and does not reveal an assisted solution.
 
 Undo never rewinds the line, refunds acceleration, or changes its initial direction.
-Removing the entire route leaves the original coastal state as the danger target.
+The starting card cannot be removed. Older saves with an empty route after the
+line started must resume at the original starting card, not a different coast.
 The line pauses while the page is hidden (another tab, minimized browser, or locked
 phone), and resumes without charging hidden time. Progress and speed survive
 reloads; time spent away is not charged. Existing saves without a line start at

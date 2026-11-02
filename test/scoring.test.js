@@ -115,8 +115,8 @@ test('deal points stay fixed through hints, invalid selections, undo, and replay
   assert.equal(game.mistakePoints, 3);
   game = addCard(game, 'CA');
   assert.equal(score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints), -2);
-  game = { ...game, route: backtrack(game.route, 'OR') };
-  game = addCard(game, 'OR');
+  game = { ...game, route: backtrack(game.route, 'CA') };
+  game = addCard(game, 'CA');
   assert.equal(pointsFor('OR', game.zeroCards, game.cardPoints), 0);
   assert.deepEqual(game.cardPoints, cardPoints);
   assert.equal(pointsFor('NM'), 3); // Existing unversioned games retain legacy values.
