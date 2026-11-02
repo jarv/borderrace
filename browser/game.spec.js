@@ -11,6 +11,7 @@ import {
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
 import { pointsFromCounts, SCORING_VERSION } from '../src/scoring.js';
+import { formatPlayTime } from '../src/personal-bests.js';
 
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
@@ -476,7 +477,9 @@ test('connecting the coasts wins automatically and saves the result exactly once
   await expect(page.locator('#result-title')).toHaveText('You win');
   await expect(page.locator('#result-route .solution-card')).toHaveCount(route.length);
   expect(await page.locator('#result-route .solution-card').allTextContents()).toEqual(route);
-  await expect(page.locator('#result-route h3')).toHaveText('Your route 11 pts');
+  await expect(page.locator('#result-route h3')).toHaveText(
+    `Your route 11 pts · ${formatPlayTime((await saved(page)).game.playSeconds)}`,
+  );
   expect((await saved(page)).records).toEqual([
     { id: 'test-game', points: 11, route, playSeconds: expect.any(Number) },
   ]);
@@ -706,10 +709,11 @@ test('mistakes persist, stack, preserve hints, and count in final scores', async
   await page.reload();
   await expect(page.locator('#score')).toHaveText('-4 pts');
   for (const code of route) await press(page.locator(`[data-card="${code}"]`), isMobile);
-  await expect(page.locator('#result-route h3')).toHaveText('Your route 6 pts');
+  const resultHeading = `Your route 6 pts · ${formatPlayTime((await saved(page)).game.playSeconds)}`;
+  await expect(page.locator('#result-route h3')).toHaveText(resultHeading);
   expect((await saved(page)).records[0].points).toBe(6);
   await page.reload();
-  await expect(page.locator('#result-route h3')).toHaveText('Your route 6 pts');
+  await expect(page.locator('#result-route h3')).toHaveText(resultHeading);
   await press(page.locator('#play-again'), isMobile);
   await expect(page.locator('#score')).toHaveText('0 pts');
   expect((await saved(page)).game.mistakePoints).toBe(0);

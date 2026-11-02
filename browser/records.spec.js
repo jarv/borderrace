@@ -62,6 +62,7 @@ test('best time counts visible play only, persists across reload, and first wins
   for (const code of route.slice(1)) await play(page, code);
   await expect(page.locator('#result-dialog')).toBeVisible();
   await expect(page.locator('#best-time')).toHaveText('0:05.0');
+  await expect(page.locator('#result-route h3')).toHaveText('Your route 7 pts · 0:05.0');
   await expect(page.locator('#best-points')).toHaveText('7 pts');
   await expect(page.locator('#record-message')).not.toBeVisible();
   const save = await saved(page);
@@ -87,6 +88,7 @@ for (const motion of ['no-preference', 'reduce']) {
     if (motion === 'no-preference') await page.clock.runFor(2000);
     await expect(page.locator('#result-dialog')).toBeVisible();
     await expect(page.locator('#best-time')).toHaveText('0:12.3');
+    await expect(page.locator('#result-route h3')).toHaveText('Your route 7 pts · 0:12.3');
     await expect(page.locator('#best-points')).toHaveText('7 pts');
     await expect(page.locator('#record-message')).toHaveText(
       'New records: best time and most points!',
@@ -98,6 +100,7 @@ for (const motion of ['no-preference', 'reduce']) {
     expect(animations > 0).toBe(motion === 'no-preference');
     await page.reload();
     await expect(page.locator('#result-dialog')).toBeVisible();
+    await expect(page.locator('#result-route h3')).toHaveText('Your route 7 pts · 0:12.3');
     await expect(page.locator('#record-message')).not.toBeVisible();
     await expect(page.locator('.new-personal-record')).toHaveCount(0);
     expect((await saved(page)).wins).toBe(2);

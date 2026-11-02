@@ -150,7 +150,8 @@ Each score shows its winning path and points. Older records without paths show a
 
 ## Solutions
 
-Win results show your played route and its points first. Below it is the
+Win results show your played route and its points first, with its measured time
+beside the points when available, for comparison with your personal bests. Below it is the
 most-points route using the dealt cards and frozen point values. Score ties
 prefer fewer cards. Routes stop at the first opposite coast. No shortest route
 is displayed. New game is the green primary action.

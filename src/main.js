@@ -427,7 +427,12 @@ function showResult() {
   clearTimeout(resultTimeout);
   $('#result-title').textContent = 'You win';
   $('#result-route').hidden = false;
-  $('#result-route').innerHTML = solutionCards(game.route, 'Your route', game.mistakePoints);
+  $('#result-route').innerHTML = solutionCards(
+    game.route,
+    'Your route',
+    game.mistakePoints,
+    game.playSeconds,
+  );
   const best = personalBests(save);
   $('#best-time').textContent = formatPlayTime(best.playSeconds);
   $('#best-points').textContent = best.points === null ? '—' : `${best.points} pts`;
@@ -462,8 +467,9 @@ reducedMotion.addEventListener('change', () => {
   if (reducedMotion.matches) stopRecordCelebration();
 });
 
-function solutionCards(path, label, mistakePoints = 0) {
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}${game.cardPoints?.[code] === 3 ? ', bonus card' : ''}">${code}${game.cardPoints?.[code] === 3 ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</div></li>`).join('')}</ol></section>`;
+function solutionCards(path, label, mistakePoints = 0, playSeconds) {
+  const time = playSeconds === undefined ? '' : ` · ${formatPlayTime(playSeconds)}`;
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts${time}</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}${game.cardPoints?.[code] === 3 ? ', bonus card' : ''}">${code}${game.cardPoints?.[code] === 3 ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {
