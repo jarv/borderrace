@@ -47,6 +47,8 @@ On phones, the map sits above smaller cards in portrait, or to their right in
 landscape. Controls and the points total share one row, with a music-note sound
 toggle in portrait; the counter does not cover the map. Portrait maps use the
 available width, including on shorter screens.
+Portrait hands use four rows of six cards. Spare space below those rows goes to
+the map panel, moving route cards and messages lower to reduce artwork overlap.
 The hand scrolls independently when needed. **?** opens How to play.
 The map's bottom message area shows a starting prompt, hints, and errors without
 changing the board height. The starting prompt shows a rounded-down lower bound

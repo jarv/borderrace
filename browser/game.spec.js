@@ -1311,8 +1311,41 @@ test('phone score stays in the controls row and the map uses the taller portrait
   const previousWidthLimit = ((780 / 2 - 188) * 870) / 560;
   expect(map.width).toBeGreaterThan(previousWidthLimit + 16);
   const message = await page.locator('.map-messages').boundingBox();
+  const panel = await page.locator('.map-panel').boundingBox();
   expect(message.y).toBeGreaterThanOrEqual(map.y);
-  expect(message.y + message.height).toBeLessThanOrEqual(780 / 2);
+  expect(message.y + message.height).toBeLessThanOrEqual(panel.y + panel.height);
+});
+
+test('tall portrait phones give spare hand space to the map without changing the four card rows', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'Portrait phone space allocation');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page);
+  for (const [width, height] of [
+    [360, 780],
+    [360, 800],
+    [393, 852],
+    [412, 915],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const hand = await page.locator('.hand').boundingBox();
+    const cards = await page.locator('.state-card').evaluateAll((elements) =>
+      elements.map((element) => {
+        return { row: element.offsetTop, bottom: element.getBoundingClientRect().bottom };
+      }),
+    );
+    expect(new Set(cards.map((card) => card.row)).size).toBe(4);
+    const lastBottom = Math.max(...cards.map((card) => card.bottom));
+    expect(hand.y + hand.height - lastBottom).toBeLessThanOrEqual(8);
+    expect(lastBottom).toBeLessThanOrEqual(height);
+    const panel = await page.locator('.map-panel').boundingBox();
+    expect(panel.height).toBeGreaterThan(height / 2 - 96 + 30);
+    const message = await page.locator('.map-messages').boundingBox();
+    const artwork = await page.locator('#state-shapes').boundingBox();
+    expect(message.y).toBeGreaterThanOrEqual(artwork.y + artwork.height);
+  }
 });
 
 test('portrait maps stay full-width with messages allowed over the lower artwork', async ({

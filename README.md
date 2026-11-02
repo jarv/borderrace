@@ -96,7 +96,10 @@ estimate and Node/Chromium preparation results.
 ## Made for phones, too
 
 The compact phone layout puts the map above smaller, touch-sized cards in portrait,
-or beside them in landscape. Hint, sound, **?** (help), New game, and the points total
+or beside them in landscape. Portrait uses six cards per row.
+Spare space below the four card rows goes to the map,
+moving route cards and messages lower; shorter screens keep the hand scrollable.
+Hint, sound, **?** (help), New game, and the points total
 share one row, keeping the score off the map; portrait uses a music-note sound toggle.
 Portrait maps use the available width even with browser controls reducing screen height. The board fits Galaxy S25-sized
 viewports, with an independently scrolling hand on shorter
