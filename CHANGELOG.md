@@ -1,3 +1,15 @@
+# [1.17.0](https://github.com/jarv/borderrace/compare/v1.16.0...v1.17.0) (2026-11-02)
+
+
+### Bug Fixes
+
+* lock the starting coastal card and prevent coast switching ([73470fc](https://github.com/jarv/borderrace/commit/73470fce8fbac63d0509ba8509476fa264c2088c))
+
+
+### Features
+
+* link to GitHub beside the header map icon ([a8ca7a7](https://github.com/jarv/borderrace/commit/a8ca7a7019b2ce1abf403c0012691f0c677fbba3))
+
 # [1.16.0](https://github.com/jarv/borderrace/compare/v1.15.0...v1.16.0) (2026-11-02)
 
 
