@@ -35,6 +35,7 @@ export function createOnline({ storage, openDialog }) {
       .join(' ');
   };
   function renderAccount() {
+    $('#daily-login-note').hidden = !ready || Boolean(session);
     const label = session ? 'Log out' : 'Log in with Google';
     $('#account-button').setAttribute('aria-label', label);
     $('#account-button').title = label;

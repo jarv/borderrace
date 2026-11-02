@@ -98,9 +98,13 @@ test('public daily board uses text-only names and fits small phones', async ({
   await openBoard(page);
   await expect(page.locator('#daily-list')).toContainText('<script>alert(1)</script>');
   await expect(page.locator('#daily-list script')).toHaveCount(0);
-  await expect(page.locator('#daily-dialog .fine-print')).toHaveText(
+  await expect(page.locator('#daily-dialog .fine-print').first()).toHaveText(
     'Winning points add up each UTC day.',
   );
+  await expect(page.locator('#daily-login-note')).toHaveText(
+    'Log in before winning to add your scores to the leaderboard.',
+  );
+  await expect(page.locator('#daily-login-note')).toBeVisible();
   await expect(page.locator('#daily-date')).toHaveCount(0);
   await expect(page.locator('#daily-refresh')).toHaveAccessibleName('Refresh leaderboard');
   await expect(page.locator('#daily-refresh')).toHaveText('');
@@ -138,6 +142,9 @@ test('Google sign-in uses PKCE and the current application redirect', async ({ p
 test('existing names stay account-bound and the top bar fits small screens', async ({ page }) => {
   await setup(page, { loggedIn: true, profileName: 'A very long player name!!' });
   await expect(page.locator('#account-name')).toHaveText('A very long player name!!');
+  await openBoard(page);
+  await expect(page.locator('#daily-login-note')).not.toBeVisible();
+  await page.keyboard.press('Escape');
   for (const width of [320, 360, 650, 820, 1440]) {
     await page.setViewportSize({ width, height: 780 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -326,6 +333,8 @@ test('sign-out keeps the active game and personal records', async ({ page }) => 
     await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).game.route, STORAGE_KEY),
   ).toEqual(['CA']);
   expect(submissions).toEqual([]);
+  await openBoard(page);
+  await expect(page.locator('#daily-login-note')).toBeVisible();
 });
 
 test('a visible board switches days using the server reset time', async ({ page }) => {
