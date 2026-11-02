@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/jarv/borderrace/compare/v1.17.0...v1.17.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* prompt logged-out players to log in for leaderboard scores ([6c23dc3](https://github.com/jarv/borderrace/commit/6c23dc3c016db9f9b2a2bf671aa6ccabc3ce976b))
+
 # [1.17.0](https://github.com/jarv/borderrace/compare/v1.16.0...v1.17.0) (2026-11-02)
 
 
