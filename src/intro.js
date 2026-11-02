@@ -14,5 +14,5 @@ export function introMessage(game) {
       routes = `There are more than ${formatCount.format(minimum)} winning routes. `;
     }
   }
-  return `Select cards to cross the map using connecting states. ${routes}Start with a green coastal card. Gold cards are harder to use and worth 3 points.`;
+  return `Select cards to cross the map using connecting states. ${routes}Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.`;
 }

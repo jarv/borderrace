@@ -62,6 +62,13 @@ test('hard cards are gold, worth three points, and retain their frozen values af
 }) => {
   await seed(page, modernFixture());
   await expect(page.locator('.state-card.hard')).toHaveCount(3);
+  await expect(page.locator('.state-card.hard .bonus-star')).toHaveCount(3);
+  await expect(page.locator('[data-card="OR"] .bonus-star')).toHaveText('★');
+  await expect(page.locator('[data-card="OR"] .bonus-star')).toHaveCSS(
+    'color',
+    'rgb(255, 210, 121)',
+  );
+  await expect(page.locator('.state-card:not(.hard) .bonus-star')).toHaveCount(0);
   await expect(page.locator('[data-card="OR"]')).toHaveAccessibleName(/3 points, hard card/);
   await expect(page.locator('[data-card="OR"]')).toHaveCSS(
     'border-top-color',
@@ -71,6 +78,8 @@ test('hard cards are gold, worth three points, and retain their frozen values af
   await press(page.locator('[data-card="OR"]'), isMobile);
   await expect(page.locator('#score')).toHaveText('3 pts');
   await expect(page.locator('[data-chain="OR"]')).toHaveClass(/hard/);
+  await expect(page.locator('[data-chain="OR"] .bonus-star')).toBeVisible();
+  await expect(page.locator('[data-chain="OR"]')).toHaveAccessibleName(/bonus card/);
   await press(page.locator('[data-card="GA"]'), isMobile);
   await expect(page.locator('#message')).toContainText('−3 pts');
   await expect(page.locator('#score')).toHaveText('0 pts');
@@ -123,6 +132,10 @@ test('hard cards keep their original fills and text with gold borders everywhere
   for (const code of path.slice(1)) await press(page.locator(`[data-card="${code}"]`), isMobile);
   await expect(page.locator('#result-dialog')).toBeVisible();
   await expect(page.locator('.solution-chain[aria-label="Most points"]')).toHaveCount(1);
+  for (const card of await page.locator('.solution-card.hard').all()) {
+    await expect(card.locator('.bonus-star')).toBeVisible();
+    await expect(card.locator('.bonus-star')).toHaveCSS('color', 'rgb(255, 210, 121)');
+  }
   expect(await unchanged(page.locator('.solution-card.hard'))).toBe(true);
   await expect(page.locator('.solution-card.hard').first()).toHaveCSS(
     'border-top-color',
@@ -361,7 +374,7 @@ test('intro rounds the final deal route count, preserves it on reload, and fades
   const below = exactCount - 1n;
   const magnitude = 10n ** BigInt(below.toString().length - 1);
   const minimum = (below / magnitude) * magnitude;
-  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a green coastal card. Gold cards are harder to use and worth 3 points.`;
+  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.`;
   await expect(page.locator('#message')).toHaveText(message);
   await page.reload();
   await expect(page.locator('#message')).toHaveText(message);
@@ -438,7 +451,7 @@ test('games are playable immediately with no wildcard, numeric clock, start, or 
     await expect(github).toBeFocused();
   }
   await expect(page.locator('#message')).toHaveText(
-    'Select cards to cross the map using connecting states. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
+    'Select cards to cross the map using connecting states. Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.',
   );
   await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
   await press(page.locator('[data-card="CA"]'), isMobile);

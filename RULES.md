@@ -106,7 +106,8 @@ There is no numeric clock and time does not affect points or score rankings.
 ## Points and records
 
 Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
-total**, and is marked with a gold border. Hard cards keep their ordinary card
+total**, and is marked with a gold border and gold star (★) in the hand, map chain,
+and results. Hard cards keep their ordinary card
 colors everywhere: coastal hand cards stay green, other hand cards stay blue,
 and map/result cards keep their existing backgrounds and text colors.
 

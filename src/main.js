@@ -397,7 +397,7 @@ function render(dealAnimation = false, arrival) {
         : game.hintPending && !placed
           ? 0
           : pointsFor(code, game.zeroCards, game.cardPoints);
-      return `<button class="state-card ${coast(code) ? 'coastal' : ''} ${hard ? 'hard' : ''} ${placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${pending ? 'calculating points' : `${value} points`}${hard ? ', hard card' : ''}${coast(code) ? `, ${coast(code)} coast` : ''}${placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${placed}" ${ended || pending ? 'disabled' : ''}><span class="card-top"><span>${coast(code) ? 'COAST' : hard ? 'HARD' : ''}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span><strong>${code}</strong><span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
+      return `<button class="state-card ${coast(code) ? 'coastal' : ''} ${hard ? 'hard' : ''} ${placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${pending ? 'calculating points' : `${value} points`}${hard ? ', hard card, bonus card' : ''}${coast(code) ? `, ${coast(code)} coast` : ''}${placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${placed}" ${ended || pending ? 'disabled' : ''}><span class="card-top"><span>${coast(code) ? 'COAST' : hard ? 'BONUS' : ''}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span><strong>${code}${hard ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</strong><span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
     })
     .join('');
   $$('[data-card]').forEach((button) =>
@@ -463,7 +463,7 @@ reducedMotion.addEventListener('change', () => {
 });
 
 function solutionCards(path, label, mistakePoints = 0) {
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}${game.cardPoints?.[code] === 3 ? ', bonus card' : ''}">${code}${game.cardPoints?.[code] === 3 ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {

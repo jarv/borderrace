@@ -262,7 +262,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
         card = document.createElement('button');
         card.className = 'map-card';
         card.dataset.chain = code;
-        card.innerHTML = `<span class="map-card-corner">${index + 1}</span><strong>${code}</strong><small></small>`;
+        card.innerHTML = `<span class="map-card-corner">${index + 1}</span><span class="bonus-star" aria-hidden="true">★</span><strong>${code}</strong><small></small>`;
         card.addEventListener('click', () => onPlay(code));
         cards.set(code, card);
         layer.append(card);
@@ -275,7 +275,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
       card.style.zIndex = index + 1;
       card.setAttribute(
         'aria-label',
-        `${STATES[code].name}, ${value} points, stop ${index + 1}, ${index === 0 ? 'starting coastal card, locked' : 'remove this card and following cards'}`,
+        `${STATES[code].name}, ${value} points${cardPoints?.[code] === 3 ? ', bonus card' : ''}, stop ${index + 1}, ${index === 0 ? 'starting coastal card, locked' : 'remove this card and following cards'}`,
       );
     });
     positionCards();

@@ -155,7 +155,9 @@ Hint messages use abbreviations: `Play NC` or `Remove KY, play GA`. The zero-poi
 reminder appears once. A win celebrates for two seconds before results appear;
 reduced motion skips the animation delay. The result is saved immediately.
 
-Hard cards use a gold border without changing their original backgrounds or text.
+Bonus cards use a gold border and gold star (★) in the hand, map chain, and results
+without changing their original backgrounds or text. The starting prompt explains:
+“Gold cards ★ are harder to use and worth 3 points.”
 Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
 hard cards. A hard card appears in more than zero but fewer than 20% of its deal's
 winning routes. Values are calculated exactly before play, with a loading spinner,

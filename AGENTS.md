@@ -86,7 +86,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   valid coastal endpoints. Preserve original points for unversioned saved games.
 - New games have 1-point cards, with +2 (3 total) for hard cards appearing in more
   than zero but fewer than 20% of exact winning routes for that deal. Gold marks
-  hard cards; coastal cards remain recognizable. Freeze and persist the point
+  hard cards with a gold border and star (★); coastal cards remain recognizable. Freeze and persist the point
   table before play; use a spinner during analysis, cancel stale workers on New
   game, and never grant bonuses from incomplete counts. A clearly announced
   all-1-point fallback keeps gameplay available if analysis fails or times out.
@@ -115,7 +115,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   but opaque text and solid opaque borders; do not set whole-card opacity.
   Permanent bright green Atlantic/Pacific shoreline edges mark coastal states,
   not their inland/international borders or Gulf-only shores. Hard cards use gold
-  borders only; preserve normal hand/map/result backgrounds and text colors.
+  borders and stars; preserve normal hand/map/result backgrounds and text colors.
 - Finished games are recorded once. Preserve compatible records and keep old
   discontinued-mode saves in the local archive rather than deleting them.
   New winning records include their actual route; show paths and points in scores,

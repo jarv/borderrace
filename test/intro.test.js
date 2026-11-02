@@ -5,7 +5,7 @@ import { introMessage } from '../src/intro.js';
 test('intro displays a rounded lower bound with readable grouping', () => {
   assert.equal(
     introMessage({ winningRoutes: '12400' }),
-    'Select cards to cross the map using connecting states. There are more than 10,000 winning routes. Start with a green coastal card. Gold cards are harder to use and worth 3 points.',
+    'Select cards to cross the map using connecting states. There are more than 10,000 winning routes. Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.',
   );
   assert.ok(
     introMessage({ winningRoutes: '1234567890123456789012345' }).includes(

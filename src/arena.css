@@ -464,6 +464,29 @@
 #result-route .solution-card.hard {
   border-color: #ffd279;
 }
+.bonus-star,
+.solution-card .bonus-star {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  color: #ffd279;
+  font-size: 9px;
+  line-height: 1;
+  pointer-events: none;
+}
+.state-card > strong .bonus-star {
+  position: static;
+  display: inline-block;
+  margin-left: 2px;
+  font-size: 11px;
+  vertical-align: top;
+}
+.map-card:not(.hard) .bonus-star {
+  display: none;
+}
+.solution-card {
+  position: relative;
+}
 .loading #message::before {
   content: '';
   display: inline-block;
