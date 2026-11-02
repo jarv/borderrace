@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/jarv/borderrace/compare/v1.19.0...v1.19.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* use spare portrait hand space for a taller map ([0584fb0](https://github.com/jarv/borderrace/commit/0584fb058eeadbde0a2fd93b10e9c14a93fe09ac))
+
 # [1.19.0](https://github.com/jarv/borderrace/compare/v1.18.0...v1.19.0) (2026-11-02)
 
 
