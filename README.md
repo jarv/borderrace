@@ -135,7 +135,7 @@ or right edge for an Atlantic start. Its base crossing time is 100 seconds. Vali
 additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
 capped at 3×. Point penalties remain unchanged. The
 furthest-forward state pulses dark red as the line reaches it. Once overtaken,
-**You Lose!** appears for one second before a fresh game. The shaded sweep follows
+**Try again** appears for one second before a fresh game. The shaded sweep follows
 geographic states, not the zig-zag cards. It pauses while hidden, persists progress
 and pace across reloads, and never rewinds on undo. Reduced motion keeps this
 functional deadline but uses a solid red warning instead of pulsing. The line

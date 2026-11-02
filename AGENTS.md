@@ -105,7 +105,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   slam it down on first play, burst at the bottom, and shed sparks as it sweeps.
   Effects are decorative, bounded, and never alter deadline timing or geometry.
   Pulse the geographically furthest-forward current state
-  red on entry and lose when the line clears its far edge. Briefly show You Lose!, then start a new game
+  red on entry and lose when the line clears its far edge. Briefly show Try again, then start a new game
   after one second. Record timeout losses once, never as assisted completions.
   Reduced motion skips slam/impact/sparks and uses a solid red warning, without changing timing.
 - Reaching the opposite coast automatically wins and ends the route. Longest

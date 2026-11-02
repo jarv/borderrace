@@ -86,7 +86,7 @@ for (const [code, direction] of [
       .evaluate((layer) => parseFloat(layer.style.getPropertyValue('--sweep-progress')) / 100);
     await page.clock.runFor(Math.max(0, (threshold.far - progress) * crossingMs) + 150);
     await expect(page.locator('#sweep-over')).toBeVisible();
-    await expect(page.locator('#sweep-over')).toHaveText('You Lose!');
+    await expect(page.locator('#sweep-over')).toHaveText('Try again');
     expect((await saved(page)).played).toBe(1);
     expect((await saved(page)).wins).toBe(0);
     expect((await saved(page)).game.lossReason).toBe('timeout');
