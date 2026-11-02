@@ -137,8 +137,13 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Show the player's actual route and its score above solutions, not a points/states
   statistics grid. Show a score for each solution too, applying the same `zeroCards`.
 - Save schema version 2 accepts optional validated sweep progress/pace and a
-  timeout loss reason. No wall-clock timestamps, elapsed-duration records, or mode
-  fields. Preserve old games/point records, starting legacy routes at zero progress.
+  timeout loss reason, and optional visible-play seconds for personal best times.
+  No wall-clock timestamps or mode fields. Preserve old games/point records,
+  starting legacy routes at zero progress; do not invent times for in-progress old saves.
+  Win dialogs show personal best time and most points. The first measured win sets
+  a baseline; later strictly faster/higher records get a brief reduced-motion-safe
+  celebration. Personal bests survive top-ten trimming; Clear resets them. Time
+  never changes point scoring or the online leaderboard.
 - “Your scores” scrolls vertically when needed and contains an immediate Clear
   action that resets scores and game counts only. Preserve the active game, hint
   penalties, and sound preference.

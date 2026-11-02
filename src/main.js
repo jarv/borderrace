@@ -22,6 +22,7 @@ import {
 } from './game.js';
 import { SCORING_VERSION } from './scoring.js';
 import { loadSave, writeSave, recordResult } from './storage.js';
+import { personalBests, newRecordFlags, formatPlayTime } from './personal-bests.js';
 import './style.css';
 import './arena.css';
 
@@ -37,6 +38,10 @@ try {
 let save = loadSave(storage);
 let game = save.game ?? newGame();
 game = { ...game, sweep: restoreSweep(game) };
+if (game.playSeconds === undefined && !game.route.length && !game.sweep.origin)
+  game = { ...game, playSeconds: 0 };
+let recordFlags = { time: false, points: false };
+let recordAnimations = [];
 let previousFocus;
 let resultTimeout;
 let confettiFrame;
@@ -113,8 +118,12 @@ const sweepView = createSweepView({
   panel: $('.map-wrap'),
   map: $('#map'),
   getGame: () => game,
-  setSweep: (sweep) => {
-    game = { ...game, sweep };
+  setSweep: (sweep, seconds = 0) => {
+    game = {
+      ...game,
+      sweep,
+      ...(game.playSeconds === undefined ? {} : { playSeconds: game.playSeconds + seconds }),
+    };
   },
   persist,
   onTimeout: timeout,
@@ -182,6 +191,8 @@ $$('dialog').forEach((dialog) => {
 $('#help-button').addEventListener('click', () => openDialog('#help-dialog'));
 
 function fresh() {
+  stopRecordCelebration();
+  recordFlags = { time: false, points: false };
   for (const pending of pendingPoints.values()) clearTimeout(pending.timeout);
   pendingPoints.clear();
   clearTimeout(resultTimeout);
@@ -302,7 +313,14 @@ function play(code) {
 function finish(delayed = false) {
   if (game.status !== 'playing' || game.cardPoints === null || !isComplete(game.deal, game.route))
     return;
-  game = { ...game, status: 'won' };
+  game = {
+    ...game,
+    status: 'won',
+    ...(game.playSeconds === undefined
+      ? {}
+      : { playSeconds: Math.round(game.playSeconds * 10) / 10 }),
+  };
+  recordFlags = newRecordFlags(save, game);
   save = recordResult(save, game);
   persist();
   online.recordWin(game);
@@ -410,10 +428,39 @@ function showResult() {
   $('#result-title').textContent = 'You win';
   $('#result-route').hidden = false;
   $('#result-route').innerHTML = solutionCards(game.route, 'Your route', game.mistakePoints);
+  const best = personalBests(save);
+  $('#best-time').textContent = formatPlayTime(best.playSeconds);
+  $('#best-points').textContent = best.points === null ? '—' : `${best.points} pts`;
+  const labels = [
+    recordFlags.time ? 'best time' : '',
+    recordFlags.points ? 'most points' : '',
+  ].filter(Boolean);
+  $('#record-message').hidden = !labels.length;
+  $('#record-message').textContent = labels.length
+    ? `New record${labels.length > 1 ? 's' : ''}: ${labels.join(' and ')}!`
+    : '';
+  $('#best-time-stat').classList.toggle('new-personal-record', recordFlags.time);
+  $('#best-points-stat').classList.toggle('new-personal-record', recordFlags.points);
   showSolutions();
   message('You win.');
   openDialog('#result-dialog');
+  stopRecordCelebration();
+  if (!reducedMotion.matches) {
+    for (const element of $$('.new-personal-record'))
+      recordAnimations.push(
+        animate(element, { scale: [1, 1.12, 1], rotate: [0, -2, 2, 0] }, { duration: 0.65 }),
+      );
+  }
 }
+
+function stopRecordCelebration() {
+  for (const animation of recordAnimations) animation.stop();
+  recordAnimations = [];
+  for (const element of $$('#personal-bests > div')) element.style.removeProperty('transform');
+}
+reducedMotion.addEventListener('change', () => {
+  if (reducedMotion.matches) stopRecordCelebration();
+});
 
 function solutionCards(path, label, mistakePoints = 0) {
   return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}">${code}</div></li>`).join('')}</ol></section>`;
@@ -474,7 +521,15 @@ function showScores() {
 $('#records-button').addEventListener('click', showScores);
 
 $('#clear-scores').addEventListener('click', () => {
-  save = { ...save, records: [], wins: 0, played: 0 };
+  save = {
+    ...save,
+    records: [],
+    wins: 0,
+    played: 0,
+    personalBests: { points: null, playSeconds: null },
+  };
+  recordFlags = { time: false, points: false };
+  stopRecordCelebration();
   persist();
   showScores();
 });

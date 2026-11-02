@@ -1,5 +1,6 @@
 import { validGame, score, isComplete } from './game.js';
 import { CODES } from './data.js';
+import { personalBests, validPlaySeconds } from './personal-bests.js';
 
 export const STORAGE_KEY = 'border-race:v2';
 export const emptySave = () => ({
@@ -10,6 +11,7 @@ export const emptySave = () => ({
   played: 0,
   archive: null,
   soundEnabled: true,
+  personalBests: { points: null, playSeconds: null },
 });
 
 function migrate(data) {
@@ -42,20 +44,23 @@ export function loadSave(storage) {
   try {
     const data = migrate(JSON.parse(storage.getItem(STORAGE_KEY)));
     if (data?.version !== 2) return emptySave();
+    const records = Array.isArray(data.records)
+      ? data.records
+          .filter((r) => r && typeof r.id === 'string' && Number.isFinite(r.points))
+          .map(({ id, points, route, playSeconds }) => ({
+            id,
+            points,
+            ...(validPlaySeconds(playSeconds) ? { playSeconds } : {}),
+            ...(Array.isArray(route) && isComplete(CODES, route) ? { route: [...route] } : {}),
+          }))
+          .sort((a, b) => b.points - a.points)
+          .slice(0, 10)
+      : [];
     return {
       version: 2,
       game: validGame(data.game) ? data.game : null,
-      records: Array.isArray(data.records)
-        ? data.records
-            .filter((r) => r && typeof r.id === 'string' && Number.isFinite(r.points))
-            .map(({ id, points, route }) => ({
-              id,
-              points,
-              ...(Array.isArray(route) && isComplete(CODES, route) ? { route: [...route] } : {}),
-            }))
-            .sort((a, b) => b.points - a.points)
-            .slice(0, 10)
-        : [],
+      records,
+      personalBests: personalBests({ ...data, records }),
       wins: Number.isSafeInteger(data.wins) && data.wins >= 0 ? data.wins : 0,
       played: Number.isSafeInteger(data.played) && data.played >= 0 ? data.played : 0,
       soundEnabled: data.soundEnabled !== false,
@@ -82,6 +87,7 @@ export function recordResult(save, game) {
     id: game.id,
     route: [...game.route],
     points: score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints),
+    ...(validPlaySeconds(game.playSeconds) ? { playSeconds: game.playSeconds } : {}),
   };
   const records = won ? [record, ...save.records.filter((r) => r.id !== game.id)] : save.records;
   return {
@@ -90,6 +96,7 @@ export function recordResult(save, game) {
     game,
     played: save.played + 1,
     wins: save.wins + Number(won),
+    personalBests: personalBests({ ...save, records }),
     records: records.sort((a, b) => b.points - a.points).slice(0, 10),
   };
 }

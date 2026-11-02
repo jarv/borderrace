@@ -134,7 +134,15 @@ Mistake deductions persist across reloads and reset with New game. Your final sc
 and personal records include them; example solution scores do not include mistakes.
 
 Personal records keep the top 10 wins by points. Equal scores put the most recent
-game first. No elapsed duration or completion time is stored in score records.
+game first. New wins also save active play time, measured from the first coastal
+card until winning, pausing while hidden and across reloads. No wall-clock
+timestamps are stored. Old in-progress games without timing retain no measured time.
+The win dialog shows **Your best time** and **Most points** across personal wins,
+even when the fastest win falls outside the top ten. The first recorded value sets
+a baseline. Later strictly faster times or higher scores show a new-record notice
+and a brief celebration; ties do not. Reduced motion keeps the notice without
+animation. Reloads do not recount wins or replay record celebrations. Time does not
+affect points or online rankings. Clearing Your scores also resets these bests.
 Each score shows its winning path and points. Older records without paths show a dash.
 
 ## Solutions

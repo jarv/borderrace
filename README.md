@@ -185,7 +185,13 @@ in the top bar to edit it. Desktop login/logout controls include a text label be
 the icon, immediately left of GitHub; phones keep the icon-only control. Logged-out
 players can also use the login link in the daily leaderboard note.
 Existing chosen names are preserved across logins/devices.
-Use **Your scores → Clear** to clear scores and game counts without resetting the
+Win results show **Your best time** and **Most points**. Time counts visible play
+from the first coastal card to winning, pausing while hidden and across reloads;
+old in-progress saves without timing show no measured time. The first win sets a
+baseline; later strict improvements get a new-record notice and brief animation
+(notice only for reduced motion). Bests persist even outside the top-ten list;
+reloads never replay the record celebration. Time never changes points or online rankings.
+Use **Your scores → Clear** to clear scores, personal bests, and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls
 vertically on shorter screens.

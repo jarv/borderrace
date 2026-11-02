@@ -392,7 +392,7 @@ test('records use penalized points only, and results are recorded once', () => {
   let save = emptySave();
   const won = fixture({ status: 'won', route, zeroCards: ['NC'] });
   save = recordResult(save, won);
-  assert.deepEqual(save.records, [{ id: won.id, points: 10, route }]);
+  assert.deepEqual(save.records, [{ id: won.id, points: 10, route, playSeconds: 0 }]);
   assert.deepEqual(recordResult(save, won), save);
   assert.equal(save.played, 1);
   for (let i = 0; i < 14; i++)

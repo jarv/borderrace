@@ -464,7 +464,9 @@ test('connecting the coasts wins automatically and saves the result exactly once
   await expect(page.locator('#result-route .solution-card')).toHaveCount(route.length);
   expect(await page.locator('#result-route .solution-card').allTextContents()).toEqual(route);
   await expect(page.locator('#result-route h3')).toHaveText('Your route 11 pts');
-  expect((await saved(page)).records).toEqual([{ id: 'test-game', points: 11, route }]);
+  expect((await saved(page)).records).toEqual([
+    { id: 'test-game', points: 11, route, playSeconds: expect.any(Number) },
+  ]);
   expect((await saved(page)).wins).toBe(1);
   await page.reload();
   await expect(page.locator('#result-dialog')).toBeVisible();

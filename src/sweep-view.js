@@ -73,8 +73,10 @@ export function createSweepView({
     if (!hidden && running() && frontier && sweep.progress >= frontier.far) onTimeout();
   }
   function advance(now) {
-    if (last !== null && running())
-      setSweep(advanceSweep(getGame().sweep, Math.max(0, now - last) / 1000));
+    if (last !== null && running()) {
+      const seconds = Math.max(0, now - last) / 1000;
+      setSweep(advanceSweep(getGame().sweep, seconds), seconds);
+    }
     last = now;
   }
   function stop() {

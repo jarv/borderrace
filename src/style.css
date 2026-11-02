@@ -299,6 +299,35 @@ dialog::backdrop {
 #result-dialog {
   max-width: 760px;
 }
+#personal-bests {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+}
+#personal-bests > div {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #3c4965;
+  border-radius: 8px;
+}
+#personal-bests dt {
+  font-size: 12px;
+  color: #a4b1cb;
+}
+#personal-bests dd {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+#personal-bests .new-personal-record {
+  border-color: var(--green);
+}
+#record-message {
+  color: var(--green);
+  font-weight: 800;
+}
 .solution-section {
   border-top: 1px solid #35425d;
   padding-top: 18px;

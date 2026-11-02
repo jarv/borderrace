@@ -288,6 +288,7 @@ export function newGame(random = Math.random) {
     zeroCards: [],
     hintPending: false,
     mistakePoints: 0,
+    playSeconds: 0,
     status: 'playing',
     sweep: newSweep(),
   };
@@ -313,6 +314,13 @@ export function validGame(game) {
   )
     return false;
   if (game.sweep !== undefined && !validSweep(game.sweep, game.deal)) return false;
+  if (
+    game.playSeconds !== undefined &&
+    (!Number.isFinite(game.playSeconds) ||
+      game.playSeconds < 0 ||
+      !Number.isSafeInteger(Math.round(game.playSeconds * 10)))
+  )
+    return false;
   if (
     game.winningRoutes !== undefined &&
     (typeof game.winningRoutes !== 'string' || !/^[1-9][0-9]{0,24}$/.test(game.winningRoutes))
