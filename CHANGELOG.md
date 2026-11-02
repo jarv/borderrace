@@ -1,3 +1,11 @@
+# [1.19.0](https://github.com/jarv/borderrace/compare/v1.18.0...v1.19.0) (2026-11-02)
+
+
+### Features
+
+* mark bonus cards with gold stars ([77712c8](https://github.com/jarv/borderrace/commit/77712c866c949ae4f645ee68cbf2cd53b6441a1e))
+* show personal bests and celebrate new win records ([fe96733](https://github.com/jarv/borderrace/commit/fe96733a10c743cb5381a3acd7641c0fdfbf5689))
+
 # [1.18.0](https://github.com/jarv/borderrace/compare/v1.17.1...v1.18.0) (2026-11-02)
 
 
