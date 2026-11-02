@@ -74,6 +74,7 @@ footer {
 }
 .score-links {
   flex-shrink: 0;
+  margin-right: auto;
 }
 .score-links .text-button,
 #account-name {
@@ -81,7 +82,7 @@ footer {
   text-underline-offset: 3px;
 }
 .account-controls {
-  margin-left: auto;
+  margin-left: 0;
   gap: 4px;
 }
 #account-name {
@@ -91,12 +92,26 @@ footer {
   white-space: nowrap;
 }
 .account-button {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex-shrink: 0;
+  white-space: nowrap;
+}
+.account-button .account-label {
+  margin-left: 0;
+}
+.inline-link {
+  color: var(--cyan);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .account-button.signed-in .account-door {
   transform: translateX(22px) scaleX(-1);
+}
+#account-status:empty {
+  display: none;
 }
 #account-status:not(:empty) {
   position: absolute;
@@ -112,7 +127,7 @@ footer {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
   flex-shrink: 0;
 }
 .github-link {

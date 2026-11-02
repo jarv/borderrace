@@ -39,8 +39,10 @@ export function createOnline({ storage, openDialog }) {
     const label = session ? 'Log out' : 'Log in with Google';
     $('#account-button').setAttribute('aria-label', label);
     $('#account-button').title = label;
+    $('.account-label').textContent = session ? 'Log out' : 'Log in';
     $('#account-button').classList.toggle('signed-in', Boolean(session));
     $('#account-button').disabled = !ready || signing;
+    $('#daily-login-link').setAttribute('aria-disabled', String(!ready || signing));
     $('#account-name').hidden = !session;
     $('#account-name').textContent = playerName || (profileLoading ? 'Loading…' : 'Set name');
     $('#account-name').setAttribute('aria-label', `${playerName || 'Player name'}, change name`);
@@ -186,13 +188,19 @@ export function createOnline({ storage, openDialog }) {
     outbox.retry();
     void refresh();
   });
-  $('#account-button').addEventListener('click', async () => {
+  async function changeAccount() {
+    if (!ready || signing) return;
     signing = true;
     renderAccount();
     if (session) await auth.signOut();
     else await auth.signIn();
     signing = false;
     renderAccount();
+  }
+  $('#account-button').addEventListener('click', () => void changeAccount());
+  $('#daily-login-link').addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!session) void changeAccount();
   });
   $('#account-name').addEventListener('click', () => {
     if (!session) return;

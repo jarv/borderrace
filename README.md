@@ -181,7 +181,10 @@ falls back to in-memory play. Game saves do not sync across devices.
 When configured, **Daily leaderboard** beside **Your scores** opens the public board,
 including while logged out. The top-bar login/logout icon controls Google sign-in.
 First login assigns an account-bound random pet-style player name; click your name
-in the top bar to edit it. Existing chosen names are preserved across logins/devices.
+in the top bar to edit it. Desktop login/logout controls include a text label beside
+the icon, immediately left of GitHub; phones keep the icon-only control. Logged-out
+players can also use the login link in the daily leaderboard note.
+Existing chosen names are preserved across logins/devices.
 Use **Your scores → Clear** to clear scores and game counts without resetting the
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls

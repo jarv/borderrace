@@ -705,6 +705,9 @@
   .site-header .brand-links {
     display: none;
   }
+  .account-label {
+    display: none;
+  }
   .score-links {
     gap: 8px;
   }

@@ -105,6 +105,16 @@ test('public daily board uses text-only names and fits small phones', async ({
     'Log in before winning to add your scores to the leaderboard.',
   );
   await expect(page.locator('#daily-login-note')).toBeVisible();
+  await expect(page.locator('#daily-login-link')).toHaveAccessibleName('Log in');
+  await expect(page.locator('.account-label')).toHaveText('Log in');
+  if (isMobile) await expect(page.locator('.account-label')).not.toBeVisible();
+  else {
+    await expect(page.locator('.account-label')).toBeVisible();
+    const account = await page.locator('#account-button').boundingBox();
+    const github = await page.locator('.github-link').boundingBox();
+    expect(github.x - account.x - account.width).toBeGreaterThanOrEqual(0);
+    expect(github.x - account.x - account.width).toBeLessThanOrEqual(20);
+  }
   await expect(page.locator('#daily-date')).toHaveCount(0);
   await expect(page.locator('#daily-refresh')).toHaveAccessibleName('Refresh leaderboard');
   await expect(page.locator('#daily-refresh')).toHaveText('');
@@ -129,6 +139,18 @@ test('public daily board uses text-only names and fits small phones', async ({
   await expect(page.locator('#records-dialog #daily-button')).toHaveCount(0);
 });
 
+test('leaderboard login link opens Google sign-in using keyboard access', async ({ page }) => {
+  await setup(page);
+  await openBoard(page);
+  await page.locator('#daily-login-link').focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/auth\/v1\/authorize/);
+  const url = new URL(page.url());
+  expect(url.searchParams.get('provider')).toBe('google');
+  expect(url.searchParams.get('redirect_to')).toBe('http://127.0.0.1:4174/');
+  expect(url.searchParams.get('code_challenge_method')).toBe('s256');
+});
+
 test('Google sign-in uses PKCE and the current application redirect', async ({ page }) => {
   await setup(page);
   await page.locator('#account-button').click();
@@ -142,6 +164,7 @@ test('Google sign-in uses PKCE and the current application redirect', async ({ p
 test('existing names stay account-bound and the top bar fits small screens', async ({ page }) => {
   await setup(page, { loggedIn: true, profileName: 'A very long player name!!' });
   await expect(page.locator('#account-name')).toHaveText('A very long player name!!');
+  await expect(page.locator('.account-label')).toHaveText('Log out');
   await openBoard(page);
   await expect(page.locator('#daily-login-note')).not.toBeVisible();
   await page.keyboard.press('Escape');
@@ -328,6 +351,7 @@ test('sign-out keeps the active game and personal records', async ({ page }) => 
   await page.locator('#account-button').click();
   await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log in with Google');
   await expect(page.locator('#account-name')).not.toBeVisible();
+  await expect(page.locator('.account-label')).toHaveText('Log in');
   await expect(page.locator('[data-chain="CA"]')).toHaveCount(1);
   expect(
     await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).game.route, STORAGE_KEY),

@@ -46,6 +46,7 @@
             <path class="account-door" d="M15 3h5v18h-5" />
             <path d="m10 8 4 4-4 4M14 12H3" />
           </svg>
+          <span class="account-label">Log in</span>
         </button>
       </div>
       <span id="account-status" role="status" aria-live="polite"></span>
@@ -219,7 +220,8 @@
       </div>
       <p class="fine-print">Winning points add up each UTC day.</p>
       <p id="daily-login-note" class="fine-print" hidden>
-        Log in before winning to add your scores to the leaderboard.
+        <a id="daily-login-link" class="inline-link" href="#login">Log in</a> before winning to add
+        your scores to the leaderboard.
       </p>
       <p id="daily-status" role="status" aria-live="polite"></p>
       <p id="daily-loading" hidden>Loading…</p>
