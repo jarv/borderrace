@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/jarv/borderrace/compare/v1.15.0...v1.16.0) (2026-11-02)
+
+
+### Features
+
+* shimmer coastal starts and ease the deadline pace ([8039c4b](https://github.com/jarv/borderrace/commit/8039c4bb096940cc4a07a18e8cc2db8facd09d65))
+
 # [1.15.0](https://github.com/jarv/borderrace/compare/v1.14.2...v1.15.0) (2026-11-01)
 
 
