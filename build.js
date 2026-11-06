@@ -33,6 +33,7 @@ const context = await esbuild.context({
   },
   bundle: true,
   outdir: 'dist',
+  outbase: '.',
   entryNames: '[name]',
   format: 'esm',
   target: ['es2022'],
@@ -40,7 +41,7 @@ const context = await esbuild.context({
   sourcemap: serve,
   metafile: true,
   loader: { '.png': 'file' },
-  assetNames: serve ? 'assets/[name]' : 'assets/[name]-[hash]',
+  assetNames: serve ? 'assets/[dir]/[name]' : 'assets/[name]-[hash]',
   plugins: [
     {
       name: 'state-seals',
@@ -48,8 +49,17 @@ const context = await esbuild.context({
         build.onResolve({ filter: /^state-seals$/ }, () => ({ path: 'seals', namespace: 'seals' }));
         build.onLoad({ filter: /.*/, namespace: 'seals' }, () => ({
           contents: `${Object.keys(STATES)
-            .map((code) => `import ${code} from './img/seals/${code}.png';`)
-            .join('\n')}\nexport default { ${Object.keys(STATES).join(', ')} };`,
+            .map(
+              (code) =>
+                `import ${code} from './img/seals/${code}.png';\nimport ${code}Small from './img/seals/small_60/${code}.png';`,
+            )
+            .join(
+              '\n',
+            )}\nexport default { large: { ${Object.keys(STATES).join(', ')} }, small: { ${Object.keys(
+            STATES,
+          )
+            .map((code) => `${code}: ${code}Small`)
+            .join(', ')} } };`,
           loader: 'js',
           resolveDir: process.cwd(),
         }));

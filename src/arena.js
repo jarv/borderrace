@@ -326,9 +326,9 @@ export function createArena({ map, onPlay, reducedMotion }) {
       {
         opacity: [0.3, 1],
         filter: [
-          'drop-shadow(0 0 0px #9df375)',
-          'drop-shadow(0 0 10px #9df375)',
-          'drop-shadow(0 0 3px #68e9ef)',
+          'drop-shadow(0 0 0px var(--blue))',
+          'drop-shadow(0 0 10px var(--blue))',
+          'drop-shadow(0 0 3px var(--blue))',
         ],
       },
       { duration: 0.7 },

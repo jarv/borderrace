@@ -55,7 +55,7 @@ test('light/dark toggle persists without restarting play or losing penalties and
   await page.locator('#theme-button').focus();
   await page.locator('#theme-button').press('Space');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#111d32');
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#08090b');
   await page.locator('#new-game').click();
   expect((await saved(page)).theme).toBe('dark');
 });
@@ -82,7 +82,7 @@ test('both palettes keep full names readable, the phone controls compact, and di
     const palette = await page.evaluate(() => {
       const css = getComputedStyle(document.documentElement);
       return Object.fromEntries(
-        ['ink', 'muted', 'surface', 'card-top', 'card-bottom', 'green'].map((name) => [
+        ['ink', 'muted', 'surface', 'card-top', 'card-bottom', 'blue'].map((name) => [
           name,
           css.getPropertyValue(`--${name}`).trim(),
         ]),
@@ -91,7 +91,46 @@ test('both palettes keep full names readable, the phone controls compact, and di
     expect(contrast(palette.ink, palette['card-top'])).toBeGreaterThanOrEqual(4.5);
     expect(contrast(palette.ink, palette['card-bottom'])).toBeGreaterThanOrEqual(4.5);
     expect(contrast(palette.muted, palette.surface)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(palette.green, palette.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(palette.blue, palette.surface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast('#ffffff', '#1669d6')).toBeGreaterThanOrEqual(4.5);
+    const border = theme === 'light' ? 'rgb(36, 117, 223)' : 'rgb(57, 140, 255)';
+    const accent = theme === 'light' ? 'rgb(20, 101, 204)' : 'rgb(106, 181, 255)';
+    for (const selector of ['.game-shell', '.state-card', '#hint-button']) {
+      await expect(page.locator(selector).first()).toHaveCSS('border-top-color', border);
+    }
+    await expect(page.locator('.game-settings')).toHaveCSS('border-top-color', border);
+    await expect(page.locator('.map-wrap')).toHaveCSS('border-top-width', '0px');
+    await expect(page.locator('.map-wrap')).toHaveCSS('border-right-width', '0px');
+    await expect(page.locator('.map-wrap')).toHaveCSS('border-bottom-width', '0px');
+    await expect(page.locator('.map-wrap')).toHaveCSS('border-left-width', '0px');
+    await expect(page.locator('.map-wrap')).toHaveCSS('box-shadow', 'none');
+    await expect(page.locator('.coastline')).toHaveCSS('stroke', accent);
+    await expect(page.locator('.map-state path').first()).toHaveCSS('stroke', 'rgb(75, 80, 88)');
+    await expect(page.locator('#score')).toHaveCSS('color', accent);
+    await expect(page.locator('.card-points').first()).toHaveCSS('color', accent);
+    await expect(page.locator('#new-game')).toHaveCSS('background-color', 'rgb(22, 105, 214)');
+    for (const selector of ['.state-card', '.map-wrap', '#new-game', '#hint-button']) {
+      await expect(page.locator(selector).first()).toHaveCSS('border-top-left-radius', '3px');
+    }
+    if (theme === 'dark') {
+      for (const selector of [
+        'body',
+        '.game-shell',
+        '.game-toolbar',
+        '.hand',
+        '.map-panel',
+        '.map-wrap',
+        '.state-card',
+      ]) {
+        await expect(page.locator(selector).first()).toHaveCSS('background-image', 'none');
+      }
+      await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(8, 9, 11)');
+      await expect(page.locator('.map-panel')).toHaveCSS('background-color', 'rgb(12, 14, 17)');
+      await expect(page.locator('.state-card').first()).toHaveCSS(
+        'background-color',
+        'rgb(27, 30, 35)',
+      );
+    }
     for (const [width, height] of isMobile
       ? [
           [320, 568],
@@ -120,7 +159,7 @@ test('both palettes keep full names readable, the phone controls compact, and di
     const surface = await page
       .locator('#help-dialog')
       .evaluate((dialog) => getComputedStyle(dialog).backgroundColor);
-    expect(surface).toBe(theme === 'light' ? 'rgb(255, 254, 250)' : 'rgb(26, 41, 66)');
+    expect(surface).toBe(theme === 'light' ? 'rgb(255, 254, 250)' : 'rgb(17, 19, 21)');
     await page.keyboard.press('Escape');
   }
 });
@@ -144,12 +183,19 @@ test('light mode retains recognizable coastal/gold cards and translucent played 
     'rgb(148, 100, 17)',
   );
   await expect(page.locator('#score')).toHaveText('3 pts');
+  await expect(page.locator('.map-state.on-route path')).toHaveCSS('stroke', 'rgb(75, 80, 88)');
   await page.locator('#theme-button').click();
+  await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS('background-image', 'none');
+  await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS(
+    'background-color',
+    'rgba(20, 23, 27, 0.8)',
+  );
   await expect(page.locator(`[data-chain="${gold}"] .bonus-star`)).toHaveCSS(
     'color',
     'rgb(255, 210, 121)',
   );
-  await expect(page.locator('.coastline')).toHaveCSS('stroke', 'rgb(157, 243, 117)');
+  await expect(page.locator('.coastline')).toHaveCSS('stroke', 'rgb(106, 181, 255)');
+  await expect(page.locator('.map-state.on-route path')).toHaveCSS('stroke', 'rgb(75, 80, 88)');
 });
 
 test('theme controls work in memory when storage is blocked', async ({ page }) => {
@@ -166,4 +212,44 @@ test('theme controls work in memory when storage is blocked', async ({ page }) =
   await page.locator('#new-game').click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.locator('.state-card')).toHaveCount(4);
+});
+
+test('Dark coastal choices stand out from charcoal cards without hiding gold difficulty cues', async ({
+  page,
+  isMobile,
+}, testInfo) => {
+  const game = newGame();
+  const gold = game.deal.find(coast);
+  game.scoring = 'hard-v1';
+  game.cardPoints = Object.fromEntries(game.deal.map((code) => [code, code === gold ? 3 : 1]));
+  await seed(page, { game, difficulty: 'challenging' });
+  await expect(page.locator('.state-card:not(.coastal)').first()).toHaveCSS(
+    'background-color',
+    'rgb(27, 30, 35)',
+  );
+  for (const card of await page.locator('.state-card.coastal').all()) {
+    await expect(card).toHaveCSS('background-color', 'rgb(21, 57, 95)');
+    await expect(card).toHaveCSS('background-image', 'none');
+    await expect(card).toHaveCSS('opacity', '1');
+  }
+  await expect(page.locator(`[data-card="${gold}"]`)).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
+  if (isMobile)
+    await page.screenshot({ path: testInfo.outputPath('dark-coastal-choices.png'), scale: 'css' });
+  await page.locator(`[data-card="${gold}"]`).click();
+  await expect(page.locator(`[data-card="${gold}"]`)).toHaveCSS(
+    'background-color',
+    'rgb(20, 22, 25)',
+  );
+  await expect(page.locator('.state-card.coastal:not(.placed)').first()).toHaveCSS(
+    'background-color',
+    'rgb(21, 57, 95)',
+  );
+  await page.locator('#theme-button').click();
+  await expect(page.locator('.state-card.coastal:not(.placed)').first()).toHaveCSS(
+    'background-image',
+    /linear-gradient/,
+  );
 });

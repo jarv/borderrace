@@ -224,7 +224,7 @@ test('a single narrow sweep line has no internal animation; threatened states pu
   await click(page, '[data-card="CA"]');
   const line = page.locator('.sweep-line');
   await expect(line).toHaveCSS('background-color', 'rgb(255, 73, 64)');
-  await expect(line).toHaveCSS('width', '2px');
+  await expect(line).toHaveCSS('width', '3px');
   await expect(line).toHaveCSS('animation-name', 'none');
   for (const pseudo of ['::before', '::after']) {
     expect(

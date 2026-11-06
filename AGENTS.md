@@ -58,9 +58,24 @@ for build/test tools), and commit both package files. No global npm packages.
   autoplay, or background music. Persist the sound toggle in the local save.
 - `src/index.html` / `src/style.css` / `src/arena.css`: accessible markup,
   compact gameplay-first arcade HUD, neutral map, responsive UI.
-- `src/theme.css`: subtle navy/white/red interface palette and light/dark tokens.
+- `src/theme.css`: solid charcoal/black dark surfaces, white light surfaces,
+  bright-blue interface accents, and light/dark tokens.
   Preserve gameplay color meanings and contrast in both themes. The sun/moon
   control persists `save.theme` without restarting play; legacy saves default dark.
+  Borders, buttons, points, coastal and played-card markers use bright blue, not
+  green. Keep compact squared-off corners, gold difficulty cues, red warnings,
+  and 44px touch targets.
+  Geographic outlines and state boundaries stay dark gray in both themes;
+  game/card frames and the separate coastal markers stay blue. Do not add a
+  redundant rectangular border around the US map panel.
+  Dark unplayed coastal hand cards need a distinct solid blue fill, including
+  gold cards. Ordinary and played hand cards stay charcoal; Easy stays neutral.
+  Both hand sizes use faded local state seals: 120px/12% in Easy, 60px/10% in
+  Challenging. Keep text above the images and fully opaque; missing seals cannot
+  block play. Map-chain and result cards stay compact and seal-free.
+  No visible COAST labels on hand cards; preserve coast info in accessible names.
+  Center Challenging abbreviations horizontally over seals, keeping gold stars
+  in the header so they cannot shift the abbreviation off-center.
 - `assets/us.svg`: supplied Simplemaps map; preserve its copyright notice.
 - `build.js`: esbuild entry point; extracts 48 state paths, bundles the SVG and
   application locally, and writes the site to `dist/`. Development watch/server
@@ -86,8 +101,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   and deadline speed. Reload preserves the hand; map-chain undo prepares a new
   appropriate hand. Easy selection cards center full names without abbreviations;
   map-chain and result cards retain compact abbreviations.
-  Easy hand backgrounds use locally bundled 120px state seals at low image-only
-  opacity; never fade the whole card or require images to finish loading to play.
+  Hand backgrounds use locally bundled state seals at low image-only opacity;
+  never fade the whole card or require images to finish loading to play.
   Easy has no gold bonuses or reference solutions. Its win
   dialog shows route/points/time/best time and a toggle to try Challenging.
   Personal records are separate by difficulty, but the daily leaderboard is shared.
@@ -134,7 +149,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Highlight only played states, removing highlights on undo. No map labels or
   unplayed-state deck/next-move colors. Map cards have semi-transparent backgrounds
   but opaque text and solid opaque borders; do not set whole-card opacity.
-  Permanent bright green Atlantic/Pacific shoreline edges mark coastal states,
+  Permanent bright blue Atlantic/Pacific shoreline edges mark coastal states,
   not their inland/international borders or Gulf-only shores. Hard cards use gold
   borders and stars; preserve normal hand/map/result backgrounds and text colors.
 - Finished games are recorded once. Preserve compatible records and keep old
@@ -152,7 +167,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 - Win results show only the exact most-points reference route using frozen values
   and zeroCards, preferring fewer cards on score ties. No shortest reference.
   Mobile reference cards stay smaller than the player's route cards.
-- No Show route control or assisted-completion animation. New game is the green
+- No Show route control or assisted-completion animation. New game is the blue
   primary action. During timeout feedback only New game is enabled; it cancels the
   pending automatic restart. Reloaded losses show brief feedback without recounting.
 - Show the player's actual route and its score above solutions, not a points/states

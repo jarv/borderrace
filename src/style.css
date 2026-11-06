@@ -7,7 +7,7 @@
   --ink: #e5eaf5;
   --muted: #92a0b8;
   --line: #2c354c;
-  --green: #9df375;
+  --blue: #6ab5ff;
   --cyan: #68e9ef;
   --purple: #a995ff;
   --orange: #ffc76a;
@@ -150,7 +150,7 @@ footer {
 }
 .brand-icon {
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-  color: var(--green);
+  color: var(--blue);
   font-size: 33px;
   margin-right: 7px;
 }
@@ -220,11 +220,11 @@ footer .text-button {
 }
 .primary-button {
   color: #14201b;
-  background: linear-gradient(#b6ff8e, #8de66c);
-  border: 1px solid #c0ffa0;
+  background: #1669d6;
+  border: 1px solid #398cff;
   box-shadow:
-    0 3px 0 #4d8443,
-    0 0 20px #9df37512;
+    0 3px 0 #124a95,
+    0 0 20px #398cff12;
 }
 .secondary-button {
   color: #bcc9e0;
@@ -322,10 +322,10 @@ dialog::backdrop {
   overflow-wrap: anywhere;
 }
 #personal-bests .new-personal-record {
-  border-color: var(--green);
+  border-color: var(--blue);
 }
 #record-message {
-  color: var(--green);
+  color: var(--blue);
   font-weight: 800;
 }
 .solution-section {
@@ -349,7 +349,7 @@ dialog::backdrop {
   margin-top: 0;
 }
 #result-route .solution-section h3 span {
-  color: var(--green);
+  color: var(--blue);
   font-weight: 800;
 }
 #result-route .solution-card {
@@ -475,11 +475,11 @@ dialog .fine-print {
   display: grid;
   place-items: center;
   border-radius: 20px;
-  color: var(--green);
-  background: #9df37512;
-  border: 1px solid #9df37566;
+  color: var(--blue);
+  background: #398cff12;
+  border: 1px solid #398cff66;
   margin-bottom: 24px;
-  box-shadow: 0 0 32px #9df37512;
+  box-shadow: 0 0 32px #398cff12;
 }
 .result-stats {
   display: grid;
@@ -501,7 +501,7 @@ dialog .fine-print {
   font-size: 29px;
   font-weight: 900;
   display: block;
-  color: var(--green);
+  color: var(--blue);
 }
 .result-stats span {
   font-size: 8px;
@@ -583,7 +583,7 @@ dialog .fine-print {
   width: 28%;
 }
 .your-rank {
-  color: var(--green);
+  color: var(--blue);
 }
 .daily-header {
   display: flex;

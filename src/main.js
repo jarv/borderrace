@@ -117,7 +117,7 @@ renderSound();
 function renderTheme() {
   const light = save.theme === 'light';
   document.documentElement.dataset.theme = save.theme;
-  document.querySelector('meta[name="theme-color"]').content = light ? '#f6f4ef' : '#111d32';
+  document.querySelector('meta[name="theme-color"]').content = light ? '#f6f4ef' : '#08090b';
   const label = `Switch to ${light ? 'dark' : 'light'} mode`;
   $('#theme-button').setAttribute('aria-label', label);
   $('#theme-button').title = label;
@@ -445,13 +445,11 @@ function render(dealAnimation = false, arrival) {
         : game.hintPending && !placed
           ? 0
           : pointsFor(code, game.zeroCards, game.cardPoints);
-      const abbreviation = easy
-        ? ''
-        : `<strong>${code}${hard ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</strong>`;
-      const seal = easy
-        ? `<img class="card-seal" src="${stateSeals[code]}" alt="" aria-hidden="true" decoding="async" draggable="false" width="120" height="120">`
-        : '';
-      return `<button class="state-card ${!easy && coast(code) ? 'coastal' : ''} ${hard ? 'hard' : ''} ${!easy && placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${pending ? 'calculating points' : `${value} points`}${hard ? ', hard card, bonus card' : ''}${coast(code) ? `, ${coast(code)} coast` : ''}${!easy && placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${!easy && placed}" ${ended || pending ? 'disabled' : ''}>${seal}<span class="card-top"><span>${coast(code) ? 'COAST' : hard ? 'BONUS' : ''}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span>${abbreviation}<span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
+      const abbreviation = easy ? '' : `<strong>${code}</strong>`;
+      const marker = hard ? '<span class="bonus-star" aria-hidden="true">★</span>' : '';
+      const sealSize = easy ? 120 : 60;
+      const seal = `<img class="card-seal" src="${stateSeals[easy ? 'large' : 'small'][code]}" alt="" aria-hidden="true" decoding="async" draggable="false" width="${sealSize}" height="${sealSize}">`;
+      return `<button class="state-card ${!easy && coast(code) ? 'coastal' : ''} ${hard ? 'hard' : ''} ${!easy && placed ? 'placed' : ''} ${hint?.code === code ? 'hinted' : ''}" data-card="${code}" aria-label="${state.name}, ${pending ? 'calculating points' : `${value} points`}${hard ? ', hard card, bonus card' : ''}${coast(code) ? `, ${coast(code)} coast` : ''}${!easy && placed ? ', click to undo' : ''}${hint?.code === code ? ', hint' : ''}" aria-pressed="${!easy && placed}" ${ended || pending ? 'disabled' : ''}>${seal}<span class="card-top"><span>${marker}</span><span class="card-points">${value}<small> PT${value > 1 ? 'S' : ''}</small></span></span>${abbreviation}<span class="card-name">${state.name}</span><span class="card-check" aria-hidden="true">✓</span></button>`;
     })
     .join('');
   $$('[data-card]').forEach((button) =>
@@ -640,7 +638,7 @@ function celebrate() {
     vx: (Math.random() - 0.5) * width * 0.8,
     vy: -200 - Math.random() * 480,
     rotate: Math.random() * 6,
-    color: ['#9df375', '#68e9ef', '#a995ff', '#ffc76a'][Math.floor(Math.random() * 4)],
+    color: ['#398cff', '#c6e2ff', '#f3f1ed', '#bc737e'][Math.floor(Math.random() * 4)],
   }));
   const start = performance.now();
   const frame = (now) => {

@@ -1,8 +1,9 @@
 # Third-party assets
 
 - State-seal PNGs in **img/seals/** were supplied for this project. Easy cards use
-  the 120px versions for the contiguous 48 states; the smaller alternatives and
-  Alaska/Hawaii images are not deployed. Image provenance and reproduction terms
+  the 120px versions for the contiguous 48 states; Challenging uses the 60px
+  versions from **img/seals/small_60/**. Alaska/Hawaii and the unused wild image
+  are not deployed. Image provenance and reproduction terms
   have not been documented; confirm those before distributing these assets.
 
 - The supplied **assets/us.svg** is copyright 2017 Pareto Software, LLC DBA

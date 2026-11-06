@@ -1,71 +1,68 @@
-/* Muted national colors for the interface; gameplay colors keep their meaning. */
+/* Charcoal/white surfaces, blue actions, gray geography, and gold/red warnings. */
 :root {
   color: var(--ink);
   background: var(--page);
   color-scheme: dark;
-  --page: #111d32;
+  --page: #08090b;
   --ink: #f3f1ed;
   --muted: #abb8ce;
-  --line: #41516d;
-  --cyan: #a3bfea;
+  --blue: #6ab5ff;
+  --line: #398cff;
+  --cyan: var(--blue);
+  --button-blue: #1669d6;
   --purple: #d69ba2;
   --red: #bc737e;
-  --surface: #1a2942;
-  --surface-raised: #243651;
-  --surface-soft: #1d2e49;
-  --card-top: #304866;
-  --card-bottom: #253a57;
-  --card-border: #657c9e;
-  --coast-top: #2b4e50;
-  --coast-bottom: #233c42;
-  --coast-border: #528d80;
-  --coast-ink: #9ce8c9;
-  --placed: #18263d;
+  --surface: #111315;
+  --surface-raised: #1c1f23;
+  --surface-soft: #15171a;
+  --card-top: #1b1e23;
+  --card-bottom: #1b1e23;
+  --card-border: var(--line);
+  --coast-top: #15395f;
+  --coast-bottom: #15395f;
+  --coast-border: var(--line);
+  --coast-ink: var(--blue);
+  --placed: #141619;
   --placed-ink: #8497b4;
-  --map-center: #243752;
-  --map-edge: #182740;
-  --map-fill: #405675;
-  --map-stroke: #233752;
+  --map-center: #0c0e11;
+  --map-edge: #0c0e11;
+  --map-fill: #2b3038;
+  --map-stroke: #4b5058;
   --route-fill: #587da9;
-  --route-stroke: #b7d0ef;
-  --chain-top: rgb(37 64 101 / 70%);
-  --chain-bottom: rgb(26 46 78 / 65%);
+  --route-stroke: var(--line);
+  --chain-top: rgb(20 23 27 / 80%);
+  --chain-bottom: rgb(20 23 27 / 80%);
   --chain-ink: #f4f6fb;
   --gold: #ffd279;
   --hint-ink: #ffe38b;
   --error-ink: #f0b0ba;
   --grid: #8da4c70a;
-  --page-glow: #839cc40c;
-  --shadow: #07102340;
+  --page-glow: transparent;
+  --shadow: #00000055;
 }
 :root[data-theme='light'] {
   color-scheme: light;
   --page: #f6f4ef;
   --ink: #203653;
   --muted: #526781;
-  --line: #b9c7d8;
-  --cyan: #355e91;
+  --blue: #1465cc;
+  --line: #2475df;
+  --cyan: var(--blue);
   --purple: #994b5c;
   --red: #a85764;
-  --green: #28613d;
   --surface: #fffefa;
   --surface-raised: #edf1f6;
   --surface-soft: #f5f6f8;
   --card-top: #fffefa;
   --card-bottom: #eaf0f7;
-  --card-border: #8ca2be;
-  --coast-top: #edf5ef;
-  --coast-bottom: #dceae2;
-  --coast-border: #5b8771;
-  --coast-ink: #275d45;
+  --coast-top: #e5f0ff;
+  --coast-bottom: #d6e6fa;
   --placed: #e8edf3;
   --placed-ink: #5c7089;
   --map-center: #f7f8fa;
   --map-edge: #e9eef5;
   --map-fill: #c6d2e2;
-  --map-stroke: #8d9fb8;
   --route-fill: #7394bd;
-  --route-stroke: #355c8b;
   --chain-top: rgb(255 254 250 / 85%);
   --chain-bottom: rgb(226 236 248 / 80%);
   --chain-ink: #1e3c65;
@@ -91,7 +88,7 @@ body {
   flex-shrink: 0;
   padding-right: 8px;
   background: var(--surface-soft);
-  border-top: 2px solid var(--red);
+  border-top: 2px solid var(--line);
 }
 .theme-button {
   display: grid;
@@ -200,6 +197,7 @@ dialog,
   background: radial-gradient(ellipse at 50% 40%, var(--map-center), var(--map-edge) 80%);
 }
 .map-wrap {
+  border: 0;
   background-image:
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
@@ -210,10 +208,11 @@ dialog,
 }
 .map-state.on-route:not(.sweep-danger) path {
   fill: var(--route-fill);
-  stroke: var(--route-stroke);
+  stroke: var(--map-stroke);
 }
 .coastline {
-  stroke: #9df375;
+  stroke: var(--blue);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--blue) 45%, transparent));
 }
 .map-card {
   border-color: var(--route-stroke);
@@ -276,16 +275,14 @@ dialog::backdrop {
 .map-messages .error #message {
   color: var(--error-ink);
 }
-:root[data-theme='light'] .coastline {
-  filter: drop-shadow(0 0 1px #245a32);
-}
 :root[data-theme='light'] .storage-warning {
   color: #6d4b16;
   background: #fff1d6;
 }
-:root[data-theme='light'] #difficulty:checked,
-:root[data-theme='light'] .try-challenging input:checked {
-  background: radial-gradient(circle at 32px 50%, #fffefa 8px, transparent 9px) #406d4d;
+#difficulty:checked,
+.try-challenging input:checked {
+  background: radial-gradient(circle at 32px 50%, #fffefa 8px, transparent 9px) var(--button-blue);
+  border-color: var(--line);
 }
 :root[data-theme='light'] #difficulty:not(:checked),
 :root[data-theme='light'] .try-challenging input:not(:checked) {
@@ -294,4 +291,85 @@ dialog::backdrop {
 }
 :root[data-theme='light'] .sweep-shade {
   background: rgb(80 99 128 / 24%);
+}
+
+/* Blue actions and score feedback replace every former green interface cue. */
+.text-button,
+.sound-button,
+.card-points,
+.card-check,
+.map-card-corner,
+#score,
+#record-message,
+#result-route .solution-section h3 span,
+.chain-callout,
+.score-pop {
+  color: var(--blue);
+}
+.primary-button {
+  color: #fff;
+  background: var(--button-blue);
+  border-color: var(--line);
+  box-shadow:
+    0 3px 0 #124a95,
+    0 0 14px #398cff18;
+}
+.secondary-button,
+.close-button {
+  color: var(--blue);
+}
+.state-card.placed:not(.hard):not(.hinted) {
+  border-color: var(--line);
+}
+.game-shell,
+dialog {
+  border-radius: 6px;
+}
+.state-card,
+.map-card,
+.solution-card,
+.primary-button,
+.secondary-button,
+.close-button,
+.map-wrap,
+#personal-bests > div,
+#display-name,
+.storage-warning,
+.mode-guide,
+.result-stats,
+.result-art,
+#difficulty,
+.try-challenging input {
+  border-radius: 3px;
+}
+
+/* Dark mode is flat charcoal, not a navy gradient or patterned surface. */
+:root:not([data-theme='light']) body {
+  background: none;
+}
+:root:not([data-theme='light']) .map-panel {
+  background: var(--map-edge);
+}
+:root:not([data-theme='light']) .map-wrap {
+  background-image: none;
+}
+:root:not([data-theme='light']) .state-card::after {
+  background: none;
+}
+:root:not([data-theme='light']) dialog::backdrop {
+  background: #0009;
+}
+:root:not([data-theme='light']) .state-card:not(.placed):not(.coastal) {
+  background: var(--card-top);
+}
+:root:not([data-theme='light']) .state-card.coastal:not(.placed) {
+  background: var(--coast-top);
+  box-shadow:
+    inset 0 0 0 1px #6ab5ff50,
+    0 3px 0 var(--shadow);
+}
+:root:not([data-theme='light']) .map-card,
+:root:not([data-theme='light']) .solution-card,
+:root:not([data-theme='light']) #result-route .solution-card {
+  background: var(--chain-top);
 }

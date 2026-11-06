@@ -75,7 +75,7 @@
 }
 #score {
   display: inline-block;
-  color: var(--green);
+  color: var(--blue);
   transform-origin: left center;
 }
 .difficulty-control {
@@ -121,7 +121,7 @@
 }
 .try-challenging input:checked,
 #difficulty:checked {
-  background: radial-gradient(circle at 32px 50%, #101320 8px, transparent 9px) var(--green);
+  background: radial-gradient(circle at 32px 50%, #101320 8px, transparent 9px) var(--blue);
 }
 .try-challenging input:focus-visible,
 #difficulty:focus-visible {
@@ -190,15 +190,15 @@
   background: linear-gradient(125deg, transparent 20%, #c1e4ff09 40%, transparent 60%);
 }
 .state-card.coastal {
-  background: linear-gradient(145deg, #2b4e50, #233c42);
-  border-color: #528d80;
+  background: linear-gradient(145deg, #244b77, #203958);
+  border-color: #398cff;
 }
 .cards .state-card.coastal.coastal-intro::before {
   content: '';
   position: absolute;
   inset: -25% 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 25%, #e3fff580 50%, transparent 75%);
+  background: linear-gradient(105deg, transparent 25%, #d5eaff80 50%, transparent 75%);
   animation: coastal-shine 4.8s 0.6s infinite both;
 }
 @keyframes coastal-shine {
@@ -231,7 +231,7 @@
   font-weight: 800;
 }
 .coastal .card-top > span:first-child {
-  color: #9ce8c9;
+  color: var(--blue);
 }
 .card-points {
   color: #c6ddf2;
@@ -244,6 +244,7 @@
   letter-spacing: 0;
 }
 .state-card > strong {
+  text-align: center;
   font-size: 27px;
   font-weight: 900;
   letter-spacing: -1px;
@@ -278,7 +279,7 @@
   position: absolute;
   right: 7px;
   bottom: 25px;
-  color: #779b85;
+  color: var(--blue);
   font-size: 12px;
 }
 .placed .card-check {
@@ -328,17 +329,17 @@
     stroke 0.2s;
 }
 .map-state.on-route path {
-  fill: #347e80;
-  stroke: #79c5c4;
+  fill: #416faa;
+  stroke: #6ab5ff;
 }
 .coastline {
   fill: none;
-  stroke: var(--green);
+  stroke: var(--blue);
   stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
-  filter: drop-shadow(0 0 2px #9df37570);
+  filter: drop-shadow(0 0 2px #398cff70);
 }
 .coastline path {
   vector-effect: non-scaling-stroke;
@@ -383,7 +384,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
+  width: 3px;
   translate: -50% 0;
   background: #ff4940;
   box-shadow: 0 0 6px #ff393980;
@@ -524,12 +525,10 @@
   line-height: 1;
   pointer-events: none;
 }
-.state-card > strong .bonus-star {
+.state-card .card-top .bonus-star {
   position: static;
   display: inline-block;
-  margin-left: 2px;
-  font-size: 11px;
-  vertical-align: top;
+  font-size: 8px;
 }
 .map-card:not(.hard) .bonus-star {
   display: none;
@@ -611,7 +610,7 @@
   text-shadow: 0 0 12px #68e9ef90;
 }
 .landing-spark:nth-child(3n) {
-  color: var(--green);
+  color: var(--blue);
 }
 .landing-spark:nth-child(3n + 1) {
   color: var(--purple);
@@ -619,22 +618,22 @@
 .score-pop {
   position: absolute;
   translate: -50% -50%;
-  color: #d4ff93;
+  color: var(--blue);
   font-size: 22px;
   font-weight: 900;
   font-style: italic;
   white-space: nowrap;
   text-shadow:
     0 2px 0 #182a38,
-    0 0 14px #9df37580;
-  -webkit-text-stroke: 0.3px #ddffb0;
+    0 0 14px #398cff80;
+  -webkit-text-stroke: 0.3px #d5eaff;
 }
 .impact-ring {
   position: absolute;
   width: 58px;
   height: 58px;
   translate: -50% -50%;
-  border: 2px solid #9df375;
+  border: 2px solid var(--blue);
   border-radius: 50%;
   box-shadow:
     0 0 15px #68e9ef60,
@@ -644,10 +643,10 @@
   position: absolute;
   width: 7px;
   height: 7px;
-  background: #9df375;
+  background: var(--blue);
   rotate: 45deg;
-  border: 1px solid #ddffac;
-  box-shadow: 0 0 12px #9df375;
+  border: 1px solid #d5eaff;
+  box-shadow: 0 0 12px var(--blue);
 }
 .chain-callout {
   position: absolute;
@@ -656,7 +655,7 @@
   translate: -50% 0;
   z-index: 35;
   text-align: center;
-  color: #ceff93;
+  color: var(--blue);
   font-size: clamp(15px, 2.3vw, 30px);
   font-weight: 900;
   font-style: italic;
@@ -664,7 +663,7 @@
   white-space: nowrap;
   text-shadow:
     0 3px 0 #132639,
-    0 0 25px #9df37560;
+    0 0 25px #398cff60;
   pointer-events: none;
 }
 .chain-callout small {
@@ -1053,6 +1052,16 @@
   opacity: 0.12;
   pointer-events: none;
   user-select: none;
+}
+.state-card > .card-top,
+.state-card > strong,
+.state-card > .card-name {
+  z-index: 1;
+}
+.game-shell:not(.easy) .card-seal {
+  width: min(80%, 60px);
+  height: calc(100% - 10px);
+  opacity: 0.1;
 }
 .easy .card-top,
 .easy .card-points small {

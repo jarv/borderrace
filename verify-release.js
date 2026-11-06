@@ -36,7 +36,7 @@ const assets = [
   asset('solution-worker', 'js'),
 ];
 const seals = entries.filter((entry) => /^assets\/[A-Z]{2}-[A-Z0-9]{8}\.png$/.test(entry));
-assert.deepEqual(seals.map((name) => name.slice(7, 9)).sort(), [...CODES].sort());
+assert.deepEqual(seals.map((name) => name.slice(7, 9)).sort(), [...CODES, ...CODES].sort());
 assert.deepEqual(
   entries.map((entry) => entry.replace(/\/$/, '')).sort(),
   [
@@ -52,6 +52,17 @@ assert.deepEqual(
 const directory = await mkdtemp(join(tmpdir(), 'borderrace-release-'));
 try {
   await extract({ file: archive, cwd: directory });
+  for (const code of CODES) {
+    const widths = await Promise.all(
+      seals
+        .filter((name) => name.startsWith(`assets/${code}-`))
+        .map(async (name) => (await readFile(join(directory, name))).readUInt32BE(16)),
+    );
+    assert.deepEqual(
+      widths.sort((a, b) => a - b),
+      [60, 120],
+    );
+  }
   assert.deepEqual(JSON.parse(await readFile(join(directory, 'version.json'), 'utf8')), {
     version: '1.0.0',
   });
@@ -136,6 +147,12 @@ try {
       (key) => JSON.parse(localStorage.getItem(key)).game,
       STORAGE_KEY,
     );
+    await page.waitForFunction(() => {
+      const images = [...document.querySelectorAll('.state-card .card-seal')];
+      return (
+        images.length === 24 && images.every((image) => image.complete && image.naturalWidth === 60)
+      );
+    });
     for (const code of findSolution(ready.deal))
       await page.locator(`[data-card="${code}"]`).click();
     await page.locator('.solution-chain[aria-label="Most points"]').waitFor();

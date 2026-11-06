@@ -5,11 +5,21 @@ bordering states. Easy (the default) offers four larger cards at a time;
 Challenging keeps the original 24-card deal and gold bonuses. The difficulty
 toggle starts a new game and remembers your choice. Easy selection cards show
 centered full state names without abbreviations, over faded state-seal backgrounds.
-The supplied 120px seals are bundled locally and requested only for displayed
-cards; the 60px alternatives are not deployed. Games start immediately
+State seals are bundled locally and requested only for displayed cards: Easy uses
+the 120px images, and Challenging uses the smaller 60px images at a fainter opacity.
+Challenging abbreviations are centered over their seals; gold stars sit in the
+card header. Coastal cards use their blue highlight rather than a COAST label.
+Games start immediately
 and finish automatically when connected.
-The interface uses a restrained navy, warm-white, and muted-red palette. The
-sun/moon button beside difficulty switches between dark (the default) and light
+The interface uses solid black/charcoal dark surfaces and warm-white light surfaces,
+bright-blue panel/card borders, buttons,
+scores and coastal markers, and compact, squared-off corners. Green interface
+accents are not used. Geographic outlines and state boundaries stay dark gray in both themes;
+there is no extra rectangular frame around the US map.
+gold difficulty cues and red deadline warnings stay distinct.
+Challenging coastal choices have a distinct solid-blue fill in Dark mode so they
+stand out from ordinary charcoal cards, including when marked gold.
+The sun/moon button beside difficulty switches between dark (the default) and light
 mode, remembers the choice locally, and never restarts the active game.
 Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
@@ -144,7 +154,7 @@ Messages remain above the cards.
 See [RULES.md](RULES.md) for complete rules. Every deal is
 solvable from every dealt coastal starting card, including all-1-point fallback
 games. Later choices can still lead to dead ends requiring backtracking. Existing
-saves keep their original deals. Bright green shoreline edges mark the Atlantic and Pacific coastal
+saves keep their original deals. Bright blue shoreline edges mark the Atlantic and Pacific coastal
 states. Played states highlight on an unlabeled map beneath translucent cards
 with solid text and borders. Unplayed states have no gameplay coloring.
 
@@ -219,7 +229,7 @@ Use **Your scores → Clear** to clear scores, personal bests, and game counts w
 current game or sound setting. Use **New game** for a fresh board.
 Clearing scores is immediate, without confirmation; the scores dialog scrolls
 vertically on shorter screens.
-New game is the green primary action. There is no assisted-route control.
+New game is the blue primary action. There is no assisted-route control.
 Card point pops zoom toward the score total; the visible total increases when
 they arrive. Scores are saved immediately, and reduced motion updates the total
 immediately without the effect.

@@ -26,6 +26,7 @@ test('Easy defaults to four neutral cards, persists selection, and switches both
     page.getByRole('switch', { name: 'Challenging mode', exact: true }),
   ).not.toBeChecked();
   await expect(page.locator('.state-card')).toHaveCount(4);
+  await expect(page.locator('#cards')).not.toContainText('COAST');
   await expect(page.locator('.state-card.coastal, .state-card.hard')).toHaveCount(0);
   const first = (await saved(page)).game.hand;
   await page.reload();
@@ -81,7 +82,7 @@ test('Easy seals are local decorative backgrounds and missing images never block
   page.on('request', (request) => {
     if (new URL(request.url()).pathname.endsWith('.png')) requested.push(request.url());
   });
-  await page.route('**/assets/MA*.png', (route) => route.abort());
+  await page.route('**/MA*.png', (route) => route.abort());
   await seed(page, { ...newEasyGame(), hand: ['WA', 'MA', 'NC', 'SC'] });
   await expect(page.locator('.state-card .card-seal')).toHaveCount(4);
   await expect
@@ -94,7 +95,9 @@ test('Easy seals are local decorative backgrounds and missing images never block
   expect(new Set(requested).size).toBe(4);
   for (const url of requested) {
     expect(new URL(url).origin).toBe(new URL(page.url()).origin);
-    expect(new URL(url).pathname).toMatch(/\/assets\/(WA|MA|NC|SC)(?:-[A-Z0-9]+)?\.png$/);
+    expect(new URL(url).pathname).toMatch(
+      /\/assets\/(?:img\/seals\/)?(WA|MA|NC|SC)(?:-[A-Z0-9]+)?\.png$/,
+    );
   }
   const seal = page.locator('[data-card="WA"] .card-seal');
   await expect(seal).toHaveAttribute('alt', '');
@@ -108,7 +111,7 @@ test('Easy seals are local decorative backgrounds and missing images never block
   await expect(page.locator('.state-card .card-seal')).toHaveCount(4);
   await page.locator('#difficulty').check();
   await expect(page.locator('.state-card')).toHaveCount(24);
-  await expect(page.locator('.state-card .card-seal')).toHaveCount(0);
+  await expect(page.locator('.state-card .card-seal')).toHaveCount(24);
 });
 
 test('Easy win omits reference solutions and switches to Challenging from the result toggle', async ({

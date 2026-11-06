@@ -22,11 +22,19 @@ Extremely long routes may show already-played non-neighbors as invalid choices
 if unused distractors run out; they cannot be played again.
 
 Easy uses all 48 states rather than a fixed 24-card deal. Cards are worth 1 point,
-with no gold bonuses or green coastal-card styling. Hint zeroes the next played
+with no gold bonuses or separate coastal-card styling. Hint zeroes the next played
 card; each invalid pick deducts 1 point. The moving deadline and its acceleration
 are unchanged. Click later map-chain cards to undo; the first card remains locked.
 Undo prepares appropriate choices for the restored route. Reaching the opposite
 coast automatically wins.
+
+Both difficulties use decorative state-seal backgrounds on hand cards: 120px
+images in Easy at 12% opacity and 60px images in Challenging at 10%. Challenging
+keeps its centered abbreviations, points, and gold markers above the seals.
+The gold star sits in the header so it does not shift the abbreviation off-center.
+Hand cards do not show a COAST label; coastal identity remains in accessible names
+and Challenging's blue coastal-card highlight.
+Images are local, never block play, and do not appear on compact map/result cards.
 
 Personal top-ten scores, counts, and bests are separate by difficulty; Clear
 resets both. Both difficulties contribute to the existing daily leaderboard.
@@ -44,7 +52,7 @@ apply to Easy.
 
 - A solvable deal is prepared when the page opens. A spinner shows while card
   values are calculated, then play is ready without a start button.
-- Begin with a card marked **COAST**, then add cards that border the last state.
+- Begin with a coastal card highlighted in blue, then add cards that border the last state.
 - Coastal hand cards receive a brief shine sweep every few seconds while play is
   ready and no card has been played, marking the starting choices. It never blocks
   selection and stops on first play; undo does not restart it. It pauses while
@@ -78,7 +86,7 @@ wrap into compact rows inside the map, without horizontal scrolling.
 Cards have translucent backgrounds with opaque borders and text.
 Undoing cards also removes their state highlights. Unplayed states have no
 deck or next-move coloring. The map has no state labels.
-Bright green shoreline edges mark the Atlantic and Pacific coastal states,
+Bright blue shoreline edges mark the Atlantic and Pacific coastal states,
 without coloring their inland borders or changing played-state highlights.
 
 On phones, the map sits above smaller cards in portrait, or to their right in
@@ -135,7 +143,7 @@ phone), and resumes without charging hidden time. Progress and speed survive
 reloads; time spent away is not charged. Existing saves without a line start at
 zero progress. Wins stop the line; New game resets it.
 
-The narrow line has a subtle glow without repeating internal animation. On the
+The 3px-wide line has a subtle glow without repeating internal animation. On the
 first coastal play it slams down to the panel's bottom with a brief impact burst;
 sparks shed from it while it moves. These effects do not delay the deadline or
 change collision rules. Reloading resumes the line without replaying its entrance.
@@ -148,7 +156,7 @@ There is no numeric clock and time does not affect points or score rankings.
 Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
 total**, and is marked with a gold border and gold star (★) in the hand, map chain,
 and results. Hard cards keep their ordinary card
-colors everywhere: coastal hand cards stay green, other hand cards stay blue,
+colors everywhere: coastal hand cards keep their coastal blue fill, other hand cards stay blue,
 and map/result cards keep their existing backgrounds and text colors.
 
 Hard cards occur in **more than zero but fewer than 20%** of this deal's winning
@@ -192,7 +200,7 @@ Win results show your played route and its points first, with its measured time
 beside the points when available, for comparison with your personal bests. Below it is the
 most-points route using the dealt cards and frozen point values. Score ties
 prefer fewer cards. Routes stop at the first opposite coast. No shortest route
-is displayed. New game is the green primary action.
+is displayed. New game is the blue primary action.
 
 Each route shows its point total using the game's zero-point cards from hints.
 Routes use small linked cards showing only state abbreviations, with smaller
@@ -205,6 +213,16 @@ The sun/moon button beside difficulty switches between light and dark themes.
 Dark is the default. The choice is saved locally and survives New game, difficulty
 changes, and Clear. Theme changes never restart play, change scoring, or reset
 the moving deadline. Both themes preserve coastal, gold, hint, and deadline cues.
+Bright blue marks interface/card/map borders, buttons, points, coastal edges,
+and played-card markers, replacing the former green accents. Gold difficulty
+cues and red deadline warnings remain distinct. Panels and cards have compact,
+squared-off corners; touch-target sizes are unchanged.
+Dark mode uses solid black and very dark gray surfaces without gradients or grid
+texture. Unplayed coastal cards in Challenging use a distinct solid blue fill;
+played cards return to charcoal, and gold difficulty borders stay gold.
+Geographic outlines and state boundaries use the same dark gray in both
+themes. The extra rectangular map frame is removed in both themes; game/card
+frames and separate coastal markers remain blue.
 
 When the optional online leaderboard is configured, **Daily leaderboard**, beside
 **Your scores**, shows cumulative winning points for the current UTC day, even

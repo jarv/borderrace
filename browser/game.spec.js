@@ -144,7 +144,7 @@ test('hard cards keep their original fills and text with gold borders everywhere
   );
 });
 
-test('green shoreline edges mark coastal states independently of route highlights', async ({
+test('blue shoreline edges mark coastal states independently of route highlights', async ({
   page,
   isMobile,
 }) => {
@@ -153,7 +153,7 @@ test('green shoreline edges mark coastal states independently of route highlight
   expect(
     await shores.evaluateAll((paths) => paths.map((path) => path.dataset.coast).sort()),
   ).toEqual('CA OR WA ME NH MA RI CT NJ NY DE MD VA NC SC GA FL'.split(' ').sort());
-  await expect(shores.first()).toHaveCSS('stroke', 'rgb(157, 243, 117)');
+  await expect(shores.first()).toHaveCSS('stroke', 'rgb(106, 181, 255)');
   await expect(shores.first()).toHaveCSS('fill', 'none');
   await expect(shores.first()).toHaveCSS('vector-effect', 'non-scaling-stroke');
   await expect(page.locator('.map-state.on-route')).toHaveCount(0);
@@ -163,7 +163,7 @@ test('green shoreline edges mark coastal states independently of route highlight
   await press(page.locator('[data-chain="AZ"]'), isMobile);
   await expect(page.locator('.map-state.on-route')).toHaveCount(1);
   await expect(shores).toHaveCount(17);
-  await expect(shores.first()).toHaveCSS('stroke', 'rgb(157, 243, 117)');
+  await expect(shores.first()).toHaveCSS('stroke', 'rgb(106, 181, 255)');
 });
 
 test('preparation shows a spinner, blocks play, and ignores superseded scoring results', async ({
@@ -376,7 +376,7 @@ test('intro rounds the final deal route count, preserves it on reload, and fades
   const below = exactCount - 1n;
   const magnitude = 10n ** BigInt(below.toString().length - 1);
   const minimum = (below / magnitude) * magnitude;
-  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.`;
+  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a coastal card. Gold cards ★ are harder to use and worth 3 points.`;
   await expect(page.locator('#message')).toHaveText(message);
   await page.reload();
   await expect(page.locator('#message')).toHaveText(message);
@@ -454,7 +454,7 @@ test('games are playable immediately with no wildcard, numeric clock, start, or 
     await expect(github).toBeFocused();
   }
   await expect(page.locator('#message')).toHaveText(
-    'Select cards to cross the map using connecting states. Start with a green coastal card. Gold cards ★ are harder to use and worth 3 points.',
+    'Select cards to cross the map using connecting states. Start with a coastal card. Gold cards ★ are harder to use and worth 3 points.',
   );
   await expect(page.locator('body')).not.toContainText(/wildcard|five minutes/i);
   await press(page.locator('[data-card="CA"]'), isMobile);
@@ -590,7 +590,7 @@ test('map messages never move the board and new games restore the starting promp
       { key: STORAGE_KEY, game: fixture() },
     );
     await page.reload();
-    await expect(page.locator('#message')).toContainText('Start with a green coastal card.');
+    await expect(page.locator('#message')).toContainText('Start with a coastal card.');
     const bounds = async () =>
       page.locator('.game-shell, .board-layout, .map-panel, .hand').evaluateAll((elements) =>
         elements.map((element) => {
@@ -619,7 +619,7 @@ test('map messages never move the board and new games restore the starting promp
     expect(await bounds()).toEqual(before);
     await press(page.locator('#new-game'), isMobile);
     await expect(page.locator('#confirm-dialog')).not.toBeVisible();
-    await expect(page.locator('#message')).toContainText('Start with a green coastal card.');
+    await expect(page.locator('#message')).toContainText('Start with a coastal card.');
   }
 });
 
@@ -640,7 +640,7 @@ test('map states highlight and translucent cards retain solid borders and text',
   const style = await page.locator('[data-chain="AZ"]').evaluate((card) => {
     const css = getComputedStyle(card);
     return {
-      background: css.backgroundImage,
+      background: css.backgroundImage === 'none' ? css.backgroundColor : css.backgroundImage,
       border: css.borderTopStyle,
       borderColor: css.borderTopColor,
       text: css.color,
@@ -1378,7 +1378,8 @@ test('portrait maps stay full-width with messages allowed over the lower artwork
     const svg = await page.locator('#map > svg').boundingBox();
     const artwork = await page.locator('#state-shapes').boundingBox();
     const message = await page.locator('.map-messages').boundingBox();
-    expect(svg.width).toBeGreaterThanOrEqual(wrap.width - 1);
+    const contentWidth = await page.locator('.map-wrap').evaluate((panel) => panel.clientWidth);
+    expect(svg.width).toBeGreaterThanOrEqual(contentWidth - 1);
     expect(artwork.width).toBeGreaterThan(wrap.width * 0.95);
     expect(artwork.y).toBeGreaterThanOrEqual(wrap.y);
     expect(artwork.y + artwork.height).toBeLessThanOrEqual(wrap.y + wrap.height);
