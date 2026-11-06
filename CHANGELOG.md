@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/jarv/borderrace/compare/v1.23.2...v1.24.0) (2026-11-06)
+
+
+### Features
+
+* show Easy points records and preload state seals ([6aa7bc6](https://github.com/jarv/borderrace/commit/6aa7bc6b3658a2d43c41551c94930b5883213fa0))
+
 ## [1.23.2](https://github.com/jarv/borderrace/compare/v1.23.1...v1.23.2) (2026-11-06)
 
 
