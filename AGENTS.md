@@ -67,7 +67,7 @@ for build/test tools), and commit both package files. No global npm packages.
   and 44px touch targets.
   Geographic outlines and state boundaries stay dark gray in both themes;
   game/hand/result frames and the separate coastal markers stay blue. Map-route
-  cards use solid 2px blue borders, except gold hard cards retain gold borders. Do not add a
+  cards use solid blue borders (1px mobile, 2px desktop), except gold hard cards retain gold borders. Do not add a
   redundant rectangular border around the US map panel.
   Dark unplayed coastal hand cards need a distinct solid blue fill, including
   gold cards. Ordinary and played hand cards stay charcoal; Easy stays neutral.
@@ -95,7 +95,8 @@ for build/test tools), and commit both package files. No global npm packages.
 
 Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 
-- Easy is the default, with persisted Easy/Medium/Challenging radio-style buttons that start a
+- Easy is the default, with persisted Easy/Medium/Challenging desktop radio-style buttons
+  and a mobile dropdown that start a
   new game. Easy has four neutral, larger cards: all-coastal starts covering both
   coasts, then two valid continuations and two invalid choices (one valid/three
   invalid when necessary). Invalid picks retain the hand. Keep current penalties
@@ -195,6 +196,9 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 ## UI and deployment requirements
 
 - Mobile is a first-class target. Check 320px–650px phones, tablets, and desktop.
+  Mobile combines difficulty dropdown, Hint, sound, help, theme, and New game in
+  one 44px-target row; narrow phones use an accessible New game restart icon.
+  The mobile score sits in the map's upper-right corner without adding a row.
   Preserve 44px+ primary touch targets, the always-visible phone map, single-row
   controls, safe-area padding, and lack of page-level horizontal overflow.
 - The phone hand scrolls independently. Don't cover it with a sticky map;

@@ -360,7 +360,7 @@ test('older hard-card games keep their saved points without a forced reroll', as
 
 test('new games offer a winning route from every coastal start', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#difficulty-challenging').check();
+  await selectDifficulty(page, 'challenging');
   for (let attempt = 0; attempt < 3; attempt++) {
     await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
     const game = (await saved(page)).game;
@@ -401,7 +401,7 @@ test('unavailable analysis falls back explicitly to fixed three-point cards', as
     };
   });
   await page.goto('/');
-  await page.locator('#difficulty-challenging').check();
+  await selectDifficulty(page, 'challenging');
   await expect(page.locator('#message')).toHaveText('Bonus unavailable. All cards: 3 pts.');
   await expect(page.locator('.state-card.hard')).toHaveCount(0);
   await expect(page.locator('.state-card').first()).toBeEnabled();
@@ -1161,7 +1161,7 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   await expect(page.locator('[data-chain]')).toHaveCount(1);
   await expect(page.locator('.flying-card')).toHaveCount(0);
   await expect(page.locator('#message')).toBeEmpty();
-  await page.locator('#difficulty-challenging').check();
+  await selectDifficulty(page, 'challenging');
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
   await press(page.locator('.state-card.coastal').first(), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);
@@ -1312,18 +1312,18 @@ test('phone and desktop layouts fit, with usable touch targets', async ({ page, 
   }
 });
 
-test('phone score stays in the controls row and the map uses the taller portrait space', async ({
+test('phone score stays visible in the map corner without adding a controls row', async ({
   page,
   isMobile,
 }) => {
   test.skip(!isMobile, 'Phone HUD layout');
   await page.setViewportSize({ width: 360, height: 780 });
   await seed(page);
-  const toolbar = await page.locator('.game-toolbar').boundingBox();
+  const toolbar = await page.locator('.game-controls').boundingBox();
   const score = await page.locator('.trip-stats').boundingBox();
   const map = await page.locator('#map').boundingBox();
-  expect(score.y).toBeGreaterThanOrEqual(toolbar.y);
-  expect(score.y + score.height).toBeLessThanOrEqual(toolbar.y + toolbar.height);
+  expect(score.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
+  expect(score.y + score.height).toBeLessThanOrEqual(map.y + map.height);
   expect(map.y).toBeGreaterThanOrEqual(toolbar.y + toolbar.height);
   const previousWidthLimit = ((780 / 2 - 188) * 870) / 560;
   expect(map.width).toBeGreaterThan(previousWidthLimit + 16);
@@ -1391,7 +1391,9 @@ test('portrait maps stay full-width with messages allowed over the lower artwork
     expect(artwork.y + artwork.height).toBeLessThanOrEqual(wrap.y + wrap.height);
     expect(message.y).toBeGreaterThanOrEqual(wrap.y);
     expect(message.y + message.height).toBeLessThanOrEqual(wrap.y + wrap.height);
-    if (width === 360 && height === 640) expect(message.y).toBeLessThan(artwork.y + artwork.height);
+    // The compact controls leave room below the artwork even on short phones.
+    // Messages stay at the panel's lower edge rather than requiring overlap.
+    expect(wrap.y + wrap.height - (message.y + message.height)).toBeLessThanOrEqual(10);
   }
 });
 
@@ -1455,3 +1457,4 @@ test('portrait phones fit the map above the cards and keep play usable after rot
   await page.setViewportSize({ width: 412, height: 915 });
   await expect(page.locator('#help-dialog')).toBeVisible();
 });
+import { selectDifficulty } from './controls.js';

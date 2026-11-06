@@ -281,10 +281,12 @@ function prepareScoring(dealAnimation = false) {
 }
 
 $('#new-game').addEventListener('click', () => fresh());
-$('#difficulty').addEventListener('change', (event) => {
+function changeDifficulty(event) {
   save = { ...save, difficulty: event.target.value };
   fresh();
-});
+}
+$('#difficulty').addEventListener('change', changeDifficulty);
+$('#difficulty-select').addEventListener('change', changeDifficulty);
 $('#result-challenging').addEventListener('change', () => {
   if (!$('#result-challenging').checked) return;
   save = { ...save, difficulty: 'challenging' };
@@ -428,6 +430,8 @@ function render(dealAnimation = false, arrival) {
   $('.game-shell').classList.toggle('medium', game.difficulty === 'medium');
   $(`#difficulty-${difficultyOf(game)}`).checked = true;
   $('#difficulty').disabled = lost;
+  $('#difficulty-select').value = difficultyOf(game);
+  $('#difficulty-select').disabled = lost;
   $('#hand-count').textContent = easy ? `${handSize(game)} STATES` : '24 STATES';
   $('#help-choice-count').textContent = handSize(game);
   $('#help-invalid-count').textContent = handSize(game) - 2;

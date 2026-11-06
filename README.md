@@ -1,12 +1,16 @@
 # Border Race
 
-Map-route cards use 2px blue borders in both themes; gold bonus cards keep their gold borders and stars.
+Map-route cards use blue borders: 1px on mobile, 2px on desktop, in both themes;
+gold bonus cards keep their gold borders and stars.
 
 A frontend-only geography game. Connect the Atlantic and Pacific coasts with
 bordering states. Easy (the default) offers four larger cards at a time at 1 point
 each; Medium offers six at 2 points each. Challenging keeps the 24-card deal,
-with 3-point ordinary cards and 4-point gold cards. Three radio-style difficulty
-buttons start a new game and remember your choice. Easy/Medium selection cards show
+with 3-point ordinary cards and 4-point gold cards. Desktop radio buttons and a
+mobile difficulty dropdown start a new game and remember your choice. Mobile uses
+one row for difficulty, Hint, sound, help, theme, and New game, with the score in
+the map's upper-right corner. Narrow phones show New game as a labeled restart
+icon. Easy/Medium selection cards show
 centered full state names without abbreviations, over faded state-seal backgrounds.
 State seals are bundled locally and requested only for displayed cards: Easy/Medium use
 the 120px images, and Challenging uses the smaller 60px images at a fainter opacity.

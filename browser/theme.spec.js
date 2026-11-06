@@ -222,7 +222,8 @@ test('map-route cards have solid blue borders in both themes, including after un
         theme === 'light' ? 'rgb(36, 117, 223)' : 'rgb(57, 140, 255)',
       );
       await expect(card).toHaveCSS('border-top-style', 'solid');
-      await expect(card).toHaveCSS('border-top-width', '2px');
+      const mobile = await page.locator('#difficulty-select').isVisible();
+      await expect(card).toHaveCSS('border-top-width', mobile ? '1px' : '2px');
       await expect(card).toHaveCSS('opacity', '1');
     }
   }

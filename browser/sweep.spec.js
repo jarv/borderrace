@@ -230,6 +230,7 @@ for (const theme of ['dark', 'light']) {
       const message = page.locator('#sweep-over');
       await expect(message).toBeVisible();
       await expect(message).toHaveText('Try again');
+      await expect(page.locator('#difficulty-select')).toBeDisabled();
       await expect(message).toHaveAttribute('role', 'status');
       await expect(message).toHaveAttribute('aria-live', 'assertive');
       await expect(message).toHaveCSS('-webkit-text-stroke-color', 'rgb(0, 0, 0)');

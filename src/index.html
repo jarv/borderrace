@@ -80,62 +80,72 @@
     </header>
     <main>
       <section class="game-shell" aria-label="Border Race game">
-        <div class="game-settings">
-          <fieldset id="difficulty" class="difficulty-control">
-            <legend class="sr-only">Difficulty</legend>
-            <label
-              ><input
-                id="difficulty-easy"
-                name="difficulty"
-                type="radio"
-                value="easy"
-                checked
-              /><span>Easy</span></label
-            >
-            <label
-              ><input id="difficulty-medium" name="difficulty" type="radio" value="medium" /><span
-                >Medium</span
-              ></label
-            >
-            <label
-              ><input
-                id="difficulty-challenging"
-                name="difficulty"
-                type="radio"
-                value="challenging"
-              /><span>Challenging</span></label
-            >
-          </fieldset>
-          <button
-            id="theme-button"
-            class="text-button theme-button"
-            aria-label="Switch to light mode"
-            title="Switch to light mode"
-          ></button>
-        </div>
-        <div class="game-toolbar">
-          <div class="hint-controls">
-            <button id="hint-button" class="secondary-button">Hint</button>
+        <div class="game-controls">
+          <div class="game-settings">
+            <fieldset id="difficulty" class="difficulty-control">
+              <legend class="sr-only">Difficulty</legend>
+              <label
+                ><input
+                  id="difficulty-easy"
+                  name="difficulty"
+                  type="radio"
+                  value="easy"
+                  checked
+                /><span>Easy</span></label
+              >
+              <label
+                ><input id="difficulty-medium" name="difficulty" type="radio" value="medium" /><span
+                  >Medium</span
+                ></label
+              >
+              <label
+                ><input
+                  id="difficulty-challenging"
+                  name="difficulty"
+                  type="radio"
+                  value="challenging"
+                /><span>Challenging</span></label
+              >
+            </fieldset>
+            <select id="difficulty-select" aria-label="Difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="challenging">Challenging</option>
+            </select>
           </div>
-          <nav aria-label="Game controls">
-            <button
-              class="text-button sound-button"
-              id="sound-button"
-              aria-pressed="true"
-              aria-label="Sound on, click to mute"
-            >
-              Sound on
-            </button>
-            <button class="text-button" id="help-button" aria-label="How to play">
-              <span class="question-icon" aria-hidden="true">?</span>
-            </button>
-          </nav>
-          <div class="game-actions">
-            <button id="new-game" class="primary-button">New game</button>
-          </div>
-          <div class="trip-stats">
-            <div>
-              <span class="stat-label">SCORE</span><strong id="score">0 <small>pts</small></strong>
+          <div class="game-toolbar">
+            <div class="hint-controls">
+              <button id="hint-button" class="secondary-button">Hint</button>
+            </div>
+            <nav aria-label="Game controls">
+              <button
+                class="text-button sound-button"
+                id="sound-button"
+                aria-pressed="true"
+                aria-label="Sound on, click to mute"
+              >
+                Sound on
+              </button>
+              <button class="text-button" id="help-button" aria-label="How to play">
+                <span class="question-icon" aria-hidden="true">?</span>
+              </button>
+              <button
+                id="theme-button"
+                class="text-button theme-button"
+                aria-label="Switch to light mode"
+                title="Switch to light mode"
+              ></button>
+            </nav>
+            <div class="game-actions">
+              <button id="new-game" class="primary-button" aria-label="New game" title="New game">
+                New game
+              </button>
+            </div>
+            <div class="trip-stats">
+              <div>
+                <span class="stat-label">SCORE</span
+                ><strong id="score">0 <small>pts</small></strong>
+              </div>
             </div>
           </div>
         </div>

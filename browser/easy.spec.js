@@ -22,18 +22,18 @@ test('Easy defaults to four neutral cards, persists selection, and switches both
   page,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('radio', { name: 'Easy', exact: true })).toBeChecked();
+  await expect(page.locator('#difficulty-easy')).toBeChecked();
   await expect(page.locator('.state-card')).toHaveCount(4);
   await expect(page.locator('#cards')).not.toContainText('COAST');
   await expect(page.locator('.state-card.coastal, .state-card.hard')).toHaveCount(0);
   const first = (await saved(page)).game.hand;
   await page.reload();
   expect((await saved(page)).game.hand).toEqual(first);
-  await page.locator('#difficulty-challenging').check();
+  await selectDifficulty(page, 'challenging');
   await expect(page.locator('.state-card')).toHaveCount(24);
   await page.reload();
   await expect(page.locator('#difficulty-challenging')).toBeChecked();
-  await page.locator('#difficulty-easy').check();
+  await selectDifficulty(page, 'easy');
   await expect(page.locator('.state-card')).toHaveCount(4);
   await page.locator('#new-game').click();
   expect((await saved(page)).game.difficulty).toBe('easy');
@@ -107,7 +107,7 @@ test('Easy seals are local decorative backgrounds and missing images never block
   await page.getByRole('button', { name: /^Massachusetts,/ }).click();
   await expect(page.locator('[data-chain="MA"]')).toBeVisible();
   await expect(page.locator('.state-card .card-seal')).toHaveCount(4);
-  await page.locator('#difficulty-challenging').check();
+  await selectDifficulty(page, 'challenging');
   await expect(page.locator('.state-card')).toHaveCount(24);
   await expect(page.locator('.state-card .card-seal')).toHaveCount(24);
 });
@@ -276,11 +276,13 @@ test('Galaxy S25-sized touch layouts center full Easy names and keep play usable
     await expect(page.locator('[data-chain="MA"]')).toBeVisible();
     await expect(page.locator('.state-card')).toHaveCount(4);
     await expect(page.locator('.state-card > strong')).toHaveCount(0);
-    await page.locator('#difficulty-challenging').focus();
-    await page.locator('#difficulty-challenging').press('Space');
+    await page.locator('#difficulty-select').focus();
+    await page.locator('#difficulty-select').press('End');
+    await page.locator('#difficulty-select').press('Enter');
     await expect(page.locator('.state-card')).toHaveCount(24);
     await expect(page.locator('.state-card > strong')).toHaveCount(24);
   } finally {
     await context.close();
   }
 });
+import { selectDifficulty } from './controls.js';

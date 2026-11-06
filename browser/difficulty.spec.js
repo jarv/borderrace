@@ -31,16 +31,24 @@ test('three radio-style difficulty choices persist, support keyboard selection, 
   page,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('radio', { name: 'Easy', exact: true })).toBeChecked();
+  const mobile = await page.locator('#difficulty-select').isVisible();
+  await expect(page.getByRole('radio')).toHaveCount(mobile ? 0 : 3);
+  await expect(page.locator('#difficulty-easy')).toBeChecked();
   await expect(page.locator('#difficulty select')).toHaveCount(0);
-  await page.getByRole('radio', { name: 'Medium', exact: true }).check();
+  await selectDifficulty(page, 'medium');
   await expect(page.locator('.state-card')).toHaveCount(6);
   expect(Object.values((await saved(page)).game.cardPoints)).toEqual(Array(48).fill(2));
   await page.reload();
-  await expect(page.getByRole('radio', { name: 'Medium', exact: true })).toBeChecked();
-  await page.locator('#difficulty-medium').focus();
-  await page.locator('#difficulty-medium').press('ArrowRight');
+  await expect(page.locator('#difficulty-medium')).toBeChecked();
+  await expect(page.locator('#difficulty-select')).toHaveValue('medium');
+  if (mobile) {
+    await page.locator('#difficulty-select').focus();
+    await page.locator('#difficulty-select').press('End');
+    await page.locator('#difficulty-select').press('Enter');
+  } else {
+    await page.locator('#difficulty-medium').focus();
+    await page.locator('#difficulty-medium').press('ArrowRight');
+  }
   await expect(page.locator('#difficulty-challenging')).toBeChecked();
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
   const hard = (await saved(page)).game;
@@ -48,7 +56,7 @@ test('three radio-style difficulty choices persist, support keyboard selection, 
   const code = hard.deal.find((code) => isHardCard(hard, code));
   if (code)
     await expect(page.locator(`[data-card="${code}"]`)).toHaveAccessibleName(/4 points, hard card/);
-  await page.getByRole('radio', { name: 'Easy', exact: true }).check();
+  await selectDifficulty(page, 'easy');
   await expect(page.locator('.state-card')).toHaveCount(4);
   expect(Object.values((await saved(page)).game.cardPoints)).toEqual(Array(48).fill(1));
 });
@@ -77,6 +85,73 @@ test('Medium handles two-point mistakes, zero-point hints, reload and undo with 
   expect((await saved(page)).game.zeroCards).toEqual([valid]);
   await page.locator('#help-button').click();
   await expect(page.locator('#help-easy')).toContainText('Each card earns 2 points');
+});
+
+test('compact controls share one touch-sized row and preserve play across rotation and theme changes', async ({
+  page,
+}, testInfo) => {
+  await seedMedium(page);
+  await page.locator('[data-card="CA"]').click();
+  const before = (await saved(page)).game;
+  for (const [width, height] of [
+    [320, 568],
+    [360, 780],
+    [393, 852],
+    [650, 850],
+    [780, 360],
+  ]) {
+    await page.setViewportSize({ width, height });
+    if (!(await page.locator('#difficulty-select').isVisible())) continue;
+    await expect(page.getByRole('combobox', { name: 'Difficulty' })).toHaveValue('medium');
+    const geometry = await page.evaluate(() => {
+      const rect = (element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      };
+      return {
+        row: rect(document.querySelector('.game-controls')),
+        controls: [
+          '#difficulty-select',
+          '#hint-button',
+          '#sound-button',
+          '#help-button',
+          '#theme-button',
+          '#new-game',
+        ].map((selector) => rect(document.querySelector(selector))),
+        overflow: document.documentElement.scrollWidth > innerWidth,
+        map: rect(document.querySelector('.map-wrap')),
+      };
+    });
+    expect(geometry.overflow).toBe(false);
+    expect(geometry.row.height).toBeLessThanOrEqual(54);
+    let end = geometry.row.x;
+    for (const control of geometry.controls) {
+      expect(control.width).toBeGreaterThanOrEqual(44);
+      expect(control.height).toBeGreaterThanOrEqual(44);
+      expect(control.y, JSON.stringify({ width, height, geometry })).toBe(geometry.controls[0].y);
+      expect(control.x).toBeGreaterThanOrEqual(end);
+      end = control.x + control.width;
+    }
+    expect(end).toBeLessThanOrEqual(geometry.row.x + geometry.row.width);
+    expect(geometry.map.y).toBeGreaterThanOrEqual(geometry.row.y + geometry.row.height);
+    await expect(page.locator('.map-card')).toHaveCSS('border-top-width', '1px');
+    if (width === 360)
+      await page.screenshot({ path: testInfo.outputPath('galaxy-s25-controls.png'), scale: 'css' });
+    await page.locator('#theme-button').click();
+    expect((await saved(page)).game.id).toBe(before.id);
+    expect((await saved(page)).game.route).toEqual(before.route);
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(page.locator('#difficulty-medium')).toBeChecked();
+  await expect(page.getByRole('radio')).toHaveCount(3);
+  await expect(page.locator('.map-card')).toHaveCSS('border-top-width', '2px');
+  expect((await saved(page)).game.id).toBe(before.id);
+  await page.setViewportSize({ width: 360, height: 780 });
+  await selectDifficulty(page, 'easy');
+  await expect(page.locator('.state-card')).toHaveCount(4);
+  expect((await saved(page)).game.id).not.toBe(before.id);
+  await page.reload();
+  await expect(page.getByRole('combobox', { name: 'Difficulty' })).toHaveValue('easy');
 });
 
 test('Medium wins keep their own records and omit Challenging reference solutions', async ({
@@ -128,12 +203,14 @@ test('Medium retains the visible map, six usable name cards, and single-row radi
       overflow: document.documentElement.scrollWidth > innerWidth,
       desktop: innerWidth >= 761 && matchMedia('(pointer: fine)').matches,
       map: document.querySelector('.map-wrap').getBoundingClientRect().height,
-      radios: [...document.querySelectorAll('.difficulty-control label')].map((label) => ({
-        x: label.getBoundingClientRect().x,
-        y: label.getBoundingClientRect().y,
-        width: label.getBoundingClientRect().width,
-        height: label.getBoundingClientRect().height,
-      })),
+      radios: [...document.querySelectorAll('.difficulty-control label, #difficulty-select')]
+        .filter((element) => element.getBoundingClientRect().width > 0)
+        .map((label) => ({
+          x: label.getBoundingClientRect().x,
+          y: label.getBoundingClientRect().y,
+          width: label.getBoundingClientRect().width,
+          height: label.getBoundingClientRect().height,
+        })),
       cards: [...document.querySelectorAll('.state-card')].map((card) => ({
         row: card.offsetTop,
         column: card.offsetLeft,
@@ -203,3 +280,4 @@ test('new Challenging scoring renders 3/4-point cards, applies their penalties, 
     `${score(path, [next], 4, cardPoints)} pts`,
   );
 });
+import { selectDifficulty } from './controls.js';

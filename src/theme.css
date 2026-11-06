@@ -90,6 +90,9 @@ body {
   background: var(--surface-soft);
   border-top: 2px solid var(--line);
 }
+#difficulty-select {
+  display: none;
+}
 .theme-button {
   display: grid;
   place-items: center;
@@ -367,4 +370,102 @@ dialog {
 :root:not([data-theme='light']) .solution-card,
 :root:not([data-theme='light']) #result-route .solution-card {
   background: var(--chain-top);
+}
+
+/* One touch-sized control row leaves more of the phone map visible. */
+@media (max-width: 760px), (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+  .game-shell {
+    position: relative;
+  }
+  .game-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    min-height: 52px;
+    padding: 4px;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .game-settings,
+  .game-shell .game-toolbar {
+    display: contents;
+  }
+  #difficulty {
+    display: none;
+  }
+  #difficulty-select {
+    display: block;
+    flex: 1;
+    width: 90px;
+    min-width: 0;
+    height: 44px;
+    padding: 0 2px;
+    font: inherit;
+    font-size: 11px;
+    color: var(--blue);
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  .game-controls .hint-controls,
+  .game-controls nav,
+  .game-controls .game-actions {
+    display: flex;
+    gap: 0;
+    flex-shrink: 0;
+    margin: 0;
+  }
+  .game-controls button {
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+    padding: 4px;
+    font-size: 10px;
+    line-height: 1;
+  }
+  .game-controls #hint-button {
+    min-width: 44px;
+  }
+  .game-controls button:hover {
+    translate: none;
+  }
+  .game-controls #sound-button {
+    width: 44px;
+    font-size: 0;
+  }
+  #sound-button::before {
+    content: '♪';
+    font-size: 22px;
+  }
+  #sound-button[aria-pressed='false']::before {
+    text-decoration: line-through;
+  }
+  .game-controls .trip-stats {
+    position: absolute;
+    top: 58px;
+    right: 10px;
+    z-index: 4;
+    margin: 0;
+    padding: 4px 6px;
+    border-radius: 3px;
+    background: var(--chain-top);
+    pointer-events: none;
+  }
+  .game-controls .trip-stats > div {
+    min-width: 0;
+  }
+  .map-card {
+    border-width: 1px;
+  }
+}
+@media (max-width: 360px) {
+  .game-controls #new-game {
+    width: 44px;
+    font-size: 0;
+  }
+  .game-controls #new-game::before {
+    content: '↻';
+    font-size: 24px;
+  }
 }
