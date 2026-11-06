@@ -8,6 +8,9 @@ centered full state names without abbreviations, over faded state-seal backgroun
 The supplied 120px seals are bundled locally and requested only for displayed
 cards; the 60px alternatives are not deployed. Games start immediately
 and finish automatically when connected.
+The interface uses a restrained navy, warm-white, and muted-red palette. The
+sun/moon button beside difficulty switches between dark (the default) and light
+mode, remembers the choice locally, and never restarts the active game.
 Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
 gems, and a canvas celebration — not a literal casino table.

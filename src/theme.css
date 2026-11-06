@@ -1,0 +1,297 @@
+/* Muted national colors for the interface; gameplay colors keep their meaning. */
+:root {
+  color: var(--ink);
+  background: var(--page);
+  color-scheme: dark;
+  --page: #111d32;
+  --ink: #f3f1ed;
+  --muted: #abb8ce;
+  --line: #41516d;
+  --cyan: #a3bfea;
+  --purple: #d69ba2;
+  --red: #bc737e;
+  --surface: #1a2942;
+  --surface-raised: #243651;
+  --surface-soft: #1d2e49;
+  --card-top: #304866;
+  --card-bottom: #253a57;
+  --card-border: #657c9e;
+  --coast-top: #2b4e50;
+  --coast-bottom: #233c42;
+  --coast-border: #528d80;
+  --coast-ink: #9ce8c9;
+  --placed: #18263d;
+  --placed-ink: #8497b4;
+  --map-center: #243752;
+  --map-edge: #182740;
+  --map-fill: #405675;
+  --map-stroke: #233752;
+  --route-fill: #587da9;
+  --route-stroke: #b7d0ef;
+  --chain-top: rgb(37 64 101 / 70%);
+  --chain-bottom: rgb(26 46 78 / 65%);
+  --chain-ink: #f4f6fb;
+  --gold: #ffd279;
+  --hint-ink: #ffe38b;
+  --error-ink: #f0b0ba;
+  --grid: #8da4c70a;
+  --page-glow: #839cc40c;
+  --shadow: #07102340;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --page: #f6f4ef;
+  --ink: #203653;
+  --muted: #526781;
+  --line: #b9c7d8;
+  --cyan: #355e91;
+  --purple: #994b5c;
+  --red: #a85764;
+  --green: #28613d;
+  --surface: #fffefa;
+  --surface-raised: #edf1f6;
+  --surface-soft: #f5f6f8;
+  --card-top: #fffefa;
+  --card-bottom: #eaf0f7;
+  --card-border: #8ca2be;
+  --coast-top: #edf5ef;
+  --coast-bottom: #dceae2;
+  --coast-border: #5b8771;
+  --coast-ink: #275d45;
+  --placed: #e8edf3;
+  --placed-ink: #5c7089;
+  --map-center: #f7f8fa;
+  --map-edge: #e9eef5;
+  --map-fill: #c6d2e2;
+  --map-stroke: #8d9fb8;
+  --route-fill: #7394bd;
+  --route-stroke: #355c8b;
+  --chain-top: rgb(255 254 250 / 85%);
+  --chain-bottom: rgb(226 236 248 / 80%);
+  --chain-ink: #1e3c65;
+  --gold: #946411;
+  --hint-ink: #795413;
+  --error-ink: #943a4c;
+  --grid: #637d9f0b;
+  --page-glow: #b6c6dd30;
+  --shadow: #273f641a;
+}
+html {
+  color: var(--ink);
+  background: var(--page);
+}
+body {
+  background: radial-gradient(ellipse at 50% 0, var(--page-glow), transparent 70%);
+}
+.game-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  flex-shrink: 0;
+  padding-right: 8px;
+  background: var(--surface-soft);
+  border-top: 2px solid var(--red);
+}
+.theme-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+.difficulty-control {
+  padding-inline: 12px;
+}
+#difficulty {
+  margin: 0;
+}
+.text-button,
+dialog p,
+.guide,
+dialog .fine-print,
+.card-top,
+.card-name,
+.section-label h2,
+.section-label > span,
+.stat-label,
+.trip-stats small,
+.solution-section h3 span,
+#personal-bests dt,
+.record-section th,
+.record-section caption,
+.daily-note,
+.daily-reset,
+#daily-status,
+#profile-status,
+.fine-print {
+  color: var(--muted);
+}
+.text-button:hover,
+.guide strong,
+.state-card > strong,
+.card-points,
+.map-messages #message,
+.map-card small,
+.map-card-corner,
+.map-card .card-name {
+  color: var(--ink);
+}
+.brand > span:not(.brand-icon) {
+  color: var(--red);
+}
+.game-shell {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: 0 14px 60px var(--shadow);
+}
+.game-toolbar,
+.hand,
+.solution-section,
+.record-section,
+#personal-bests > div,
+.record-section td,
+.record-section th {
+  border-color: var(--line);
+}
+.game-toolbar {
+  background: var(--surface-soft);
+}
+.hand,
+dialog,
+#account-status:not(:empty) {
+  background: var(--surface);
+}
+.hand {
+  scrollbar-color: var(--card-border) var(--surface);
+}
+.state-card:not(.coastal):not(.placed) {
+  background: linear-gradient(145deg, var(--card-top), var(--card-bottom));
+}
+.state-card:not(.hard):not(.hinted):not(.coastal):not(.placed) {
+  border-color: var(--card-border);
+}
+.state-card.coastal {
+  background: linear-gradient(145deg, var(--coast-top), var(--coast-bottom));
+}
+.state-card.coastal:not(.hard):not(.hinted) {
+  border-color: var(--coast-border);
+}
+.coastal .card-top > span:first-child {
+  color: var(--coast-ink);
+}
+.state-card.placed {
+  background: var(--placed);
+}
+.state-card.placed > strong,
+.state-card.placed .card-name,
+.state-card.placed .card-top,
+.state-card.placed .card-points {
+  color: var(--placed-ink);
+}
+.state-card,
+.solution-card {
+  box-shadow: 0 3px 0 var(--shadow);
+}
+.easy .card-name {
+  color: var(--ink);
+}
+.map-panel {
+  background: radial-gradient(ellipse at 50% 40%, var(--map-center), var(--map-edge) 80%);
+}
+.map-wrap {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+}
+.map-state:not(.sweep-danger) path {
+  fill: var(--map-fill);
+  stroke: var(--map-stroke);
+}
+.map-state.on-route:not(.sweep-danger) path {
+  fill: var(--route-fill);
+  stroke: var(--route-stroke);
+}
+.coastline {
+  stroke: #9df375;
+}
+.map-card {
+  border-color: var(--route-stroke);
+  background: linear-gradient(145deg, var(--chain-top), var(--chain-bottom));
+  color: var(--chain-ink);
+}
+.map-card small,
+.map-card .card-name {
+  color: var(--chain-ink);
+}
+.secondary-button,
+.close-button,
+#display-name {
+  color: var(--ink);
+  background: var(--surface-raised);
+  border-color: var(--line);
+}
+dialog {
+  color: var(--ink);
+  border-color: var(--line);
+}
+dialog::backdrop {
+  background: #111d3280;
+}
+.solution-card,
+#result-route .solution-card {
+  color: var(--chain-ink);
+  background: linear-gradient(145deg, var(--chain-top), var(--chain-bottom));
+  border-color: var(--route-stroke);
+}
+.solution-card strong,
+.solution-card small,
+.solution-card span {
+  color: inherit;
+}
+.solution-chain li:not(:last-child)::after {
+  color: var(--cyan);
+}
+.state-card.hard,
+.state-card.hard:not(.placed):not(:disabled):hover,
+.map-card.hard,
+.solution-card.hard,
+#result-route .solution-card.hard {
+  border-color: var(--gold);
+}
+.bonus-star,
+.solution-card .bonus-star {
+  color: var(--gold);
+}
+.cards .state-card.hinted,
+.state-card.hinted {
+  border-color: var(--hint-ink);
+}
+.sound-button[aria-pressed='false'] {
+  color: var(--muted);
+}
+#hint-cost {
+  color: var(--hint-ink);
+}
+.map-messages .error #message {
+  color: var(--error-ink);
+}
+:root[data-theme='light'] .coastline {
+  filter: drop-shadow(0 0 1px #245a32);
+}
+:root[data-theme='light'] .storage-warning {
+  color: #6d4b16;
+  background: #fff1d6;
+}
+:root[data-theme='light'] #difficulty:checked,
+:root[data-theme='light'] .try-challenging input:checked {
+  background: radial-gradient(circle at 32px 50%, #fffefa 8px, transparent 9px) #406d4d;
+}
+:root[data-theme='light'] #difficulty:not(:checked),
+:root[data-theme='light'] .try-challenging input:not(:checked) {
+  background: radial-gradient(circle at 12px 50%, #203653 8px, transparent 9px) #dce4ef;
+  border-color: #8398b4;
+}
+:root[data-theme='light'] .sweep-shade {
+  background: rgb(80 99 128 / 24%);
+}

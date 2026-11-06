@@ -12,6 +12,7 @@ export const emptySave = () => ({
   played: 0,
   archive: null,
   soundEnabled: true,
+  theme: 'dark',
   personalBests: { points: null, playSeconds: null },
   difficulty: 'easy',
   easyRecords: [],
@@ -70,6 +71,7 @@ export function loadSave(storage) {
       wins: Number.isSafeInteger(data.wins) && data.wins >= 0 ? data.wins : 0,
       played: Number.isSafeInteger(data.played) && data.played >= 0 ? data.played : 0,
       soundEnabled: data.soundEnabled !== false,
+      theme: data.theme === 'light' ? 'light' : 'dark',
       archive: data.archive ?? null,
       difficulty: ['easy', 'challenging'].includes(data.difficulty)
         ? data.difficulty

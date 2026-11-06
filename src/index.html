@@ -9,6 +9,14 @@
       content="Connect the Atlantic and Pacific coasts using bordering state cards."
     />
     <title>Border Race</title>
+    <script>
+      try {
+        document.documentElement.dataset.theme =
+          JSON.parse(localStorage.getItem('border-race:v2'))?.theme === 'light' ? 'light' : 'dark';
+      } catch {
+        /* Storage is optional. */
+      }
+    </script>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./app.css" />
     <script type="module" src="./app.js"></script>
@@ -72,11 +80,19 @@
     </header>
     <main>
       <section class="game-shell" aria-label="Border Race game">
-        <label class="difficulty-control">
-          <span>Easy</span>
-          <input id="difficulty" type="checkbox" role="switch" aria-label="Challenging mode" />
-          <span>Challenging</span>
-        </label>
+        <div class="game-settings">
+          <label class="difficulty-control">
+            <span>Easy</span>
+            <input id="difficulty" type="checkbox" role="switch" aria-label="Challenging mode" />
+            <span>Challenging</span>
+          </label>
+          <button
+            id="theme-button"
+            class="text-button theme-button"
+            aria-label="Switch to light mode"
+            title="Switch to light mode"
+          ></button>
+        </div>
         <div class="game-toolbar">
           <div class="hint-controls">
             <button id="hint-button" class="secondary-button">Hint</button>

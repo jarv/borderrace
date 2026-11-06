@@ -201,6 +201,11 @@ so the page stays responsive.
 
 ## Local data and effects
 
+The sun/moon button beside difficulty switches between light and dark themes.
+Dark is the default. The choice is saved locally and survives New game, difficulty
+changes, and Clear. Theme changes never restart play, change scoring, or reset
+the moving deadline. Both themes preserve coastal, gold, hint, and deadline cues.
+
 When the optional online leaderboard is configured, **Daily leaderboard**, beside
 **Your scores**, shows cumulative winning points for the current UTC day, even
 when logged out. Use the top-bar login/logout icon to sign in with Google before

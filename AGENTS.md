@@ -58,6 +58,9 @@ for build/test tools), and commit both package files. No global npm packages.
   autoplay, or background music. Persist the sound toggle in the local save.
 - `src/index.html` / `src/style.css` / `src/arena.css`: accessible markup,
   compact gameplay-first arcade HUD, neutral map, responsive UI.
+- `src/theme.css`: subtle navy/white/red interface palette and light/dark tokens.
+  Preserve gameplay color meanings and contrast in both themes. The sun/moon
+  control persists `save.theme` without restarting play; legacy saves default dark.
 - `assets/us.svg`: supplied Simplemaps map; preserve its copyright notice.
 - `build.js`: esbuild entry point; extracts 48 state paths, bundles the SVG and
   application locally, and writes the site to `dist/`. Development watch/server

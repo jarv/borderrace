@@ -28,6 +28,7 @@ import { loadSave, writeSave, recordResult } from './storage.js';
 import { personalBests, newRecordFlags, formatPlayTime } from './personal-bests.js';
 import './style.css';
 import './arena.css';
+import './theme.css';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -112,6 +113,23 @@ $('#sound-button').addEventListener('click', () => {
   if (save.soundEnabled) audio.play('place');
 });
 renderSound();
+
+function renderTheme() {
+  const light = save.theme === 'light';
+  document.documentElement.dataset.theme = save.theme;
+  document.querySelector('meta[name="theme-color"]').content = light ? '#f6f4ef' : '#111d32';
+  const label = `Switch to ${light ? 'dark' : 'light'} mode`;
+  $('#theme-button').setAttribute('aria-label', label);
+  $('#theme-button').title = label;
+  $('#theme-button').innerHTML =
+    `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${light ? '<path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/>' : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>'}</svg>`;
+}
+$('#theme-button').addEventListener('click', () => {
+  save = { ...save, theme: save.theme === 'dark' ? 'light' : 'dark' };
+  renderTheme();
+  persist();
+});
+renderTheme();
 
 $('#map').innerHTML = mapSvg;
 // Also strip labels from an already-running dev server's older virtual SVG.
@@ -451,7 +469,13 @@ function render(dealAnimation = false, arrival) {
   if (easy && focusCode && !ended && !$(`[data-card="${focusCode}"]`))
     $('#cards button')?.focus({ preventScroll: true });
   $('#hint-button').disabled = ended || pending;
-  for (const id of ['#sound-button', '#records-button', '#daily-button', '#help-button'])
+  for (const id of [
+    '#sound-button',
+    '#records-button',
+    '#daily-button',
+    '#help-button',
+    '#theme-button',
+  ])
     $(id).disabled = lost;
   $('#account-controls').inert = lost;
   arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
