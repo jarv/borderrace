@@ -74,6 +74,9 @@ for build/test tools), and commit both package files. No global npm packages.
   All hands use faded local state seals: 120px/12% in Easy/Medium, 60px/10% in
   Challenging. Keep text above the images and fully opaque; missing seals cannot
   block play. Map-chain and result cards stay compact and seal-free.
+  `src/preload-seals.js` warms all 96 seal URLs in the browser HTTP cache after
+  idle, at low priority with four concurrent requests and bounded timeouts.
+  Never await preloading from gameplay or require a worker/service worker to play.
   No visible COAST labels on hand cards; preserve coast info in accessible names.
   Center Challenging abbreviations horizontally over seals, keeping gold stars
   in the header so they cannot shift the abbreviation off-center.
@@ -114,6 +117,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   keeps 2 rows × 3 columns on phones.
   Neither offers gold bonuses or reference solutions. Their win
   dialog shows route/points/time/best time and a toggle to try Challenging.
+  Easy additionally shows personal Most points and celebrates strictly higher
+  penalized totals, like Challenging; Medium's result remains unchanged.
   Personal records are separate by difficulty, but the daily leaderboard is shared.
   Clear resets all three sets of personal records. The fixed-deal, gold, and reference
   rules below apply to Challenging; shared mechanics still apply to all difficulties.

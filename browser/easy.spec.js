@@ -78,7 +78,8 @@ test('Easy seals are local decorative backgrounds and missing images never block
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const requested = [];
   page.on('request', (request) => {
-    if (new URL(request.url()).pathname.endsWith('.png')) requested.push(request.url());
+    if (request.resourceType() === 'image' && new URL(request.url()).pathname.endsWith('.png'))
+      requested.push(request.url());
   });
   await page.route('**/MA*.png', (route) => route.abort());
   await seed(page, { ...newEasyGame(), hand: ['WA', 'MA', 'NC', 'SC'] });
@@ -132,7 +133,8 @@ test('Easy win omits reference solutions and switches to Challenging from the re
   await expect(page.locator('#result-dialog')).toBeVisible();
   await expect(page.locator('#result-route')).toContainText('pts');
   await expect(page.locator('#record-message')).toHaveText('New record: best time!');
-  await expect(page.locator('#best-points-stat')).toBeHidden();
+  await expect(page.locator('#best-points-stat')).toBeVisible();
+  await expect(page.locator('#best-points')).toHaveText('100 pts');
   await expect(page.locator('#solutions')).toBeEmpty();
   const win = await saved(page);
   expect(win.easyWins).toBe(1);
@@ -146,6 +148,43 @@ test('Easy win omits reference solutions and switches to Challenging from the re
   await page.reload();
   await expect(page.locator('#difficulty-select')).toHaveValue('challenging');
 });
+
+for (const motion of ['reduce', 'no-preference']) {
+  test(`Easy shows and celebrates personal most points with motion=${motion}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: motion });
+    const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN'];
+    const hand = easyHand(route);
+    if (!hand.includes('NC')) hand[hand.findIndex((code) => canAdd(CODES, route, code))] = 'NC';
+    await seed(
+      page,
+      { ...newEasyGame(), route, hand, playSeconds: 12.3 },
+      {
+        easyWins: 1,
+        easyPlayed: 1,
+        easyPersonalBests: { points: 6, playSeconds: 10 },
+      },
+    );
+    await page.locator('[data-card="NC"]').click();
+    await expect(page.locator('#result-dialog')).toBeVisible();
+    await expect(page.locator('#best-points-stat')).toBeVisible();
+    await expect(page.locator('#best-points')).toHaveText('7 pts');
+    await expect(page.locator('#record-message')).toHaveText('New record: most points!');
+    await expect(page.locator('#best-points-stat')).toHaveClass(/new-personal-record/);
+    await expect(page.locator('#solutions')).toBeEmpty();
+    await page.reload();
+    await expect(page.locator('#result-dialog')).toBeVisible();
+    await expect(page.locator('#best-points')).toHaveText('7 pts');
+    await expect(page.locator('#record-message')).toBeHidden();
+    expect((await saved(page)).easyWins).toBe(2);
+    await page.locator('#result-dialog [data-close]').click();
+    await expect.poll(async () => (await saved(page)).game.status).toBe('playing');
+    const active = (await saved(page)).game.id;
+    await page.locator('#records-button').click();
+    await page.locator('#clear-scores').click();
+    expect((await saved(page)).easyPersonalBests.points).toBe(null);
+    expect((await saved(page)).game.id).toBe(active);
+  });
+}
 
 test('Easy cards and map stay usable without horizontal overflow at phone and tablet widths', async ({
   page,

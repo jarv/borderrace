@@ -1,6 +1,7 @@
 import { animate } from 'motion';
 import mapSvg from 'border-map';
 import stateSeals from 'state-seals';
+import { preloadSeals } from './preload-seals.js';
 import { STATES, coast } from './data.js';
 import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
@@ -506,12 +507,12 @@ function showResult() {
     game.playSeconds,
   );
   const best = personalBests(save, difficultyOf(game));
-  $('#best-points-stat').hidden = isChoiceMode(game);
+  $('#best-points-stat').hidden = game.difficulty === 'medium';
   $('#best-time').textContent = formatPlayTime(best.playSeconds);
   $('#best-points').textContent = best.points === null ? '—' : `${best.points} pts`;
   const labels = [
     recordFlags.time ? 'best time' : '',
-    !isChoiceMode(game) && recordFlags.points ? 'most points' : '',
+    recordFlags.points ? 'most points' : '',
   ].filter(Boolean);
   $('#record-message').hidden = !labels.length;
   $('#record-message').textContent = labels.length
@@ -677,6 +678,7 @@ function celebrate() {
 
 persist();
 render(game.cardPoints !== null);
+void preloadSeals(stateSeals);
 if (game.cardPoints === null) prepareScoring(true);
 else if (game.status === 'lost') restartAfterTimeout();
 else if (game.status === 'won') showResult();

@@ -24,7 +24,8 @@ test('Challenging uses small faded seals behind opaque text and difficulty marke
 }, testInfo) => {
   const requested = [];
   page.on('request', (request) => {
-    if (new URL(request.url()).pathname.endsWith('.png')) requested.push(request.url());
+    if (request.resourceType() === 'image' && new URL(request.url()).pathname.endsWith('.png'))
+      requested.push(request.url());
   });
   const gold = await seed(page);
   await expect(page.locator('.state-card .card-seal')).toHaveCount(24);
@@ -107,4 +108,40 @@ test('missing small seals do not block keyboard play in Challenging', async ({ p
   await page.locator(`[data-card="${gold}"]`).press('Enter');
   await expect(page.locator(`[data-chain="${gold}"]`)).toBeVisible();
   await expect(page.locator('#score')).toHaveText('3 pts');
+});
+
+test('background preloading requests all 96 local seal sizes once without delaying play', async ({
+  page,
+}) => {
+  const warmed = new Set();
+  page.on('request', (request) => {
+    if (request.resourceType() === 'fetch' && new URL(request.url()).pathname.endsWith('.png'))
+      warmed.add(request.url());
+  });
+  const gold = await seed(page);
+  await page.locator(`[data-card="${gold}"]`).click();
+  await expect(page.locator(`[data-chain="${gold}"]`)).toBeVisible();
+  await expect.poll(() => warmed.size).toBe(96);
+  expect([...warmed].filter((url) => url.includes('/small_60/'))).toHaveLength(48);
+  for (const url of warmed) expect(new URL(url).origin).toBe(new URL(page.url()).origin);
+  await page.locator('#new-game').click();
+  await expect(page.locator('.state-card')).toHaveCount(24);
+  expect(warmed.size).toBe(96);
+});
+
+test('four pending preload downloads cannot delay keyboard play or New game', async ({ page }) => {
+  const held = [];
+  await page.route('**/*.png', (route) => {
+    if (route.request().resourceType() === 'fetch') held.push(route);
+    else return route.continue();
+  });
+  const gold = await seed(page);
+  await expect.poll(() => held.length).toBe(4);
+  await page.locator(`[data-card="${gold}"]`).focus();
+  await page.locator(`[data-card="${gold}"]`).press('Enter');
+  await expect(page.locator(`[data-chain="${gold}"]`)).toBeVisible();
+  await page.locator('#new-game').click();
+  await expect(page.locator('.map-card')).toHaveCount(0);
+  expect(held).toHaveLength(4);
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
 });

@@ -51,7 +51,10 @@ Images are local, never block play, and do not appear on compact map/result card
 Personal top-ten scores, counts, and bests are separate by difficulty; Clear
 resets all three. All difficulties contribute to the existing daily leaderboard.
 Easy/Medium results show the actual route, points, completion time, and personal best
-time, announcing a strictly faster time. No longest/most-points reference is
+time. Easy also shows personal **Most points**, using the actual score after
+hint and mistake penalties. First wins establish a baseline; later strictly
+higher totals earn the same record feedback as Challenging. Both still announce
+strictly faster times. Medium's result is otherwise unchanged. No longest/most-points reference is
 computed or shown. The win dialog also offers “Finding this too easy? Try
 Challenging mode!” with a toggle that immediately starts Challenging and saves
 that preference.

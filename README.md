@@ -15,8 +15,14 @@ one row for Hint, sound, help, theme, and New game, with the score in
 the map's upper-right corner. Narrow phones show New game as a labeled restart
 icon centered using SVG. Easy/Medium selection cards show
 centered full state names without abbreviations, over faded state-seal backgrounds.
-State seals are bundled locally and requested only for displayed cards: Easy/Medium use
+State seals are bundled locally: Easy/Medium use
 the 120px images, and Challenging uses the smaller 60px images at a fainter opacity.
+After the first render, an idle, low-priority preloader warms the browser HTTP
+cache for all 96 images (48 states in both sizes), with at most four downloads
+at once and a per-request timeout. Gameplay never waits for it; failed images
+remain optional. Production image URLs are content-hashed. Hosting configuration
+serves successful `/assets/` responses with `public, max-age=31536000, immutable`
+(one year), with Cloudflare respecting those origin headers.
 Challenging abbreviations are centered over their seals; gold stars sit in the
 card header. Coastal cards use their blue highlight rather than a COAST label.
 Games start immediately
@@ -49,6 +55,8 @@ All difficulties use the same moving deadline and daily leaderboard. Personal
 scores and best times are separate by difficulty. Easy/Medium results show your route,
 points, time, and best time without a reference solution, plus a toggle to try
 Challenging immediately. Clear resets personal records for all three difficulties.
+Easy also shows personal **Most points** and celebrates strict improvements,
+using the same penalized totals as its saved scores. Medium's result stays unchanged.
 Existing saved games retain their frozen point values; new Challenging scoring
 does not re-score old deals or records.
 

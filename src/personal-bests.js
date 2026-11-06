@@ -35,7 +35,7 @@ export function newRecordFlags(save, game) {
       validPlaySeconds(game.playSeconds) &&
       game.playSeconds < best.playSeconds,
     points:
-      difficultyOf(game) === 'challenging' &&
+      difficultyOf(game) !== 'medium' &&
       best.points !== null &&
       score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints) > best.points,
   };

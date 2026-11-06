@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { personalBests, newRecordFlags, formatPlayTime } from '../src/personal-bests.js';
 import { emptySave, recordResult, loadSave } from '../src/storage.js';
 import { CODES } from '../src/data.js';
-import { validGame } from '../src/game.js';
+import { validGame, newEasyGame } from '../src/game.js';
 
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
 const deal = [...new Set([...route, ...CODES])].slice(0, 24).sort();
@@ -36,6 +36,22 @@ test('first wins establish baselines; only strict improvements count as new reco
     time: false,
     points: false,
   });
+});
+
+test('Easy most-points records use penalized totals, persist, and only announce strict improvements', () => {
+  const first = { ...newEasyGame(), route, status: 'won', mistakePoints: 1, playSeconds: 20 };
+  assert.deepEqual(newRecordFlags(emptySave(), first), { time: false, points: false });
+  const save = recordResult(emptySave(), first);
+  assert.deepEqual(personalBests(save, 'easy'), { points: 6, playSeconds: 20 });
+  const next = { ...first, id: 'easy-improvement', mistakePoints: 0 };
+  assert.deepEqual(newRecordFlags(save, next), { time: false, points: true });
+  assert.equal(newRecordFlags(save, { ...next, zeroCards: ['AZ'] }).points, false);
+  assert.equal(newRecordFlags(save, { ...next, mistakePoints: 2 }).points, false);
+  const restored = loadSave({ getItem: () => JSON.stringify(recordResult(save, next)) });
+  assert.deepEqual(personalBests(restored, 'easy'), { points: 7, playSeconds: 20 });
+  assert.deepEqual(newRecordFlags(restored, next), { time: false, points: false });
+  assert.equal(personalBests(restored, 'challenging').points, null);
+  assert.equal(personalBests(restored, 'medium').points, null);
 });
 
 test('best time survives top-ten trimming and reload without importing old duration fields', () => {
