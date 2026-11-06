@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/jarv/borderrace/compare/v1.22.0...v1.23.0) (2026-11-06)
+
+
+### Features
+
+* add Medium difficulty and rebalance card scoring ([298305f](https://github.com/jarv/borderrace/commit/298305fc25a63cc1add1bd0852ab2879bea20c24))
+
 # [1.22.0](https://github.com/jarv/borderrace/compare/v1.21.0...v1.22.0) (2026-11-06)
 
 
