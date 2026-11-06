@@ -1,3 +1,10 @@
+## [1.23.1](https://github.com/jarv/borderrace/compare/v1.23.0...v1.23.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* compact mobile controls and thin route card borders ([7af8cc7](https://github.com/jarv/borderrace/commit/7af8cc773e256df27dde9521f810b3e48907d1c2))
+
 # [1.23.0](https://github.com/jarv/borderrace/compare/v1.22.0...v1.23.0) (2026-11-06)
 
 
