@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/jarv/borderrace/compare/v1.20.0...v1.21.0) (2026-11-06)
+
+
+### Features
+
+* add subtle red white blue palette and light dark themes ([c009f2c](https://github.com/jarv/borderrace/commit/c009f2c41f8019f702d33b261bc233f83772c945))
+
 # [1.20.0](https://github.com/jarv/borderrace/compare/v1.19.3...v1.20.0) (2026-11-06)
 
 
