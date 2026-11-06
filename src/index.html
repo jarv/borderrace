@@ -81,11 +81,31 @@
     <main>
       <section class="game-shell" aria-label="Border Race game">
         <div class="game-settings">
-          <label class="difficulty-control">
-            <span>Easy</span>
-            <input id="difficulty" type="checkbox" role="switch" aria-label="Challenging mode" />
-            <span>Challenging</span>
-          </label>
+          <fieldset id="difficulty" class="difficulty-control">
+            <legend class="sr-only">Difficulty</legend>
+            <label
+              ><input
+                id="difficulty-easy"
+                name="difficulty"
+                type="radio"
+                value="easy"
+                checked
+              /><span>Easy</span></label
+            >
+            <label
+              ><input id="difficulty-medium" name="difficulty" type="radio" value="medium" /><span
+                >Medium</span
+              ></label
+            >
+            <label
+              ><input
+                id="difficulty-challenging"
+                name="difficulty"
+                type="radio"
+                value="challenging"
+              /><span>Challenging</span></label
+            >
+          </fieldset>
           <button
             id="theme-button"
             class="text-button theme-button"
@@ -152,24 +172,26 @@
       <h2>How to play</h2>
       <div id="help-easy" hidden>
         <p>
-          Choose one of four coastal states, then select bordering states to reach the opposite
-          coast. Gulf-only states don't count.
+          Choose one of <span id="help-choice-count">4</span> coastal states, then select bordering
+          states to reach the opposite coast. Gulf-only states don't count.
         </p>
         <p>
-          Each new hand has two valid choices and two invalid choices. When only one valid choice
-          remains, the other three are invalid. States cannot repeat. Click a later map card to undo
-          it and its suffix; your first card stays locked.
+          Each new hand has two valid choices and <span id="help-invalid-count">2</span> invalid
+          choices. When only one valid choice remains, the other choices are invalid. States cannot
+          repeat. Click a later map card to undo it and its suffix; your first card stays locked.
         </p>
         <p>
-          Each card earns 1 point. Invalid picks deduct 1 point and keep the same hand. Hint makes
-          your next played card worth 0, including after undo and replay.
+          <span id="help-choice-points"
+            >Each card earns 1 point. Invalid picks deduct 1 point and keep the same hand.</span
+          >
+          Hint makes your next played card worth 0, including after undo and replay.
         </p>
         <p>
           Stay ahead of the moving red line. Each added card speeds it up; hints and invalid picks
           speed it up more. Undo does not rewind it. The line pauses while the page is hidden.
         </p>
         <p>
-          Borders include AZ–CO, NM–UT, MI–MN and NY–RI. Easy and Challenging have separate personal
+          Borders include AZ–CO, NM–UT, MI–MN and NY–RI. All difficulties have separate personal
           records and share the daily leaderboard.
         </p>
       </div>
@@ -189,8 +211,9 @@
             it. Your first coastal card is locked.
           </li>
           <li>
-            <strong>Reach the other coast.</strong> The game ends automatically. Cards are worth 1
-            point. Gold cards ★ are harder to use and earn a +2 bonus, for 3 points total.
+            <strong>Reach the other coast.</strong> The game ends automatically. Cards are worth 3
+            points in new games. Gold cards ★ are harder to use and earn a +1 bonus, for 4 points
+            total. Older saves keep their printed values.
           </li>
         </ol>
         <p>

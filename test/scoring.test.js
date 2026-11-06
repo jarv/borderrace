@@ -13,7 +13,7 @@ import {
   allCoastalStartsSolvable,
 } from '../src/game.js';
 import { countWinningRoutes } from '../src/route-count.js';
-import { pointsFromCounts, SCORING_VERSION } from '../src/scoring.js';
+import { pointsFromCounts, SCORING_VERSION, isHardCard } from '../src/scoring.js';
 import { prepareGoldDeal } from '../src/prepare-deal.js';
 import { emptySave, writeSave, loadSave, recordResult } from '../src/storage.js';
 
@@ -30,25 +30,25 @@ test('hard bonuses use exact participation below 20%, excluding zero and the bou
       routes: 100n,
       byCard: { CA: 0n, OR: 1n, WA: 19n, AZ: 20n, NM: 100n },
     }),
-    { CA: 1, OR: 3, WA: 3, AZ: 1, NM: 1 },
+    { CA: 3, OR: 4, WA: 4, AZ: 3, NM: 3 },
   );
   const huge = 10n ** 30n;
   assert.equal(
     pointsFromCounts(['CA'], { complete: true, routes: huge, byCard: { CA: huge / 5n - 1n } }).CA,
-    3,
+    4,
   );
   assert.throws(() => pointsFromCounts(deal, { ...counts, complete: false }));
   assert.throws(() => pointsFromCounts([], { complete: true, routes: 0n }));
   assert.deepEqual(
-    Object.keys(cardPoints).filter((code) => cardPoints[code] === 3),
+    Object.keys(cardPoints).filter((code) => cardPoints[code] === 4),
     ['GA', 'OR', 'SC'],
   );
   let otherSeed = 1;
   const otherDeal = createDeal(
     () => (otherSeed = (Math.imul(otherSeed, 1664525) + 1013904223) >>> 0) / 2 ** 32,
   );
-  assert.equal(pointsFromCounts(otherDeal, countWinningRoutes(otherDeal)).OR, 1);
-  assert.equal(cardPoints.OR, 3);
+  assert.equal(pointsFromCounts(otherDeal, countWinningRoutes(otherDeal)).OR, 3);
+  assert.equal(cardPoints.OR, 4);
   assert.equal(
     validGame(
       fixture({
@@ -110,17 +110,17 @@ test('deal points stay fixed through hints, invalid selections, undo, and replay
   let game = fixture({ hintPending: true });
   game = addCard(game, 'OR');
   assert.equal(pointsFor('OR', game.zeroCards, game.cardPoints), 0);
-  assert.equal(game.cardPoints.OR, 3);
+  assert.equal(game.cardPoints.OR, 4);
   game = penalizeInvalidCard(game, 'GA');
-  assert.equal(game.mistakePoints, 3);
+  assert.equal(game.mistakePoints, 4);
   game = addCard(game, 'CA');
-  assert.equal(score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints), -2);
+  assert.equal(score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints), -1);
   game = { ...game, route: backtrack(game.route, 'CA') };
   game = addCard(game, 'CA');
   assert.equal(pointsFor('OR', game.zeroCards, game.cardPoints), 0);
   assert.deepEqual(game.cardPoints, cardPoints);
   assert.equal(pointsFor('NM'), 3); // Existing unversioned games retain legacy values.
-  assert.equal(pointsFor('NM', [], cardPoints), 1);
+  assert.equal(pointsFor('NM', [], cardPoints), 3);
 });
 
 test('pending, completed, and fallback scoring saves validate defensively', () => {
@@ -142,6 +142,30 @@ test('pending, completed, and fallback scoring saves validate defensively', () =
       }),
     ),
   );
+});
+
+test('new 3/4-point scoring keeps legacy tables frozen and never marks 3-point fallback cards as gold', () => {
+  const legacyPoints = Object.fromEntries(
+    Object.entries(cardPoints).map(([code, value]) => [code, value === 4 ? 3 : 1]),
+  );
+  for (const scoring of ['hard-v1', 'hard-v2']) {
+    const game = fixture({ scoring, cardPoints: legacyPoints });
+    assert.equal(validGame(game), true);
+    const restored = loadSave({ getItem: () => JSON.stringify({ ...emptySave(), game }) }).game;
+    assert.deepEqual(restored.cardPoints, legacyPoints);
+    assert.equal(isHardCard(restored, 'OR'), true);
+    assert.equal(isHardCard(restored, 'CA'), false);
+  }
+  const fallback = fixture({
+    scoring: 'base-v2',
+    cardPoints: Object.fromEntries(deal.map((code) => [code, 3])),
+  });
+  assert.equal(validGame(fallback), true);
+  assert.equal(isHardCard(fallback, 'OR'), false);
+  assert.equal(validGame({ ...fallback, scoring: SCORING_VERSION }), false);
+  assert.equal(validGame({ ...fallback, cardPoints: { ...fallback.cardPoints, OR: 4 } }), false);
+  assert.equal(isHardCard(fixture(), 'OR'), true);
+  assert.equal(isHardCard(fixture(), 'CA'), false);
 });
 
 test('optional exact winning-route counts validate and survive local storage', () => {

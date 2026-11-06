@@ -2,6 +2,7 @@ import { animate, stagger } from 'motion';
 import { STATES } from './data.js';
 import { layoutChain } from './chain.js';
 import { pointsFor } from './game.js';
+import { isHardCard } from './scoring.js';
 
 export function createArena({ map, onPlay, reducedMotion }) {
   const layer = document.createElement('div');
@@ -231,7 +232,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
     }
   }
 
-  function sync(route, isEnded, arrival, zeroPointCards = [], dealPoints) {
+  function sync(route, isEnded, arrival, zeroPointCards = [], dealPoints, scoring) {
     currentRoute = route;
     ended = isEnded;
     zeroCards = zeroPointCards;
@@ -269,13 +270,14 @@ export function createArena({ map, onPlay, reducedMotion }) {
       }
       card.disabled = ended;
       const value = pointsFor(code, zeroCards, cardPoints);
-      card.classList.toggle('hard', Boolean(cardPoints && cardPoints[code] === 3));
+      const hard = isHardCard({ cardPoints, scoring }, code);
+      card.classList.toggle('hard', hard);
       card.querySelector('small').textContent = `${value} PT${value === 1 ? '' : 'S'}`;
       card.classList.toggle('chain-tip', index === route.length - 1);
       card.style.zIndex = index + 1;
       card.setAttribute(
         'aria-label',
-        `${STATES[code].name}, ${value} points${cardPoints?.[code] === 3 ? ', bonus card' : ''}, stop ${index + 1}, ${index === 0 ? 'starting coastal card, locked' : 'remove this card and following cards'}`,
+        `${STATES[code].name}, ${value} points${hard ? ', bonus card' : ''}, stop ${index + 1}, ${index === 0 ? 'starting coastal card, locked' : 'remove this card and following cards'}`,
       );
     });
     positionCards();

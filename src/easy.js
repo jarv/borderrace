@@ -1,7 +1,9 @@
 import { CODES, STATES, EAST, WEST, coast } from './data.js';
 
 export const isEasy = (game) => game.difficulty === 'easy';
-export const difficultyOf = (game) => (isEasy(game) ? 'easy' : 'challenging');
+export const isChoiceMode = (game) => ['easy', 'medium'].includes(game.difficulty);
+export const difficultyOf = (game) => (isChoiceMode(game) ? game.difficulty : 'challenging');
+export const handSize = (game) => (game.difficulty === 'medium' ? 6 : 4);
 
 function shuffle(values, random) {
   const result = [...values];
@@ -34,12 +36,16 @@ export function easyCandidates(route) {
   });
 }
 
-export function easyHand(route, random = Math.random) {
+export function easyHand(route, random = Math.random, size = 4) {
   if (!route.length) {
     const west = shuffle(WEST, random);
     const east = shuffle(EAST, random);
     return shuffle(
-      [west[0], east[0], ...shuffle([...west.slice(1), ...east.slice(1)], random).slice(0, 2)],
+      [
+        west[0],
+        east[0],
+        ...shuffle([...west.slice(1), ...east.slice(1)], random).slice(0, size - 2),
+      ],
       random,
     );
   }
@@ -55,20 +61,20 @@ export function easyHand(route, random = Math.random) {
       ...valid,
       ...shuffle(invalid, random)
         .concat(shuffle(fallback, random))
-        .slice(0, 4 - valid.length),
+        .slice(0, size - valid.length),
     ],
     random,
   );
 }
 
-export function validEasyHand(route, hand) {
+export function validEasyHand(route, hand, size = 4) {
   if (!Array.isArray(hand)) return false;
   const candidates = easyCandidates(route);
   if (!candidates.length)
     return (
       hand.length === 0 && Boolean(coast(route.at(-1))) && coast(route.at(-1)) !== coast(route[0])
     );
-  if (hand.length !== 4 || new Set(hand).size !== 4 || !hand.every((code) => STATES[code]))
+  if (hand.length !== size || new Set(hand).size !== size || !hand.every((code) => STATES[code]))
     return false;
   if (!route.length)
     return (

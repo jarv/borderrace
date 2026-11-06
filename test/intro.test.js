@@ -33,3 +33,16 @@ test('older saves and scoring fallbacks do not invent a route count', () => {
   );
   assert.equal(message.includes('winning routes'), false);
 });
+
+test('intro reflects Easy, Medium, modern Challenging and frozen legacy values', () => {
+  assert.match(introMessage({ difficulty: 'easy' }), /Each card: 1 pt\./);
+  assert.match(introMessage({ difficulty: 'medium' }), /Each card: 2 pts\./);
+  assert.match(
+    introMessage({ scoring: 'hard-v3' }),
+    /Cards are worth 3 points; gold cards ★ are harder to use and worth 4 points\./,
+  );
+  assert.match(
+    introMessage({ scoring: 'hard-v2' }),
+    /Gold cards ★ are harder to use and worth 3 points\./,
+  );
+});

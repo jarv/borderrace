@@ -1,6 +1,6 @@
 import { createDeal } from './game.js';
 import { countWinningRoutes } from './route-count.js';
-import { pointsFromCounts } from './scoring.js';
+import { pointsFromCounts, BONUS_POINTS } from './scoring.js';
 
 // Only accept complete, solvable analyses containing a genuinely usable gold
 // card. Bound retries as well as worker time; never relax the rarity definition.
@@ -21,7 +21,7 @@ export function prepareGoldDeal(
     if (!counts.complete)
       return { complete: false, reason: counts.reason, attempts: attempt, visits };
     const cardPoints = pointsFromCounts(deal, counts);
-    if (Object.values(cardPoints).includes(3))
+    if (Object.values(cardPoints).includes(BONUS_POINTS))
       return {
         complete: true,
         deal,

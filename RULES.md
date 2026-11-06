@@ -2,9 +2,12 @@
 
 Connect the Atlantic and Pacific coasts using bordering state cards.
 
+Cards placed on the map use 2px blue borders.
+Gold hard cards retain their gold borders and stars in both themes.
+
 ## Difficulty
 
-**Easy** is the default. A labeled toggle switches between Easy and
+**Easy** is the default. Three radio-style buttons select **Easy**, **Medium**, or
 **Challenging**, immediately starting a new game and remembering the choice.
 Existing games without a difficulty remain Challenging.
 
@@ -28,8 +31,17 @@ are unchanged. Click later map-chain cards to undo; the first card remains locke
 Undo prepares appropriate choices for the restored route. Reaching the opposite
 coast automatically wins.
 
-Both difficulties use decorative state-seal backgrounds on hand cards: 120px
-images in Easy at 12% opacity and 60px images in Challenging at 10%. Challenging
+**Medium** follows Easy's rules with six choices instead of four and **2 points
+per card**. Its six starting choices are all coastal and cover both coasts.
+Later hands contain two winning continuations and four invalid choices (one valid
+and five invalid when required). Invalid picks deduct 2 points; hints still zero
+the next played card permanently. Medium uses the same deadline, undo rules,
+full-name cards, and simplified win screen as Easy.
+Medium's desktop hand uses three rows of two cards; phone hands keep two rows
+of three cards.
+
+All difficulties use decorative state-seal backgrounds on hand cards: 120px
+images in Easy/Medium at 12% opacity and 60px images in Challenging at 10%. Challenging
 keeps its centered abbreviations, points, and gold markers above the seals.
 The gold star sits in the header so it does not shift the abbreviation off-center.
 Hand cards do not show a COAST label; coastal identity remains in accessible names
@@ -37,8 +49,8 @@ and Challenging's blue coastal-card highlight.
 Images are local, never block play, and do not appear on compact map/result cards.
 
 Personal top-ten scores, counts, and bests are separate by difficulty; Clear
-resets both. Both difficulties contribute to the existing daily leaderboard.
-Easy results show the actual route, points, completion time, and personal best
+resets all three. All difficulties contribute to the existing daily leaderboard.
+Easy/Medium results show the actual route, points, completion time, and personal best
 time, announcing a strictly faster time. No longest/most-points reference is
 computed or shown. The win dialog also offers “Finding this too easy? Try
 Challenging mode!” with a toggle that immediately starts Challenging and saves
@@ -46,7 +58,7 @@ that preference.
 
 The detailed deal, gold-card, and reference-solution rules below describe
 Challenging; shared rules (borders, penalties, deadline, undo, and effects) also
-apply to Easy.
+apply to Easy and Medium.
 
 ## Playing
 
@@ -134,6 +146,9 @@ not the last card or the zig-zag card positions. It makes that state pulse dark 
 touches the state's near edge. Once it passes the far edge, the game ends:
 **Try again** appears for one second, then a new game begins automatically. A
 timeout counts as one loss and does not reveal an assisted solution.
+The message uses larger lettering and a black outline, without text shadows,
+in both themes. This styling does not extend the feedback delay
+or animate when reduced motion is enabled.
 
 Undo never rewinds the line, refunds acceleration, or changes its initial direction.
 The starting card cannot be removed. Older saves with an empty route after the
@@ -153,7 +168,7 @@ There is no numeric clock and time does not affect points or score rankings.
 
 ## Points and records
 
-Every card starts at **1 point**. A **hard card** earns a **+2 bonus**, for **3 points
+Every new Challenging card starts at **3 points**. A **hard card** earns a **+1 bonus**, for **4 points
 total**, and is marked with a gold border and gold star (★) in the hand, map chain,
 and results. Hard cards keep their ordinary card
 colors everywhere: coastal hand cards keep their coastal blue fill, other hand cards stay blue,
@@ -161,24 +176,27 @@ and map/result cards keep their existing backgrounds and text colors.
 
 Hard cards occur in **more than zero but fewer than 20%** of this deal's winning
 routes. Exactly 20% is not hard; cards that cannot occur in a winning route stay
-at 1 point. Count all legal ordered winning routes from either coast, stopping at
+at 3 points. Count all legal ordered winning routes from either coast, stopping at
 the first opposite coast. Reversed routes count separately when both are legal.
 
 Values are calculated exactly in a worker **before play**, then frozen for that
 game, including undo, hints, and reloads. If analysis fails or exceeds its work
-budget, a notice is shown and all cards are frozen at 1 point. Partial counts
+budget, a notice is shown and all cards are frozen at 3 points. Partial counts
 never grant bonuses. Existing games retain their original point values, and
 previous score records are not recalculated.
 New successfully analyzed games always contain at least one gold card. During
 preparation, hands without gold are re-dealt, up to 128 candidates within the
-worker's two-second computation budget. The announced all-1-point fallback is
+worker's two-second computation budget. The announced all-3-point fallback is
 the exception if a qualifying hand cannot be prepared within those limits.
 
 The score is the sum of the route's assigned values, excluding zero-point cards.
 Hints zero the whole card, including any hard-card bonus.
-Each invalid card selection subtracts the card's assigned value (1 or 3), including
+Each invalid card selection subtracts the card's assigned value (3 or 4 in new Challenging games), including
 invalid first cards and repeated mistakes. Hint penalties do not reduce this cost.
 Undoing cards is free and does not erase mistake deductions. Scores may be negative.
+Older saved Challenging games keep their frozen 1/3-point or original legacy
+values; they are never re-scored. New scoring is versioned as `hard-v3`, with
+`base-v2` for the three-point fallback. Medium uses `choice-v1`; Easy stays unchanged.
 Mistake deductions persist across reloads and reset with New game. Your final score
 and personal records include them; example solution scores do not include mistakes.
 

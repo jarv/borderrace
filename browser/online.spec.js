@@ -87,7 +87,7 @@ async function setup(
     });
   });
   await page.goto('/');
-  await expect(page.locator('.state-card')).toHaveCount(game?.difficulty === 'easy' ? 4 : 24);
+  await expect(page.locator('.state-card')).toHaveCount(game?.hand?.length ?? 24);
 }
 
 test('Easy wins use the existing shared leaderboard and submit their one-point total once', async ({
@@ -115,6 +115,35 @@ test('Easy wins use the existing shared leaderboard and submit their one-point t
   await page.reload();
   await expect(page.locator('#result-dialog')).toBeVisible();
   expect(submissions.length).toBe(1);
+});
+
+test('Medium wins submit their two-point total to the existing daily leaderboard', async ({
+  page,
+}) => {
+  const gameRoute = route.slice(0, -1);
+  const hand = easyHand(gameRoute, Math.random, 6);
+  if (!hand.includes('NC')) hand[hand.findIndex((code) => canAdd(CODES, gameRoute, code))] = 'NC';
+  const submissions = [];
+  await setup(page, {
+    loggedIn: true,
+    game: {
+      ...newEasyGame(Math.random, 'medium'),
+      id: 'medium-online-win',
+      route: gameRoute,
+      hand,
+    },
+    rpc(name, request) {
+      if (name === 'submit_score') submissions.push(request.postDataJSON());
+    },
+  });
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
+  await page.locator('[data-card="NC"]').click();
+  await expect.poll(() => submissions.length).toBe(1);
+  expect(submissions[0]).toEqual({
+    p_game_id: 'medium-online-win',
+    p_points: 14,
+    p_rules_version: 'wins-v1',
+  });
 });
 
 async function openBoard(page) {

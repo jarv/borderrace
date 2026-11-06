@@ -1,8 +1,8 @@
 const formatCount = new Intl.NumberFormat('en-US');
 
 export function introMessage(game) {
-  if (game.difficulty === 'easy')
-    return 'Choose a coastal state. Follow bordering states to the opposite coast. Each card: 1 pt.';
+  if (['easy', 'medium'].includes(game.difficulty))
+    return `Choose a coastal state. Follow bordering states to the opposite coast. Each card: ${game.difficulty === 'medium' ? '2 pts' : '1 pt'}.`;
   const count = game.winningRoutes === undefined ? null : BigInt(game.winningRoutes);
   let routes = '';
   if (count !== null) {
@@ -16,5 +16,5 @@ export function introMessage(game) {
       routes = `There are more than ${formatCount.format(minimum)} winning routes. `;
     }
   }
-  return `Select cards to cross the map using connecting states. ${routes}Start with a coastal card. Gold cards ★ are harder to use and worth 3 points.`;
+  return `Select cards to cross the map using connecting states. ${routes}Start with a coastal card. ${['hard-v3', 'base-v2'].includes(game.scoring) ? 'Cards are worth 3 points; gold cards ★ are harder to use and worth 4 points.' : 'Gold cards ★ are harder to use and worth 3 points.'}`;
 }

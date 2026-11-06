@@ -81,23 +81,53 @@
 .difficulty-control {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 12px;
+  gap: 3px;
+  padding: 0 8px;
+  margin: 0;
+  border: 0;
+  min-width: 0;
   min-height: 44px;
   flex-shrink: 0;
   color: var(--muted);
   font-size: 12px;
-  cursor: pointer;
   width: fit-content;
 }
-.difficulty-control > span:last-child,
-.easy .difficulty-control > span:first-child {
-  color: var(--ink);
+.difficulty-control label {
+  position: relative;
+  cursor: pointer;
+}
+.difficulty-control input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.difficulty-control span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 700;
 }
-.easy .difficulty-control > span:last-child {
-  color: var(--muted);
-  font-weight: 400;
+.difficulty-control input:checked + span {
+  color: #fff;
+  background: var(--button-blue);
+  border-color: var(--line);
+}
+.difficulty-control input:focus-visible + span {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+.difficulty-control input:disabled + span {
+  opacity: 0.65;
 }
 .try-challenging {
   display: flex;
@@ -108,8 +138,7 @@
   margin: 16px 0;
   cursor: pointer;
 }
-.try-challenging input,
-#difficulty {
+.try-challenging input {
   appearance: none;
   flex: 0 0 48px;
   width: 48px;
@@ -119,12 +148,10 @@
   background: radial-gradient(circle at 12px 50%, var(--ink) 8px, transparent 9px) #26334c;
   cursor: pointer;
 }
-.try-challenging input:checked,
-#difficulty:checked {
+.try-challenging input:checked {
   background: radial-gradient(circle at 32px 50%, #101320 8px, transparent 9px) var(--blue);
 }
-.try-challenging input:focus-visible,
-#difficulty:focus-visible {
+.try-challenging input:focus-visible {
   outline: 3px solid var(--cyan);
   outline-offset: 3px;
 }
@@ -425,9 +452,16 @@
   place-items: center;
   pointer-events: none;
   color: #ffb1b8;
-  font-size: clamp(28px, 5vw, 54px);
+  font-size: clamp(36px, 6vw, 72px);
   font-weight: 900;
-  background: #080e1d80;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-align: center;
+  -webkit-text-stroke: 2px #000;
+  paint-order: stroke fill;
+  text-shadow: none;
+  padding: 12px;
+  background: #0008;
 }
 #map-chain {
   position: absolute;
@@ -453,7 +487,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid #96e9eb;
+  border: 2px solid #96e9eb;
   border-radius: 6px;
   background: linear-gradient(145deg, rgb(26 54 75 / 55%), rgb(17 39 59 / 45%));
   color: #edffff;
@@ -1106,6 +1140,22 @@
 @media (max-width: 360px) {
   .easy .card-name {
     font-size: 16px;
+  }
+}
+.medium .cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (min-width: 761px) and (pointer: fine) {
+  .medium .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.medium .card-name {
+  font-size: 18px;
+}
+@media (max-width: 760px) {
+  .medium .card-name {
+    font-size: 14px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

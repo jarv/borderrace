@@ -100,9 +100,6 @@ body {
 .difficulty-control {
   padding-inline: 12px;
 }
-#difficulty {
-  margin: 0;
-}
 .text-button,
 dialog p,
 .guide,
@@ -279,12 +276,10 @@ dialog::backdrop {
   color: #6d4b16;
   background: #fff1d6;
 }
-#difficulty:checked,
 .try-challenging input:checked {
   background: radial-gradient(circle at 32px 50%, #fffefa 8px, transparent 9px) var(--button-blue);
   border-color: var(--line);
 }
-:root[data-theme='light'] #difficulty:not(:checked),
 :root[data-theme='light'] .try-challenging input:not(:checked) {
   background: radial-gradient(circle at 12px 50%, #203653 8px, transparent 9px) #dce4ef;
   border-color: #8398b4;

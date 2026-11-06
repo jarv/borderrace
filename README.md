@@ -1,11 +1,14 @@
 # Border Race
 
+Map-route cards use 2px blue borders in both themes; gold bonus cards keep their gold borders and stars.
+
 A frontend-only geography game. Connect the Atlantic and Pacific coasts with
-bordering states. Easy (the default) offers four larger cards at a time;
-Challenging keeps the original 24-card deal and gold bonuses. The difficulty
-toggle starts a new game and remembers your choice. Easy selection cards show
+bordering states. Easy (the default) offers four larger cards at a time at 1 point
+each; Medium offers six at 2 points each. Challenging keeps the 24-card deal,
+with 3-point ordinary cards and 4-point gold cards. Three radio-style difficulty
+buttons start a new game and remember your choice. Easy/Medium selection cards show
 centered full state names without abbreviations, over faded state-seal backgrounds.
-State seals are bundled locally and requested only for displayed cards: Easy uses
+State seals are bundled locally and requested only for displayed cards: Easy/Medium use
 the 120px images, and Challenging uses the smaller 60px images at a fainter opacity.
 Challenging abbreviations are centered over their seals; gold stars sit in the
 card header. Coastal cards use their blue highlight rather than a COAST label.
@@ -32,11 +35,15 @@ credential handling, database tests, and deployment. Unconfigured builds stay lo
 Easy starts with four coastal choices covering both coasts. Later hands offer two
 valid continuations and two invalid states (one valid and three invalid when
 necessary). Valid choices always retain a winning continuation without repeating
-states. Every card is worth 1 point before the shared hint/mistake penalties;
-both difficulties use the same moving deadline and daily leaderboard. Personal
-scores and best times are separate by difficulty. Easy results show your route,
+states. Easy cards are worth 1 point. Medium uses the same rules with six coastal
+starts, then two valid and four invalid choices (or one/five), worth 2 points each.
+Medium uses three rows of two cards on desktop and two rows of three on phones.
+All difficulties use the same moving deadline and daily leaderboard. Personal
+scores and best times are separate by difficulty. Easy/Medium results show your route,
 points, time, and best time without a reference solution, plus a toggle to try
-Challenging immediately. Clear resets personal records for both difficulties.
+Challenging immediately. Clear resets personal records for all three difficulties.
+Existing saved games retain their frozen point values; new Challenging scoring
+does not re-score old deals or records.
 
 ## Play locally
 
@@ -152,7 +159,7 @@ Messages remain above the cards.
 ## Rules and local data
 
 See [RULES.md](RULES.md) for complete rules. Every deal is
-solvable from every dealt coastal starting card, including all-1-point fallback
+solvable from every dealt coastal starting card, including all-3-point fallback
 games. Later choices can still lead to dead ends requiring backtracking. Existing
 saves keep their original deals. Bright blue shoreline edges mark the Atlantic and Pacific coastal
 states. Played states highlight on an unlabeled map beneath translucent cards
@@ -163,7 +170,9 @@ or right edge for an Atlantic start. Its base crossing time is 100 seconds. Vali
 additions accelerate it by 8% of base speed; Hint and invalid cards each add 35%,
 capped at 3×. Point penalties remain unchanged. The
 furthest-forward state pulses dark red as the line reaches it. Once overtaken,
-**Try again** appears for one second before a fresh game. The shaded sweep follows
+**Try again** appears for one second before a fresh game, using bold outlined
+lettering with a black stroke and no text shadow in both themes. This static
+feedback also honors reduced motion. The shaded sweep follows
 geographic states, not the zig-zag cards. It pauses while hidden, persists progress
 and pace across reloads, and never rewinds on undo. Reduced motion keeps this
 functional deadline but uses a solid red warning instead of pulsing. The line
@@ -188,12 +197,12 @@ reduced motion skips the animation delay. The result is saved immediately.
 
 Bonus cards use a gold border and gold star (★) in the hand, map chain, and results
 without changing their original backgrounds or text. The starting prompt explains:
-“Gold cards ★ are harder to use and worth 3 points.”
-Every new-game card is worth **1 point**, with a **+2 bonus** (3 total) for gold
+“Cards are worth 3 points; gold cards ★ are harder to use and worth 4 points.”
+Every new Challenging card is worth **3 points**, with a **+1 bonus** (4 total) for gold
 hard cards. A hard card appears in more than zero but fewer than 20% of its deal's
 winning routes. Values are calculated exactly before play, with a loading spinner,
 and remain fixed across undo and reloads. If analysis is unavailable or exceeds
-its budget, a notice appears and the game uses fixed 1-point cards instead.
+its budget, a notice appears and the game uses fixed 3-point cards instead.
 Successful analysis re-deals hands without gold so every new bonus-scored game
 has at least one gold card. Preparation is bounded to 128 candidates and two
 seconds; existing games keep their saved values.

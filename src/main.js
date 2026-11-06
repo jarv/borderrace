@@ -5,7 +5,7 @@ import { STATES, coast } from './data.js';
 import { createArena } from './arena.js';
 import { createAudio } from './audio.js';
 import { introMessage } from './intro.js';
-import { isEasy, difficultyOf, easyCandidates } from './easy.js';
+import { isChoiceMode, difficultyOf, easyCandidates, handSize } from './easy.js';
 import { createCoastalIntro } from './coastal-intro.js';
 import { createSweepView } from './sweep-view.js';
 import { restoreSweep, accelerateSweep, PENALTY_ACCELERATION } from './sweep.js';
@@ -23,7 +23,7 @@ import {
   getHint,
   validGame,
 } from './game.js';
-import { SCORING_VERSION } from './scoring.js';
+import { SCORING_VERSION, BASE_POINTS, isHardCard } from './scoring.js';
 import { loadSave, writeSave, recordResult } from './storage.js';
 import { personalBests, newRecordFlags, formatPlayTime } from './personal-bests.js';
 import './style.css';
@@ -40,7 +40,9 @@ try {
   /* Play in memory when storage is blocked. */
 }
 let save = loadSave(storage);
-let game = save.game ?? (save.difficulty === 'challenging' ? newGame() : newEasyGame());
+let game =
+  save.game ??
+  (save.difficulty === 'challenging' ? newGame() : newEasyGame(Math.random, save.difficulty));
 if (save.game) save = { ...save, difficulty: difficultyOf(game) };
 game = { ...game, sweep: restoreSweep(game) };
 if (game.playSeconds === undefined && !game.route.length && !game.sweep.origin)
@@ -224,10 +226,10 @@ function fresh() {
   scoringWorker?.terminate();
   scoringWorker = null;
   hint = null;
-  game = save.difficulty === 'challenging' ? newGame() : newEasyGame();
+  game = save.difficulty === 'challenging' ? newGame() : newEasyGame(Math.random, save.difficulty);
   persist();
   render();
-  if (isEasy(game)) {
+  if (isChoiceMode(game)) {
     render(true);
     audio.play('deal');
     message(introMessage(game));
@@ -253,13 +255,13 @@ function prepareScoring(dealAnimation = false) {
       ? candidate
       : {
           ...game,
-          scoring: 'base-v1',
-          cardPoints: Object.fromEntries(game.deal.map((code) => [code, 1])),
+          scoring: 'base-v2',
+          cardPoints: Object.fromEntries(game.deal.map((code) => [code, BASE_POINTS])),
         };
     persist();
     render(dealAnimation);
     if (dealAnimation) audio.play('deal');
-    message(exact ? introMessage(game) : 'Bonus unavailable. All cards: 1 pt.');
+    message(exact ? introMessage(game) : 'Bonus unavailable. All cards: 3 pts.');
   };
   message('Preparing cards…');
   try {
@@ -280,7 +282,7 @@ function prepareScoring(dealAnimation = false) {
 
 $('#new-game').addEventListener('click', () => fresh());
 $('#difficulty').addEventListener('change', (event) => {
-  save = { ...save, difficulty: event.target.checked ? 'challenging' : 'easy' };
+  save = { ...save, difficulty: event.target.value };
   fresh();
 });
 $('#result-challenging').addEventListener('change', () => {
@@ -300,7 +302,7 @@ $('#play-again').addEventListener('click', () => {
 function play(code, fromHand = false) {
   sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
-  if (game.route.includes(code) && !(isEasy(game) && fromHand)) {
+  if (game.route.includes(code) && !(isChoiceMode(game) && fromHand)) {
     const next = undoCard(game, code);
     if (next === game) {
       message('Starting coastal card is locked.');
@@ -315,7 +317,7 @@ function play(code, fromHand = false) {
     return;
   }
   if (
-    (isEasy(game) && !game.hand.includes(code)) ||
+    (isChoiceMode(game) && !game.hand.includes(code)) ||
     !canAdd(game.deal, game.route, code, game.sweep?.origin)
   ) {
     game = penalizeInvalidCard(game, code);
@@ -399,7 +401,7 @@ function timeout() {
 $('#hint-button').addEventListener('click', () => {
   sweepView.checkpoint();
   if (game.cardPoints === null || ['won', 'lost'].includes(game.status)) return;
-  hint = isEasy(game)
+  hint = isChoiceMode(game)
     ? { type: 'play', code: game.hand.find((code) => easyCandidates(game.route).includes(code)) }
     : getHint(game.deal, game.route, game.sweep?.origin);
   if (!hint || hint.type === 'complete') {
@@ -421,11 +423,18 @@ function render(dealAnimation = false, arrival) {
   const ended = ['won', 'lost'].includes(game.status);
   const pending = game.cardPoints === null;
   const lost = game.status === 'lost';
-  const easy = isEasy(game);
+  const easy = isChoiceMode(game); // Shared large-card layout for Easy and Medium.
   $('.game-shell').classList.toggle('easy', easy);
-  $('#difficulty').checked = !isEasy(game);
+  $('.game-shell').classList.toggle('medium', game.difficulty === 'medium');
+  $(`#difficulty-${difficultyOf(game)}`).checked = true;
   $('#difficulty').disabled = lost;
-  $('#hand-count').textContent = easy ? '4 STATES' : '24 STATES';
+  $('#hand-count').textContent = easy ? `${handSize(game)} STATES` : '24 STATES';
+  $('#help-choice-count').textContent = handSize(game);
+  $('#help-invalid-count').textContent = handSize(game) - 2;
+  $('#help-choice-points').textContent =
+    game.difficulty === 'medium'
+      ? 'Each card earns 2 points. Invalid picks deduct 2 points and keep the same hand.'
+      : 'Each card earns 1 point. Invalid picks deduct 1 point and keep the same hand.';
   $('#help-easy').hidden = !easy;
   $('#help-challenging').hidden = easy;
   $('.game-shell').classList.toggle('trip-ended', ended);
@@ -439,7 +448,7 @@ function render(dealAnimation = false, arrival) {
     .map((code) => {
       const state = STATES[code];
       const placed = game.route.includes(code);
-      const hard = game.cardPoints?.[code] === 3;
+      const hard = isHardCard(game, code);
       const value = pending
         ? '…'
         : game.hintPending && !placed
@@ -476,7 +485,7 @@ function render(dealAnimation = false, arrival) {
   ])
     $(id).disabled = lost;
   $('#account-controls').inert = lost;
-  arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints);
+  arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints, game.scoring);
   if (dealAnimation) arena.deal();
   coastalIntro.sync(easy ? null : game);
   sweepView.sync();
@@ -486,7 +495,7 @@ function showResult() {
   if (game.status !== 'won') return;
   clearTimeout(resultTimeout);
   $('#result-title').textContent = 'You win';
-  $('#try-challenging').hidden = !isEasy(game);
+  $('#try-challenging').hidden = !isChoiceMode(game);
   $('#result-challenging').checked = false;
   $('#result-route').hidden = false;
   $('#result-route').innerHTML = solutionCards(
@@ -496,12 +505,12 @@ function showResult() {
     game.playSeconds,
   );
   const best = personalBests(save, difficultyOf(game));
-  $('#best-points-stat').hidden = isEasy(game);
+  $('#best-points-stat').hidden = isChoiceMode(game);
   $('#best-time').textContent = formatPlayTime(best.playSeconds);
   $('#best-points').textContent = best.points === null ? '—' : `${best.points} pts`;
   const labels = [
     recordFlags.time ? 'best time' : '',
-    !isEasy(game) && recordFlags.points ? 'most points' : '',
+    !isChoiceMode(game) && recordFlags.points ? 'most points' : '',
   ].filter(Boolean);
   $('#record-message').hidden = !labels.length;
   $('#record-message').textContent = labels.length
@@ -532,11 +541,11 @@ reducedMotion.addEventListener('change', () => {
 
 function solutionCards(path, label, mistakePoints = 0, playSeconds) {
   const time = playSeconds === undefined ? '' : ` · ${formatPlayTime(playSeconds)}`;
-  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts${time}</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${game.cardPoints?.[code] === 3 ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}${game.cardPoints?.[code] === 3 ? ', bonus card' : ''}">${code}${game.cardPoints?.[code] === 3 ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</div></li>`).join('')}</ol></section>`;
+  return `<section class="solution-section"><h3>${label} <span>${score(path, game.zeroCards, mistakePoints, game.cardPoints)} pts${time}</span></h3><ol class="solution-chain" aria-label="${label}">${path.map((code) => `<li><div class="solution-card ${isHardCard(game, code) ? 'hard' : ''}" data-solution-code="${code}" aria-label="${STATES[code].name}${isHardCard(game, code) ? ', bonus card' : ''}">${code}${isHardCard(game, code) ? '<span class="bonus-star" aria-hidden="true">★</span>' : ''}</div></li>`).join('')}</ol></section>`;
 }
 
 function showSolutions() {
-  if (isEasy(game)) {
+  if (isChoiceMode(game)) {
     $('#solutions').innerHTML = '';
     return;
   }
@@ -583,13 +592,15 @@ function showSolutions() {
 }
 
 function showScores() {
-  const played = isEasy(game) ? save.easyPlayed : save.played;
-  const wins = isEasy(game) ? save.easyWins : save.wins;
-  $('#records-title').textContent = `Your scores · ${isEasy(game) ? 'Easy' : 'Challenging'}`;
+  const prefix = isChoiceMode(game) ? difficultyOf(game) : '';
+  const played = prefix ? save[`${prefix}Played`] : save.played;
+  const wins = prefix ? save[`${prefix}Wins`] : save.wins;
+  $('#records-title').textContent =
+    `Your scores · ${prefix ? prefix[0].toUpperCase() + prefix.slice(1) : 'Challenging'}`;
   $('#record-summary').textContent = played
     ? `${wins} wins · ${played} game${played === 1 ? '' : 's'}`
     : 'No games yet.';
-  const records = isEasy(game) ? save.easyRecords : save.records;
+  const records = prefix ? save[`${prefix}Records`] : save.records;
   $('#record-list').innerHTML =
     `<section class="record-section">${records.length ? `<table><caption class="sr-only">Personal bests</caption><thead><tr><th>PATH</th><th>POINTS</th></tr></thead><tbody>${records.map((r) => `<tr><td class="record-path">${r.route ? r.route.join(' → ') : '—'}</td><td>${r.points} pts</td></tr>`).join('')}</tbody></table>` : '<p class="fine-print">No scores yet.</p>'}</section>`;
   openDialog('#records-dialog');
@@ -607,6 +618,10 @@ $('#clear-scores').addEventListener('click', () => {
     easyWins: 0,
     easyPlayed: 0,
     easyPersonalBests: { points: null, playSeconds: null },
+    mediumRecords: [],
+    mediumWins: 0,
+    mediumPlayed: 0,
+    mediumPersonalBests: { points: null, playSeconds: null },
   };
   recordFlags = { time: false, points: false };
   stopRecordCelebration();

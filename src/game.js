@@ -1,6 +1,6 @@
 import { CODES, STATES, EAST, WEST, coast } from './data.js';
 import { SCORING_VERSION } from './scoring.js';
-import { isEasy, easyHand, validEasyHand } from './easy.js';
+import { isChoiceMode, easyHand, validEasyHand, handSize } from './easy.js';
 import {
   newSweep,
   restoreSweep,
@@ -247,7 +247,7 @@ export function addCard(game, code) {
   if (
     game.status !== 'playing' ||
     game.cardPoints === null ||
-    (isEasy(game) && !game.hand.includes(code)) ||
+    (isChoiceMode(game) && !game.hand.includes(code)) ||
     !canAdd(game.deal, game.route, code, game.sweep?.origin)
   )
     return game;
@@ -256,7 +256,9 @@ export function addCard(game, code) {
     ...game,
     sweep: sweep.origin ? accelerateSweep(sweep, CARD_ACCELERATION) : { ...sweep, origin: code },
     route: [...game.route, code],
-    ...(isEasy(game) ? { hand: easyHand([...game.route, code]) } : {}),
+    ...(isChoiceMode(game)
+      ? { hand: easyHand([...game.route, code], Math.random, handSize(game)) }
+      : {}),
     hintPending: false,
     zeroCards:
       game.hintPending && !game.zeroCards.includes(code)
@@ -270,7 +272,7 @@ export function penalizeInvalidCard(game, code) {
     game.status !== 'playing' ||
     game.cardPoints === null ||
     !game.deal.includes(code) ||
-    (isEasy(game) ? !game.hand.includes(code) : game.route.includes(code)) ||
+    (isChoiceMode(game) ? !game.hand.includes(code) : game.route.includes(code)) ||
     canAdd(game.deal, game.route, code, game.sweep?.origin)
   )
     return game;
@@ -297,14 +299,14 @@ export function newGame(random = Math.random) {
   };
 }
 
-export function newEasyGame(random = Math.random) {
+export function newEasyGame(random = Math.random, difficulty = 'easy') {
   return {
     id: crypto.randomUUID(),
-    difficulty: 'easy',
+    difficulty,
     deal: [...CODES],
-    hand: easyHand([], random),
-    scoring: 'base-v1',
-    cardPoints: Object.fromEntries(CODES.map((code) => [code, 1])),
+    hand: easyHand([], random, difficulty === 'medium' ? 6 : 4),
+    scoring: difficulty === 'medium' ? 'choice-v1' : 'base-v1',
+    cardPoints: Object.fromEntries(CODES.map((code) => [code, difficulty === 'medium' ? 2 : 1])),
     route: [],
     zeroCards: [],
     hintPending: false,
@@ -318,16 +320,21 @@ export function newEasyGame(random = Math.random) {
 export function undoCard(game, code) {
   const route = backtrack(game.route, code);
   if (route === game.route) return game;
-  return { ...game, route, ...(isEasy(game) ? { hand: easyHand(route) } : {}) };
+  return {
+    ...game,
+    route,
+    ...(isChoiceMode(game) ? { hand: easyHand(route, Math.random, handSize(game)) } : {}),
+  };
 }
 
 export function validGame(game) {
   if (
     !game ||
     typeof game.id !== 'string' ||
-    (game.difficulty !== undefined && !['easy', 'challenging'].includes(game.difficulty)) ||
+    (game.difficulty !== undefined &&
+      !['easy', 'medium', 'challenging'].includes(game.difficulty)) ||
     !Array.isArray(game.deal) ||
-    game.deal.length !== (isEasy(game) ? 48 : 24) ||
+    game.deal.length !== (isChoiceMode(game) ? 48 : 24) ||
     new Set(game.deal).size !== game.deal.length ||
     !game.deal.every((code) => STATES[code]) ||
     !findSolution(game.deal) ||
@@ -341,8 +348,13 @@ export function validGame(game) {
     !['playing', 'won', 'lost'].includes(game.status)
   )
     return false;
-  if (isEasy(game) && (game.scoring !== 'base-v1' || !validEasyHand(game.route, game.hand)))
+  if (
+    isChoiceMode(game) &&
+    (game.scoring !== (game.difficulty === 'medium' ? 'choice-v1' : 'base-v1') ||
+      !validEasyHand(game.route, game.hand, handSize(game)))
+  )
     return false;
+  if (game.scoring === 'choice-v1' && game.difficulty !== 'medium') return false;
   if (game.sweep !== undefined && !validSweep(game.sweep, game.deal)) return false;
   if (
     game.playSeconds !== undefined &&
@@ -363,10 +375,15 @@ export function validGame(game) {
     return false;
   if (game.scoring === undefined) {
     if (game.cardPoints !== undefined) return false;
-  } else if (!['hard-v1', SCORING_VERSION, 'base-v1'].includes(game.scoring)) return false;
+  } else if (
+    !['hard-v1', 'hard-v2', SCORING_VERSION, 'base-v1', 'base-v2', 'choice-v1'].includes(
+      game.scoring,
+    )
+  )
+    return false;
   else if (game.cardPoints === null) {
     if (
-      !['hard-v1', SCORING_VERSION].includes(game.scoring) ||
+      !['hard-v1', 'hard-v2', SCORING_VERSION].includes(game.scoring) ||
       game.route.length ||
       game.zeroCards.length ||
       game.hintPending ||
@@ -375,13 +392,31 @@ export function validGame(game) {
       game.status !== 'playing'
     )
       return false;
-  } else if (!validCardPoints(game.deal, game.cardPoints, game.scoring === 'base-v1')) return false;
-  else if (game.scoring === SCORING_VERSION && !Object.values(game.cardPoints).includes(3))
+  } else if (
+    !validCardPoints(
+      game.deal,
+      game.cardPoints,
+      game.scoring.startsWith('base-') || game.scoring === 'choice-v1',
+      game.scoring === 'choice-v1' ? 2 : ['hard-v3', 'base-v2'].includes(game.scoring) ? 3 : 1,
+      game.scoring === SCORING_VERSION ? 4 : 3,
+    )
+  )
+    return false;
+  else if (
+    ['hard-v2', SCORING_VERSION].includes(game.scoring) &&
+    !Object.values(game.cardPoints).includes(game.scoring === SCORING_VERSION ? 4 : 3)
+  )
     return false;
   return game.status !== 'won' || isComplete(game.deal, game.route);
 }
 
-export function validCardPoints(deal, cardPoints, baseOnly = false) {
+export function validCardPoints(
+  deal,
+  cardPoints,
+  baseOnly = false,
+  basePoints = 1,
+  bonusPoints = 3,
+) {
   return Boolean(
     cardPoints &&
     typeof cardPoints === 'object' &&
@@ -390,7 +425,7 @@ export function validCardPoints(deal, cardPoints, baseOnly = false) {
     deal.every(
       (code) =>
         Object.hasOwn(cardPoints, code) &&
-        (cardPoints[code] === 1 || (!baseOnly && cardPoints[code] === 3)),
+        (cardPoints[code] === basePoints || (!baseOnly && cardPoints[code] === bonusPoints)),
     ),
   );
 }

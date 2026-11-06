@@ -216,6 +216,63 @@ test('reloading a timeout does not recount it and New game cancels the automatic
   await expect(page.locator('#sweep-over')).not.toBeVisible();
 });
 
+for (const theme of ['dark', 'light']) {
+  for (const motion of ['reduce', 'no-preference']) {
+    test(`Try again has a black outline without shadows or changed timing in ${theme}, motion=${motion}`, async ({
+      page,
+    }, testInfo) => {
+      await seed(page);
+      if (theme === 'light') await click(page, '#theme-button');
+      await page.emulateMedia({ reducedMotion: motion });
+      await click(page, '[data-card="CA"]');
+      const threshold = await bounds(page, 'CA', 'east');
+      await page.clock.runFor(threshold.far * crossingMs + 100);
+      const message = page.locator('#sweep-over');
+      await expect(message).toBeVisible();
+      await expect(message).toHaveText('Try again');
+      await expect(message).toHaveAttribute('role', 'status');
+      await expect(message).toHaveAttribute('aria-live', 'assertive');
+      await expect(message).toHaveCSS('-webkit-text-stroke-color', 'rgb(0, 0, 0)');
+      await expect(message).toHaveCSS('-webkit-text-stroke-width', '2px');
+      await expect(message).toHaveCSS('animation-name', 'none');
+      await expect(message).toHaveCSS('pointer-events', 'none');
+      const shadow = await message.evaluate((element) => getComputedStyle(element).textShadow);
+      expect(shadow).toBe('none');
+      for (const [width, height] of [
+        [320, 568],
+        [360, 780],
+        [780, 360],
+        [1440, 1000],
+      ]) {
+        await page.setViewportSize({ width, height });
+        const geometry = await message.evaluate((element) => {
+          const text = document.createRange();
+          text.selectNodeContents(element);
+          const glyphs = text.getBoundingClientRect();
+          const panel = element.getBoundingClientRect();
+          return {
+            font: parseFloat(getComputedStyle(element).fontSize),
+            fits:
+              glyphs.left >= panel.left + 2 &&
+              glyphs.right + 7 <= panel.right &&
+              glyphs.top >= panel.top + 2 &&
+              glyphs.bottom + 7 <= panel.bottom,
+          };
+        });
+        expect(geometry.font).toBeGreaterThanOrEqual(36);
+        expect(geometry.fits).toBe(true);
+        if (width === 360)
+          await page.screenshot({ path: testInfo.outputPath('try-again-phone.png'), scale: 'css' });
+      }
+      expect((await saved(page)).played).toBe(1);
+      await page.clock.runFor(1100);
+      await expect(message).not.toBeVisible();
+      expect((await saved(page)).played).toBe(1);
+      expect((await saved(page)).game.id).not.toBe('sweep-test');
+    });
+  }
+}
+
 test('a single narrow sweep line has no internal animation; threatened states pulse', async ({
   page,
 }) => {

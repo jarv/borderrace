@@ -28,9 +28,15 @@ let hardSeed = 7;
 const hardDeal = createDeal(
   () => (hardSeed = (Math.imul(hardSeed, 1664525) + 1013904223) >>> 0) / 2 ** 32,
 );
-const hardPoints = pointsFromCounts(hardDeal, countWinningRoutes(hardDeal));
+// Frozen hard-v2 fixtures exercise backward compatibility with 1/3-point saves.
+const hardPoints = Object.fromEntries(
+  Object.entries(pointsFromCounts(hardDeal, countWinningRoutes(hardDeal))).map(([code, value]) => [
+    code,
+    value === 4 ? 3 : 1,
+  ]),
+);
 const modernFixture = (overrides = {}) =>
-  fixture({ deal: hardDeal, scoring: SCORING_VERSION, cardPoints: hardPoints, ...overrides });
+  fixture({ deal: hardDeal, scoring: 'hard-v2', cardPoints: hardPoints, ...overrides });
 
 async function seed(page, game = fixture()) {
   await page.addInitScript(
@@ -57,7 +63,7 @@ async function saved(page) {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key)), STORAGE_KEY);
 }
 
-test('hard cards are gold, worth three points, and retain their frozen values after reload', async ({
+test('legacy hard cards stay gold, worth three points, and retain their frozen values after reload', async ({
   page,
   isMobile,
 }) => {
@@ -354,7 +360,7 @@ test('older hard-card games keep their saved points without a forced reroll', as
 
 test('new games offer a winning route from every coastal start', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#difficulty').check();
+  await page.locator('#difficulty-challenging').check();
   for (let attempt = 0; attempt < 3; attempt++) {
     await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
     const game = (await saved(page)).game;
@@ -376,7 +382,7 @@ test('intro rounds the final deal route count, preserves it on reload, and fades
   const below = exactCount - 1n;
   const magnitude = 10n ** BigInt(below.toString().length - 1);
   const minimum = (below / magnitude) * magnitude;
-  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a coastal card. Gold cards ★ are harder to use and worth 3 points.`;
+  const message = `Select cards to cross the map using connecting states. There are more than ${new Intl.NumberFormat('en-US').format(minimum)} winning routes. Start with a coastal card. Cards are worth 3 points; gold cards ★ are harder to use and worth 4 points.`;
   await expect(page.locator('#message')).toHaveText(message);
   await page.reload();
   await expect(page.locator('#message')).toHaveText(message);
@@ -384,7 +390,7 @@ test('intro rounds the final deal route count, preserves it on reload, and fades
   await expect(page.locator('#message')).toBeEmpty();
 });
 
-test('unavailable analysis falls back explicitly to fixed one-point cards', async ({ page }) => {
+test('unavailable analysis falls back explicitly to fixed three-point cards', async ({ page }) => {
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
@@ -395,13 +401,13 @@ test('unavailable analysis falls back explicitly to fixed one-point cards', asyn
     };
   });
   await page.goto('/');
-  await page.locator('#difficulty').check();
-  await expect(page.locator('#message')).toHaveText('Bonus unavailable. All cards: 1 pt.');
+  await page.locator('#difficulty-challenging').check();
+  await expect(page.locator('#message')).toHaveText('Bonus unavailable. All cards: 3 pts.');
   await expect(page.locator('.state-card.hard')).toHaveCount(0);
   await expect(page.locator('.state-card').first()).toBeEnabled();
   const game = (await saved(page)).game;
-  expect(game.scoring).toBe('base-v1');
-  expect(Object.values(game.cardPoints)).toEqual(Array(24).fill(1));
+  expect(game.scoring).toBe('base-v2');
+  expect(Object.values(game.cardPoints)).toEqual(Array(24).fill(3));
   expect(game.winningRoutes).toBeUndefined();
   expect(allCoastalStartsSolvable(game.deal)).toBe(true);
 });
@@ -1155,7 +1161,7 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   await expect(page.locator('[data-chain]')).toHaveCount(1);
   await expect(page.locator('.flying-card')).toHaveCount(0);
   await expect(page.locator('#message')).toBeEmpty();
-  await page.locator('#difficulty').check();
+  await page.locator('#difficulty-challenging').check();
   await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
   await press(page.locator('.state-card.coastal').first(), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);

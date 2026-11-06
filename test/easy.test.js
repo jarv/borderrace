@@ -119,3 +119,60 @@ test('corrupt Easy hands and bonus points cannot load as valid games', () => {
   assert.equal(validGame({ ...game, cardPoints: { ...game.cardPoints, CA: 3 } }), false);
   assert.equal(validGame({ ...game, difficulty: 'other' }), false);
 });
+
+test('Medium offers six choices with two-point cards and coast-balanced, winning starts', () => {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    let game = newEasyGame(Math.random, 'medium');
+    assert.equal(game.hand.length, 6);
+    assert.equal(validGame(game), true);
+    assert.ok(game.hand.every(coast));
+    assert.ok(game.hand.some((code) => coast(code) === 'east'));
+    assert.ok(game.hand.some((code) => coast(code) === 'west'));
+    assert.deepEqual(Object.values(game.cardPoints), Array(48).fill(2));
+    while (!isComplete(CODES, game.route)) {
+      assert.equal(validGame(game), true);
+      assert.equal(game.hand.length, 6);
+      const valid = game.hand.filter((code) => easyCandidates(game.route).includes(code));
+      assert.equal(
+        valid.length,
+        game.route.length ? Math.min(2, easyCandidates(game.route).length) : 6,
+      );
+      game = addCard(game, valid[Math.floor(Math.random() * valid.length)]);
+    }
+    assert.equal(score(game.route, [], 0, game.cardPoints), game.route.length * 2);
+    assert.equal(validGame({ ...game, status: 'won' }), true);
+  }
+});
+
+test('Medium penalties, undo, saves and records remain independent of Easy and Challenging', () => {
+  let game = newEasyGame(() => 0, 'medium');
+  game = addCard(game, game.hand[0]);
+  const invalid = game.hand.find((code) => !canAdd(CODES, game.route, code));
+  game = penalizeInvalidCard(game, invalid);
+  assert.equal(game.mistakePoints, 2);
+  const next = game.hand.find((code) => canAdd(CODES, game.route, code));
+  game = addCard({ ...game, hintPending: true }, next);
+  assert.deepEqual(game.zeroCards, [next]);
+  game = undoCard(game, next);
+  assert.equal(game.hand.length, 6);
+  assert.equal(validGame(game), true);
+  const restored = loadSave({
+    getItem: () => JSON.stringify({ ...emptySave(), difficulty: 'medium', game }),
+  });
+  assert.deepEqual(restored.game, game);
+  assert.equal(restored.difficulty, 'medium');
+  while (!isComplete(CODES, game.route))
+    game = addCard(
+      game,
+      game.hand.find((code) => easyCandidates(game.route).includes(code)),
+    );
+  game = { ...game, status: 'won', playSeconds: 12 };
+  const result = recordResult(restored, game);
+  assert.equal(result.mediumWins, 1);
+  assert.equal(result.easyWins, 0);
+  assert.equal(result.wins, 0);
+  assert.equal(personalBests(result, 'medium').playSeconds, 12);
+  assert.equal(personalBests(result, 'easy').playSeconds, null);
+  assert.equal(result.mediumRecords.length, 1);
+  assert.equal(recordResult(result, game), result);
+});

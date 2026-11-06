@@ -1,7 +1,7 @@
 import { validGame, score, isComplete } from './game.js';
 import { CODES } from './data.js';
 import { personalBests, validPlaySeconds } from './personal-bests.js';
-import { isEasy } from './easy.js';
+import { isChoiceMode, difficultyOf } from './easy.js';
 
 export const STORAGE_KEY = 'border-race:v2';
 export const emptySave = () => ({
@@ -19,6 +19,10 @@ export const emptySave = () => ({
   easyWins: 0,
   easyPlayed: 0,
   easyPersonalBests: { points: null, playSeconds: null },
+  mediumRecords: [],
+  mediumWins: 0,
+  mediumPlayed: 0,
+  mediumPersonalBests: { points: null, playSeconds: null },
 });
 
 function migrate(data) {
@@ -73,23 +77,22 @@ export function loadSave(storage) {
       soundEnabled: data.soundEnabled !== false,
       theme: data.theme === 'light' ? 'light' : 'dark',
       archive: data.archive ?? null,
-      difficulty: ['easy', 'challenging'].includes(data.difficulty)
+      difficulty: ['easy', 'medium', 'challenging'].includes(data.difficulty)
         ? data.difficulty
         : data.game
-          ? isEasy(data.game)
-            ? 'easy'
-            : 'challenging'
+          ? difficultyOf(data.game)
           : 'easy',
-      ...loadEasyRecords(data),
+      ...loadChoiceRecords(data, 'easy'),
+      ...loadChoiceRecords(data, 'medium'),
     };
   } catch {
     return emptySave();
   }
 }
 
-function loadEasyRecords(data) {
-  const records = Array.isArray(data.easyRecords)
-    ? data.easyRecords
+function loadChoiceRecords(data, difficulty) {
+  const records = Array.isArray(data[`${difficulty}Records`])
+    ? data[`${difficulty}Records`]
         .filter((r) => r && typeof r.id === 'string' && Number.isFinite(r.points))
         .map(({ id, points, route, playSeconds }) => ({
           id,
@@ -101,10 +104,19 @@ function loadEasyRecords(data) {
         .slice(0, 10)
     : [];
   return {
-    easyRecords: records,
-    easyWins: Number.isSafeInteger(data.easyWins) && data.easyWins >= 0 ? data.easyWins : 0,
-    easyPlayed: Number.isSafeInteger(data.easyPlayed) && data.easyPlayed >= 0 ? data.easyPlayed : 0,
-    easyPersonalBests: personalBests({ records, personalBests: data.easyPersonalBests }),
+    [`${difficulty}Records`]: records,
+    [`${difficulty}Wins`]:
+      Number.isSafeInteger(data[`${difficulty}Wins`]) && data[`${difficulty}Wins`] >= 0
+        ? data[`${difficulty}Wins`]
+        : 0,
+    [`${difficulty}Played`]:
+      Number.isSafeInteger(data[`${difficulty}Played`]) && data[`${difficulty}Played`] >= 0
+        ? data[`${difficulty}Played`]
+        : 0,
+    [`${difficulty}PersonalBests`]: personalBests({
+      records,
+      personalBests: data[`${difficulty}PersonalBests`],
+    }),
   };
 }
 
@@ -119,11 +131,11 @@ export function writeSave(storage, save) {
 
 export function recordResult(save, game) {
   if (save.game?.id === game.id && ['won', 'lost'].includes(save.game.status)) return save;
-  const easy = isEasy(game);
-  const recordsKey = easy ? 'easyRecords' : 'records';
-  const playedKey = easy ? 'easyPlayed' : 'played';
-  const winsKey = easy ? 'easyWins' : 'wins';
-  const bestsKey = easy ? 'easyPersonalBests' : 'personalBests';
+  const prefix = isChoiceMode(game) ? difficultyOf(game) : '';
+  const recordsKey = prefix ? `${prefix}Records` : 'records';
+  const playedKey = prefix ? `${prefix}Played` : 'played';
+  const winsKey = prefix ? `${prefix}Wins` : 'wins';
+  const bestsKey = prefix ? `${prefix}PersonalBests` : 'personalBests';
   const won = game.status === 'won';
   const record = {
     id: game.id,

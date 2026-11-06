@@ -178,6 +178,10 @@ test('light mode retains recognizable coastal/gold cards and translucent played 
   );
   await page.locator(`[data-card="${gold}"]`).click();
   await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS('opacity', '1');
+  await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS(
+    'border-top-color',
+    'rgb(148, 100, 17)',
+  );
   await expect(page.locator(`[data-chain="${gold}"] .bonus-star`)).toHaveCSS(
     'color',
     'rgb(148, 100, 17)',
@@ -186,6 +190,10 @@ test('light mode retains recognizable coastal/gold cards and translucent played 
   await expect(page.locator('.map-state.on-route path')).toHaveCSS('stroke', 'rgb(75, 80, 88)');
   await page.locator('#theme-button').click();
   await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS('background-image', 'none');
+  await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS(
+    'border-top-color',
+    'rgb(255, 210, 121)',
+  );
   await expect(page.locator(`[data-chain="${gold}"]`)).toHaveCSS(
     'background-color',
     'rgba(20, 23, 27, 0.8)',
@@ -196,6 +204,34 @@ test('light mode retains recognizable coastal/gold cards and translucent played 
   );
   await expect(page.locator('.coastline')).toHaveCSS('stroke', 'rgb(106, 181, 255)');
   await expect(page.locator('.map-state.on-route path')).toHaveCSS('stroke', 'rgb(75, 80, 88)');
+});
+
+test('map-route cards have solid blue borders in both themes, including after undo', async ({
+  page,
+}) => {
+  await seed(page);
+  await page.locator('[data-card="CA"]').click();
+  const game = (await saved(page)).game;
+  const next = game.hand.find((code) => canAdd(game.deal, game.route, code));
+  await page.locator(`[data-card="${next}"]`).click();
+  for (const theme of ['dark', 'light']) {
+    if (theme === 'light') await page.locator('#theme-button').click();
+    for (const card of await page.locator('.map-card').all()) {
+      await expect(card).toHaveCSS(
+        'border-top-color',
+        theme === 'light' ? 'rgb(36, 117, 223)' : 'rgb(57, 140, 255)',
+      );
+      await expect(card).toHaveCSS('border-top-style', 'solid');
+      await expect(card).toHaveCSS('border-top-width', '2px');
+      await expect(card).toHaveCSS('opacity', '1');
+    }
+  }
+  await page.locator(`[data-chain="${next}"]`).click();
+  await expect(page.locator('.map-card')).toHaveCount(1);
+  await expect(page.locator('[data-chain="CA"]')).toHaveCSS(
+    'border-top-color',
+    'rgb(36, 117, 223)',
+  );
 });
 
 test('theme controls work in memory when storage is blocked', async ({ page }) => {

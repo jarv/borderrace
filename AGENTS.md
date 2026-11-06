@@ -31,8 +31,8 @@ for build/test tools), and commit both package files. No global npm packages.
 - `src/game.js`: pure game logic, solvable deals, exact sequence validation,
   hints and zero-point penalties, exact shortest/most-points routes, backtracking,
   snapshot validation. No duration-based scoring or special cards.
-- `src/easy.js`: Easy's four-card hands, coast-balanced starts, and reachable
-  non-repeating continuations. Easy defaults to 1-point cards; Challenging retains
+- `src/easy.js`: Easy's four-card and Medium's six-card hands, coast-balanced starts,
+  and reachable non-repeating continuations. Easy uses 1 point, Medium 2; Challenging retains
   the original 24-card deals. Difficulty is persisted; legacy games are Challenging.
 - `src/sweep.js` / `src/sweep-view.js`: normalized moving deadline, geographic
   frontier collision, panel-wide shading, visibility pause, and persisted pace.
@@ -66,11 +66,12 @@ for build/test tools), and commit both package files. No global npm packages.
   green. Keep compact squared-off corners, gold difficulty cues, red warnings,
   and 44px touch targets.
   Geographic outlines and state boundaries stay dark gray in both themes;
-  game/card frames and the separate coastal markers stay blue. Do not add a
+  game/hand/result frames and the separate coastal markers stay blue. Map-route
+  cards use solid 2px blue borders, except gold hard cards retain gold borders. Do not add a
   redundant rectangular border around the US map panel.
   Dark unplayed coastal hand cards need a distinct solid blue fill, including
   gold cards. Ordinary and played hand cards stay charcoal; Easy stays neutral.
-  Both hand sizes use faded local state seals: 120px/12% in Easy, 60px/10% in
+  All hands use faded local state seals: 120px/12% in Easy/Medium, 60px/10% in
   Challenging. Keep text above the images and fully opaque; missing seals cannot
   block play. Map-chain and result cards stay compact and seal-free.
   No visible COAST labels on hand cards; preserve coast info in accessible names.
@@ -94,7 +95,7 @@ for build/test tools), and commit both package files. No global npm packages.
 
 Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 
-- Easy is the default, with a persisted Easy/Challenging toggle that starts a
+- Easy is the default, with persisted Easy/Medium/Challenging radio-style buttons that start a
   new game. Easy has four neutral, larger cards: all-coastal starts covering both
   coasts, then two valid continuations and two invalid choices (one valid/three
   invalid when necessary). Invalid picks retain the hand. Keep current penalties
@@ -103,11 +104,15 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   map-chain and result cards retain compact abbreviations.
   Hand backgrounds use locally bundled state seals at low image-only opacity;
   never fade the whole card or require images to finish loading to play.
-  Easy has no gold bonuses or reference solutions. Its win
+  Medium follows Easy with six choices (two valid/four invalid, or one/five),
+  six all-coastal starts, and 2-point cards. Easy remains 1 point. Easy/Medium
+  use centered full names; Medium lays out 3 rows × 2 columns on desktop and
+  keeps 2 rows × 3 columns on phones.
+  Neither offers gold bonuses or reference solutions. Their win
   dialog shows route/points/time/best time and a toggle to try Challenging.
   Personal records are separate by difficulty, but the daily leaderboard is shared.
-  Clear resets both sets of personal records. The fixed-deal, gold, and reference
-  rules below apply to Challenging; shared mechanics still apply to both.
+  Clear resets all three sets of personal records. The fixed-deal, gold, and reference
+  rules below apply to Challenging; shared mechanics still apply to all difficulties.
 
 - Deal 24 unique states with a winning coast-to-coast route from every dealt coastal
   starting card, including scoring fallbacks. Preserve existing saves. No wildcard.
@@ -120,15 +125,15 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   You win dialog starts a new game. Score clearing also acts immediately.
 - Keep unusual connections (AZ–CO, NM–UT, MI–MN, NY–RI). Gulf-only states are not
   valid coastal endpoints. Preserve original points for unversioned saved games.
-- New games have 1-point cards, with +2 (3 total) for hard cards appearing in more
+- New Challenging games have 3-point cards, with +1 (4 total) for hard cards appearing in more
   than zero but fewer than 20% of exact winning routes for that deal. Gold marks
   hard cards with a gold border and star (★); coastal cards remain recognizable. Freeze and persist the point
   table before play; use a spinner during analysis, cancel stale workers on New
   game, and never grant bonuses from incomplete counts. A clearly announced
-  all-1-point fallback keeps gameplay available if analysis fails or times out.
-  Successful new scoring (`hard-v2`) requires at least one gold card; re-deal
+  all-3-point fallback (`base-v2`) keeps gameplay available if analysis fails or times out.
+  Successful new scoring (`hard-v3`) requires at least one gold card; re-deal
   without changing the rarity rule, bounded by 128 candidates and two seconds.
-  Preserve frozen `hard-v1` saves without re-scoring or forcing a replacement.
+  Preserve frozen `hard-v1` and `hard-v2` saves without re-scoring or forcing a replacement.
 - New games are immediately `playing`. No start/finish button, numeric countdown,
   timestamps, or duration-based scoring/ranking. A moving deadline starts at the
   first coastal play, from the full panel's left edge for west starts or right
@@ -143,6 +148,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   Pulse the geographically furthest-forward current state
   red on entry and lose when the line clears its far edge. Briefly show Try again, then start a new game
   after one second. Record timeout losses once, never as assisted completions.
+  Try again uses large black-outlined text without text shadows, readable
+  in both themes and reduced motion; do not change the one-second restart timing.
   Reduced motion skips slam/impact/sparks and uses a solid red warning, without changing timing.
 - Reaching the opposite coast automatically wins and ends the route. Longest
   solutions must obey this in either direction: never continue past that coast.
