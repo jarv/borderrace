@@ -1,5 +1,6 @@
 import { CODES, STATES, EAST, WEST, coast } from './data.js';
 import { SCORING_VERSION } from './scoring.js';
+import { isEasy, easyHand, validEasyHand } from './easy.js';
 import {
   newSweep,
   restoreSweep,
@@ -221,7 +222,7 @@ export function canAdd(deal, route, code, origin) {
 }
 
 export function isLegalRoute(deal, route) {
-  if (!Array.isArray(route) || route.length > 24) return false;
+  if (!Array.isArray(route) || route.length > deal.length) return false;
   return route.every((code, index) => canAdd(deal, route.slice(0, index), code));
 }
 
@@ -246,6 +247,7 @@ export function addCard(game, code) {
   if (
     game.status !== 'playing' ||
     game.cardPoints === null ||
+    (isEasy(game) && !game.hand.includes(code)) ||
     !canAdd(game.deal, game.route, code, game.sweep?.origin)
   )
     return game;
@@ -254,6 +256,7 @@ export function addCard(game, code) {
     ...game,
     sweep: sweep.origin ? accelerateSweep(sweep, CARD_ACCELERATION) : { ...sweep, origin: code },
     route: [...game.route, code],
+    ...(isEasy(game) ? { hand: easyHand([...game.route, code]) } : {}),
     hintPending: false,
     zeroCards:
       game.hintPending && !game.zeroCards.includes(code)
@@ -267,7 +270,7 @@ export function penalizeInvalidCard(game, code) {
     game.status !== 'playing' ||
     game.cardPoints === null ||
     !game.deal.includes(code) ||
-    game.route.includes(code) ||
+    (isEasy(game) ? !game.hand.includes(code) : game.route.includes(code)) ||
     canAdd(game.deal, game.route, code, game.sweep?.origin)
   )
     return game;
@@ -294,13 +297,38 @@ export function newGame(random = Math.random) {
   };
 }
 
+export function newEasyGame(random = Math.random) {
+  return {
+    id: crypto.randomUUID(),
+    difficulty: 'easy',
+    deal: [...CODES],
+    hand: easyHand([], random),
+    scoring: 'base-v1',
+    cardPoints: Object.fromEntries(CODES.map((code) => [code, 1])),
+    route: [],
+    zeroCards: [],
+    hintPending: false,
+    mistakePoints: 0,
+    playSeconds: 0,
+    status: 'playing',
+    sweep: newSweep(),
+  };
+}
+
+export function undoCard(game, code) {
+  const route = backtrack(game.route, code);
+  if (route === game.route) return game;
+  return { ...game, route, ...(isEasy(game) ? { hand: easyHand(route) } : {}) };
+}
+
 export function validGame(game) {
   if (
     !game ||
     typeof game.id !== 'string' ||
+    (game.difficulty !== undefined && !['easy', 'challenging'].includes(game.difficulty)) ||
     !Array.isArray(game.deal) ||
-    game.deal.length !== 24 ||
-    new Set(game.deal).size !== 24 ||
+    game.deal.length !== (isEasy(game) ? 48 : 24) ||
+    new Set(game.deal).size !== game.deal.length ||
     !game.deal.every((code) => STATES[code]) ||
     !findSolution(game.deal) ||
     !isLegalRoute(game.deal, game.route) ||
@@ -312,6 +340,8 @@ export function validGame(game) {
       (!Number.isSafeInteger(game.mistakePoints) || game.mistakePoints < 0)) ||
     !['playing', 'won', 'lost'].includes(game.status)
   )
+    return false;
+  if (isEasy(game) && (game.scoring !== 'base-v1' || !validEasyHand(game.route, game.hand)))
     return false;
   if (game.sweep !== undefined && !validSweep(game.sweep, game.deal)) return false;
   if (

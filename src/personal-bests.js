@@ -1,9 +1,12 @@
 import { score } from './game.js';
+import { difficultyOf } from './easy.js';
 
 export const validPlaySeconds = (value) =>
   Number.isFinite(value) && value >= 0 && Number.isSafeInteger(Math.round(value * 10));
 
-export function personalBests(save) {
+export function personalBests(save, difficulty = 'challenging') {
+  if (difficulty === 'easy')
+    return personalBests({ records: save.easyRecords, personalBests: save.easyPersonalBests });
   let points = Number.isFinite(save.personalBests?.points) ? save.personalBests.points : null;
   let playSeconds = validPlaySeconds(save.personalBests?.playSeconds)
     ? save.personalBests.playSeconds
@@ -22,13 +25,14 @@ export function personalBests(save) {
 
 export function newRecordFlags(save, game) {
   if (game.status !== 'won') return { time: false, points: false };
-  const best = personalBests(save);
+  const best = personalBests(save, difficultyOf(game));
   return {
     time:
       best.playSeconds !== null &&
       validPlaySeconds(game.playSeconds) &&
       game.playSeconds < best.playSeconds,
     points:
+      difficultyOf(game) !== 'easy' &&
       best.points !== null &&
       score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints) > best.points,
   };

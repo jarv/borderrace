@@ -1,5 +1,10 @@
 # Third-party assets
 
+- State-seal PNGs in **img/seals/** were supplied for this project. Easy cards use
+  the 120px versions for the contiguous 48 states; the smaller alternatives and
+  Alaska/Hawaii images are not deployed. Image provenance and reproduction terms
+  have not been documented; confirm those before distributing these assets.
+
 - The supplied **assets/us.svg** is copyright 2017 Pareto Software, LLC DBA
   Simplemaps.com. Its original notice is preserved. Free for commercial use
   subject to https://simplemaps.com/resources/svg-license. The game extracts

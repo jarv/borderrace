@@ -1,6 +1,44 @@
 # Rules
 
-Connect the Atlantic and Pacific coasts using 24 state cards.
+Connect the Atlantic and Pacific coasts using bordering state cards.
+
+## Difficulty
+
+**Easy** is the default. A labeled toggle switches between Easy and
+**Challenging**, immediately starting a new game and remembering the choice.
+Existing games without a difficulty remain Challenging.
+
+Easy shows four larger, neutral-colored selection cards at a time, with centered
+full state names and no abbreviations. Map-chain and result cards retain their
+compact abbreviations. Faded state seals decorate Easy selection-card backgrounds;
+text and borders stay fully opaque. Missing images never block play. Its initial hand has
+four coastal states, with at least one from each coast; every pick is valid.
+After each valid pick, the hand changes to two valid neighboring states and two
+invalid states, shuffled together. When only one winning continuation is
+available, it shows one valid and three invalid states. Offered valid choices
+always leave a route to the opposite coast without repeating states. Invalid
+picks leave the hand unchanged. Reloading preserves the current hand.
+Extremely long routes may show already-played non-neighbors as invalid choices
+if unused distractors run out; they cannot be played again.
+
+Easy uses all 48 states rather than a fixed 24-card deal. Cards are worth 1 point,
+with no gold bonuses or green coastal-card styling. Hint zeroes the next played
+card; each invalid pick deducts 1 point. The moving deadline and its acceleration
+are unchanged. Click later map-chain cards to undo; the first card remains locked.
+Undo prepares appropriate choices for the restored route. Reaching the opposite
+coast automatically wins.
+
+Personal top-ten scores, counts, and bests are separate by difficulty; Clear
+resets both. Both difficulties contribute to the existing daily leaderboard.
+Easy results show the actual route, points, completion time, and personal best
+time, announcing a strictly faster time. No longest/most-points reference is
+computed or shown. The win dialog also offers “Finding this too easy? Try
+Challenging mode!” with a toggle that immediately starts Challenging and saves
+that preference.
+
+The detailed deal, gold-card, and reference-solution rules below describe
+Challenging; shared rules (borders, penalties, deadline, undo, and effects) also
+apply to Easy.
 
 ## Playing
 

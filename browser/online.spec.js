@@ -3,6 +3,8 @@ import { CODES } from '../src/data.js';
 import { STORAGE_KEY, emptySave } from '../src/storage.js';
 import { OUTBOX_KEY } from '../src/leaderboard.js';
 import { CROSSING_SECONDS } from '../src/sweep.js';
+import { newEasyGame, canAdd } from '../src/game.js';
+import { easyHand } from '../src/easy.js';
 
 const userId = '00000000-0000-0000-0000-000000000001';
 const route = ['CA', 'AZ', 'NM', 'OK', 'AR', 'TN', 'NC'];
@@ -21,7 +23,10 @@ const session = {
   },
 };
 
-async function setup(page, { loggedIn = false, gameRoute = [], rpc, profileName = null } = {}) {
+async function setup(
+  page,
+  { loggedIn = false, gameRoute = [], rpc, profileName = null, game = null } = {},
+) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(
     ({ key, save, session }) => {
@@ -35,7 +40,7 @@ async function setup(page, { loggedIn = false, gameRoute = [], rpc, profileName 
       key: STORAGE_KEY,
       save: {
         ...emptySave(),
-        game: {
+        game: game ?? {
           id: 'online-win',
           deal,
           route: gameRoute,
@@ -82,8 +87,35 @@ async function setup(page, { loggedIn = false, gameRoute = [], rpc, profileName 
     });
   });
   await page.goto('/');
-  await expect(page.locator('.state-card')).toHaveCount(24);
+  await expect(page.locator('.state-card')).toHaveCount(game?.difficulty === 'easy' ? 4 : 24);
 }
+
+test('Easy wins use the existing shared leaderboard and submit their one-point total once', async ({
+  page,
+}) => {
+  const gameRoute = route.slice(0, -1);
+  const hand = easyHand(gameRoute);
+  if (!hand.includes('NC')) hand[hand.findIndex((code) => canAdd(CODES, gameRoute, code))] = 'NC';
+  const submissions = [];
+  await setup(page, {
+    loggedIn: true,
+    game: { ...newEasyGame(), id: 'easy-online-win', route: gameRoute, hand },
+    rpc(name, request) {
+      if (name === 'submit_score') submissions.push(request.postDataJSON());
+    },
+  });
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Log out');
+  await page.locator('[data-card="NC"]').click();
+  await expect.poll(() => submissions.length).toBe(1);
+  expect(submissions[0]).toEqual({
+    p_game_id: 'easy-online-win',
+    p_points: 7,
+    p_rules_version: 'wins-v1',
+  });
+  await page.reload();
+  await expect(page.locator('#result-dialog')).toBeVisible();
+  expect(submissions.length).toBe(1);
+});
 
 async function openBoard(page) {
   await page.locator('#daily-button').click();

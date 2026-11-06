@@ -9,6 +9,7 @@ import { createServer } from 'node:http';
 import { chromium } from '@playwright/test';
 import { extract, list } from 'tar';
 import { createDeal, findSolution } from './src/game.js';
+import { CODES } from './src/data.js';
 import { SCORING_VERSION } from './src/scoring.js';
 import { STORAGE_KEY, emptySave } from './src/storage.js';
 
@@ -34,9 +35,19 @@ const assets = [
   asset('scoring-worker', 'js'),
   asset('solution-worker', 'js'),
 ];
+const seals = entries.filter((entry) => /^assets\/[A-Z]{2}-[A-Z0-9]{8}\.png$/.test(entry));
+assert.deepEqual(seals.map((name) => name.slice(7, 9)).sort(), [...CODES].sort());
 assert.deepEqual(
   entries.map((entry) => entry.replace(/\/$/, '')).sort(),
-  ['LICENSES.txt', 'THIRD_PARTY.md', 'assets', 'index.html', 'version.json', ...assets].sort(),
+  [
+    'LICENSES.txt',
+    'THIRD_PARTY.md',
+    'assets',
+    'index.html',
+    'version.json',
+    ...assets,
+    ...seals,
+  ].sort(),
 );
 const directory = await mkdtemp(join(tmpdir(), 'borderrace-release-'));
 try {
@@ -74,6 +85,7 @@ try {
           '.js': 'text/javascript',
           '.css': 'text/css',
           '.svg': 'image/svg+xml',
+          '.png': 'image/png',
           '.html': 'text/html',
         }[extname(file)] || 'text/plain',
       );
@@ -134,6 +146,19 @@ try {
       `http://127.0.0.1:${server.address().port}/game/${asset('app', 'js')}`,
     );
     assert.equal(assetResponse.headers()['cache-control'], 'public, max-age=31536000, immutable');
+    assert.deepEqual(errors, []);
+    await page.locator('#result-dialog').evaluate((dialog) => dialog.close());
+    await page.locator('#difficulty').uncheck();
+    await page.waitForFunction(() => {
+      const images = [...document.querySelectorAll('.state-card .card-seal')];
+      return (
+        images.length === 4 && images.every((image) => image.complete && image.naturalWidth === 120)
+      );
+    });
+    for (const image of await page.locator('.state-card .card-seal').all()) {
+      const url = new URL(await image.getAttribute('src'), page.url());
+      assert.ok(seals.includes(url.pathname.slice('/game/'.length)));
+    }
     assert.deepEqual(errors, []);
   } finally {
     await browser?.close();

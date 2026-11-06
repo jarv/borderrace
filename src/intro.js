@@ -1,6 +1,8 @@
 const formatCount = new Intl.NumberFormat('en-US');
 
 export function introMessage(game) {
+  if (game.difficulty === 'easy')
+    return 'Choose a coastal state. Follow bordering states to the opposite coast. Each card: 1 pt.';
   const count = game.winningRoutes === undefined ? null : BigInt(game.winningRoutes);
   let routes = '';
   if (count !== null) {

@@ -1,6 +1,7 @@
 import { validGame, score, isComplete } from './game.js';
 import { CODES } from './data.js';
 import { personalBests, validPlaySeconds } from './personal-bests.js';
+import { isEasy } from './easy.js';
 
 export const STORAGE_KEY = 'border-race:v2';
 export const emptySave = () => ({
@@ -12,6 +13,11 @@ export const emptySave = () => ({
   archive: null,
   soundEnabled: true,
   personalBests: { points: null, playSeconds: null },
+  difficulty: 'easy',
+  easyRecords: [],
+  easyWins: 0,
+  easyPlayed: 0,
+  easyPersonalBests: { points: null, playSeconds: null },
 });
 
 function migrate(data) {
@@ -65,10 +71,39 @@ export function loadSave(storage) {
       played: Number.isSafeInteger(data.played) && data.played >= 0 ? data.played : 0,
       soundEnabled: data.soundEnabled !== false,
       archive: data.archive ?? null,
+      difficulty: ['easy', 'challenging'].includes(data.difficulty)
+        ? data.difficulty
+        : data.game
+          ? isEasy(data.game)
+            ? 'easy'
+            : 'challenging'
+          : 'easy',
+      ...loadEasyRecords(data),
     };
   } catch {
     return emptySave();
   }
+}
+
+function loadEasyRecords(data) {
+  const records = Array.isArray(data.easyRecords)
+    ? data.easyRecords
+        .filter((r) => r && typeof r.id === 'string' && Number.isFinite(r.points))
+        .map(({ id, points, route, playSeconds }) => ({
+          id,
+          points,
+          ...(validPlaySeconds(playSeconds) ? { playSeconds } : {}),
+          ...(Array.isArray(route) && isComplete(CODES, route) ? { route: [...route] } : {}),
+        }))
+        .sort((a, b) => b.points - a.points)
+        .slice(0, 10)
+    : [];
+  return {
+    easyRecords: records,
+    easyWins: Number.isSafeInteger(data.easyWins) && data.easyWins >= 0 ? data.easyWins : 0,
+    easyPlayed: Number.isSafeInteger(data.easyPlayed) && data.easyPlayed >= 0 ? data.easyPlayed : 0,
+    easyPersonalBests: personalBests({ records, personalBests: data.easyPersonalBests }),
+  };
 }
 
 export function writeSave(storage, save) {
@@ -82,6 +117,11 @@ export function writeSave(storage, save) {
 
 export function recordResult(save, game) {
   if (save.game?.id === game.id && ['won', 'lost'].includes(save.game.status)) return save;
+  const easy = isEasy(game);
+  const recordsKey = easy ? 'easyRecords' : 'records';
+  const playedKey = easy ? 'easyPlayed' : 'played';
+  const winsKey = easy ? 'easyWins' : 'wins';
+  const bestsKey = easy ? 'easyPersonalBests' : 'personalBests';
   const won = game.status === 'won';
   const record = {
     id: game.id,
@@ -89,14 +129,15 @@ export function recordResult(save, game) {
     points: score(game.route, game.zeroCards, game.mistakePoints, game.cardPoints),
     ...(validPlaySeconds(game.playSeconds) ? { playSeconds: game.playSeconds } : {}),
   };
-  const records = won ? [record, ...save.records.filter((r) => r.id !== game.id)] : save.records;
+  const previous = save[recordsKey] ?? [];
+  const records = won ? [record, ...previous.filter((r) => r.id !== game.id)] : previous;
   return {
     ...save,
     version: 2,
     game,
-    played: save.played + 1,
-    wins: save.wins + Number(won),
-    personalBests: personalBests({ ...save, records }),
-    records: records.sort((a, b) => b.points - a.points).slice(0, 10),
+    [playedKey]: (save[playedKey] ?? 0) + 1,
+    [winsKey]: (save[winsKey] ?? 0) + Number(won),
+    [bestsKey]: personalBests({ personalBests: save[bestsKey], records }),
+    [recordsKey]: [...records].sort((a, b) => b.points - a.points).slice(0, 10),
   };
 }

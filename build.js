@@ -39,7 +39,22 @@ const context = await esbuild.context({
   minify: !serve,
   sourcemap: serve,
   metafile: true,
+  loader: { '.png': 'file' },
+  assetNames: serve ? 'assets/[name]' : 'assets/[name]-[hash]',
   plugins: [
+    {
+      name: 'state-seals',
+      setup(build) {
+        build.onResolve({ filter: /^state-seals$/ }, () => ({ path: 'seals', namespace: 'seals' }));
+        build.onLoad({ filter: /.*/, namespace: 'seals' }, () => ({
+          contents: `${Object.keys(STATES)
+            .map((code) => `import ${code} from './img/seals/${code}.png';`)
+            .join('\n')}\nexport default { ${Object.keys(STATES).join(', ')} };`,
+          loader: 'js',
+          resolveDir: process.cwd(),
+        }));
+      },
+    },
     {
       name: 'online-config',
       setup(build) {

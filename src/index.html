@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#101320" />
     <meta
       name="description"
-      content="Connect the Atlantic and Pacific coasts using 24 state cards."
+      content="Connect the Atlantic and Pacific coasts using bordering state cards."
     />
     <title>Border Race</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -72,6 +72,11 @@
     </header>
     <main>
       <section class="game-shell" aria-label="Border Race game">
+        <label class="difficulty-control">
+          <span>Easy</span>
+          <input id="difficulty" type="checkbox" role="switch" aria-label="Challenging mode" />
+          <span>Challenging</span>
+        </label>
         <div class="game-toolbar">
           <div class="hint-controls">
             <button id="hint-button" class="secondary-button">Hint</button>
@@ -102,7 +107,7 @@
           <section class="hand" aria-labelledby="hand-heading">
             <div class="section-label">
               <h2 id="hand-heading">Your cards</h2>
-              <span>24 STATES</span>
+              <span id="hand-count">24 STATES</span>
             </div>
             <div id="cards" class="cards"></div>
           </section>
@@ -129,48 +134,73 @@
         <button class="close-button" data-close aria-label="Close help">×</button>
       </div>
       <h2>How to play</h2>
-      <p>
-        Connect an Atlantic state to a Pacific state — or the other way around — with the 24 cards
-        in your deck.
-      </p>
-      <ol class="guide">
-        <li>
-          <strong>Start on a coast.</strong> Choose a card marked COAST. Gulf-only states don't
-          count.
-        </li>
-        <li>
-          <strong>Follow the borders.</strong> Click a neighboring card to extend your route. Click
-          a later played card in your hand or on the map to remove it and everything after it. Your
-          first coastal card is locked.
-        </li>
-        <li>
-          <strong>Reach the other coast.</strong> The game ends automatically. Cards are worth 1
-          point. Gold cards ★ are harder to use and earn a +2 bonus, for 3 points total.
-        </li>
-      </ol>
-      <p>
-        Hard cards appear in fewer than 20% of this deal's winning routes, but at least one. Values
-        are calculated before play and stay fixed for the game.
-      </p>
-      <p>
-        Each invalid card selection deducts that card's assigned value, even after a hint. Repeated
-        mistakes deduct points again. Undoing cards is free. Scores can go negative.
-      </p>
-      <p>
-        Hint highlights the next card, or a card to remove if the route is blocked. After using
-        Hint, the next card you add scores 0, even if you choose a different card. That card stays
-        at 0 if removed and replayed.
-      </p>
-      <p>
-        Stay ahead of the moving line. Each added card speeds it up; Hint and invalid cards speed it
-        up more, by the same amount. Your furthest-forward state pulses red when the line reaches
-        it. If the line passes it, the game ends and a new game starts. The line pauses while the
-        page is hidden. Undo does not rewind it.
-      </p>
-      <p class="fine-print">
-        Every coastal start in a new game is solvable. Borders include AZ–CO, NM–UT, MI–MN and
-        NY–RI.
-      </p>
+      <div id="help-easy" hidden>
+        <p>
+          Choose one of four coastal states, then select bordering states to reach the opposite
+          coast. Gulf-only states don't count.
+        </p>
+        <p>
+          Each new hand has two valid choices and two invalid choices. When only one valid choice
+          remains, the other three are invalid. States cannot repeat. Click a later map card to undo
+          it and its suffix; your first card stays locked.
+        </p>
+        <p>
+          Each card earns 1 point. Invalid picks deduct 1 point and keep the same hand. Hint makes
+          your next played card worth 0, including after undo and replay.
+        </p>
+        <p>
+          Stay ahead of the moving red line. Each added card speeds it up; hints and invalid picks
+          speed it up more. Undo does not rewind it. The line pauses while the page is hidden.
+        </p>
+        <p>
+          Borders include AZ–CO, NM–UT, MI–MN and NY–RI. Easy and Challenging have separate personal
+          records and share the daily leaderboard.
+        </p>
+      </div>
+      <div id="help-challenging">
+        <p>
+          Connect an Atlantic state to a Pacific state — or the other way around — with the 24 cards
+          in your deck.
+        </p>
+        <ol class="guide">
+          <li>
+            <strong>Start on a coast.</strong> Choose a card marked COAST. Gulf-only states don't
+            count.
+          </li>
+          <li>
+            <strong>Follow the borders.</strong> Click a neighboring card to extend your route.
+            Click a later played card in your hand or on the map to remove it and everything after
+            it. Your first coastal card is locked.
+          </li>
+          <li>
+            <strong>Reach the other coast.</strong> The game ends automatically. Cards are worth 1
+            point. Gold cards ★ are harder to use and earn a +2 bonus, for 3 points total.
+          </li>
+        </ol>
+        <p>
+          Hard cards appear in fewer than 20% of this deal's winning routes, but at least one.
+          Values are calculated before play and stay fixed for the game.
+        </p>
+        <p>
+          Each invalid card selection deducts that card's assigned value, even after a hint.
+          Repeated mistakes deduct points again. Undoing cards is free. Scores can go negative.
+        </p>
+        <p>
+          Hint highlights the next card, or a card to remove if the route is blocked. After using
+          Hint, the next card you add scores 0, even if you choose a different card. That card stays
+          at 0 if removed and replayed.
+        </p>
+        <p>
+          Stay ahead of the moving line. Each added card speeds it up; Hint and invalid cards speed
+          it up more, by the same amount. Your furthest-forward state pulses red when the line
+          reaches it. If the line passes it, the game ends and a new game starts. The line pauses
+          while the page is hidden. Undo does not rewind it.
+        </p>
+        <p class="fine-print">
+          Every coastal start in a new game is solvable. Borders include AZ–CO, NM–UT, MI–MN and
+          NY–RI.
+        </p>
+      </div>
       <button class="primary-button full-width" data-close>Close</button>
     </dialog>
     <dialog id="result-dialog">
@@ -191,13 +221,17 @@
       </dl>
       <p id="record-message" role="status" aria-live="polite" hidden></p>
       <div id="solutions" aria-live="polite"></div>
+      <label id="try-challenging" class="try-challenging" hidden>
+        <span>Finding this too easy? Try Challenging mode!</span>
+        <input id="result-challenging" type="checkbox" role="switch" />
+      </label>
       <button id="play-again" class="primary-button full-width">Play again</button>
     </dialog>
     <dialog id="records-dialog">
       <div class="dialog-top">
         <button class="close-button" data-close aria-label="Close scores">×</button>
       </div>
-      <h2>Your scores</h2>
+      <h2 id="records-title">Your scores</h2>
       <p id="record-summary"></p>
       <div id="record-list"></div>
       <p class="fine-print">Top 10 wins, ranked by points.</p>

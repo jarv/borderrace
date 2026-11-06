@@ -78,6 +78,56 @@
   color: var(--green);
   transform-origin: left center;
 }
+.difficulty-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  min-height: 44px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  width: fit-content;
+}
+.difficulty-control > span:last-child,
+.easy .difficulty-control > span:first-child {
+  color: var(--ink);
+  font-weight: 700;
+}
+.easy .difficulty-control > span:last-child {
+  color: var(--muted);
+  font-weight: 400;
+}
+.try-challenging {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin: 16px 0;
+  cursor: pointer;
+}
+.try-challenging input,
+#difficulty {
+  appearance: none;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 28px;
+  border-radius: 20px;
+  border: 2px solid #657692;
+  background: radial-gradient(circle at 12px 50%, var(--ink) 8px, transparent 9px) #26334c;
+  cursor: pointer;
+}
+.try-challenging input:checked,
+#difficulty:checked {
+  background: radial-gradient(circle at 32px 50%, #101320 8px, transparent 9px) var(--green);
+}
+.try-challenging input:focus-visible,
+#difficulty:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
 .board-layout {
   display: grid;
   grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.6fr);
@@ -813,7 +863,7 @@
     gap: 4px;
   }
   .state-card {
-    height: clamp(44px, calc((100dvh - 156px) / 4), 68px);
+    height: clamp(44px, calc((100dvh - 200px) / 4), 68px);
     min-height: 44px;
     padding: 4px;
     border-radius: 5px;
@@ -847,7 +897,7 @@
     padding: 0 0 72px;
   }
   #map {
-    width: min(100%, calc((100dvh - 194px) * 870 / 560));
+    width: min(100%, calc((100dvh - 238px) * 870 / 560));
     max-height: 100%;
   }
   .map-card strong {
@@ -940,7 +990,7 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
   .state-card {
-    height: clamp(48px, 8.5dvh, 72px);
+    height: clamp(44px, calc(8.5dvh - 11px), 61px);
   }
 }
 @media (pointer: coarse) and (max-width: 650px) and (min-height: 700px) and (orientation: portrait) {
@@ -960,6 +1010,93 @@
   }
   .game-toolbar button {
     padding-inline: 6px;
+  }
+}
+.easy .cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.easy .state-card {
+  height: 150px;
+  padding: 28px 12px;
+  align-items: center;
+  justify-content: center;
+}
+.easy .card-name {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  letter-spacing: 0;
+}
+.easy .card-top {
+  z-index: 1;
+  position: absolute;
+  inset: 8px 8px auto;
+}
+.card-seal {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: min(80%, 120px);
+  height: calc(100% - 12px);
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+}
+.easy .card-top,
+.easy .card-points small {
+  font-size: 8px;
+}
+.easy .card-points {
+  font-size: 16px;
+}
+@media (max-width: 760px) {
+  .easy .state-card {
+    height: 104px;
+    padding: 26px 8px;
+  }
+  .easy .card-name {
+    font-size: 18px;
+  }
+}
+@media (pointer: coarse) and (max-width: 650px) and (orientation: portrait) {
+  .easy .map-panel {
+    flex: 1 1 0;
+    min-height: 150px;
+  }
+  .easy .hand {
+    flex: 0 1 auto;
+  }
+  .easy .state-card {
+    height: clamp(104px, 14dvh, 125px);
+  }
+  .easy .cards {
+    gap: 6px;
+  }
+}
+@media (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+  .easy .state-card {
+    height: clamp(96px, 26dvh, 120px);
+    padding: 24px 6px;
+  }
+  .easy .card-name {
+    font-size: 18px;
+  }
+}
+@media (max-width: 360px) {
+  .easy .card-name {
+    font-size: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

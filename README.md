@@ -1,7 +1,13 @@
 # Border Race
 
 A frontend-only geography game. Connect the Atlantic and Pacific coasts with
-24 state cards. Games start immediately and finish automatically when connected.
+bordering states. Easy (the default) offers four larger cards at a time;
+Challenging keeps the original 24-card deal and gold bonuses. The difficulty
+toggle starts a new game and remembers your choice. Easy selection cards show
+centered full state names without abbreviations, over faded state-seal backgrounds.
+The supplied 120px seals are bundled locally and requested only for displayed
+cards; the 60px alternatives are not deployed. Games start immediately
+and finish automatically when connected.
 Cards fly into a horizontal route row across an unlabeled SVG map. A compact,
 gameplay-first arcade HUD with energy bursts, floating score numbers, collecting
 gems, and a canvas celebration — not a literal casino table.
@@ -9,6 +15,15 @@ No Python, custom backend, tracking, or remote game state. Optional Supabase Goo
 login adds a daily cumulative leaderboard; play and personal records remain local.
 See [Supabase setup](docs/supabase-setup.md) for configuration, UTC scoring,
 credential handling, database tests, and deployment. Unconfigured builds stay local-only.
+
+Easy starts with four coastal choices covering both coasts. Later hands offer two
+valid continuations and two invalid states (one valid and three invalid when
+necessary). Valid choices always retain a winning continuation without repeating
+states. Every card is worth 1 point before the shared hint/mistake penalties;
+both difficulties use the same moving deadline and daily leaderboard. Personal
+scores and best times are separate by difficulty. Easy results show your route,
+points, time, and best time without a reference solution, plus a toggle to try
+Challenging immediately. Clear resets personal records for both difficulties.
 
 ## Play locally
 

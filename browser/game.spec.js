@@ -354,6 +354,7 @@ test('older hard-card games keep their saved points without a forced reroll', as
 
 test('new games offer a winning route from every coastal start', async ({ page }) => {
   await page.goto('/');
+  await page.locator('#difficulty').check();
   for (let attempt = 0; attempt < 3; attempt++) {
     await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
     const game = (await saved(page)).game;
@@ -394,6 +395,7 @@ test('unavailable analysis falls back explicitly to fixed one-point cards', asyn
     };
   });
   await page.goto('/');
+  await page.locator('#difficulty').check();
   await expect(page.locator('#message')).toHaveText('Bonus unavailable. All cards: 1 pt.');
   await expect(page.locator('.state-card.hard')).toHaveCount(0);
   await expect(page.locator('.state-card').first()).toBeEnabled();
@@ -937,7 +939,7 @@ test('help, scores, and clearing scores work', async ({ page, isMobile }) => {
   await press(page.locator('#help-dialog [data-close]').first(), isMobile);
   await press(page.locator('#records-button'), isMobile);
   await expect(page.locator('#record-summary')).toHaveText('1 wins · 1 game');
-  await expect(page.locator('#records-dialog h2')).toHaveText('Your scores');
+  await expect(page.locator('#records-dialog h2')).toHaveText('Your scores · Challenging');
   await press(page.locator('#clear-scores'), isMobile);
   await expect(page.locator('#confirm-dialog')).toHaveCount(0);
   await expect(page.locator('#record-summary')).toHaveText('No games yet.');
@@ -1148,10 +1150,15 @@ test('blocked storage and reduced motion still permit play', async ({ page, isMo
   );
   await page.goto('/');
   await expect(page.locator('#storage-warning')).toBeVisible();
-  await press(page.locator('.state-card.coastal').first(), isMobile);
+  await expect(page.locator('.state-card')).toHaveCount(4);
+  await press(page.locator('.state-card').first(), isMobile);
   await expect(page.locator('[data-chain]')).toHaveCount(1);
   await expect(page.locator('.flying-card')).toHaveCount(0);
   await expect(page.locator('#message')).toBeEmpty();
+  await page.locator('#difficulty').check();
+  await expect(page.locator('.board-layout')).toHaveAttribute('aria-busy', 'false');
+  await press(page.locator('.state-card.coastal').first(), isMobile);
+  await expect(page.locator('[data-chain]')).toHaveCount(1);
 });
 
 test('card point pops zoom toward the score total and clean up', async ({ page }) => {

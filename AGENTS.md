@@ -31,6 +31,9 @@ for build/test tools), and commit both package files. No global npm packages.
 - `src/game.js`: pure game logic, solvable deals, exact sequence validation,
   hints and zero-point penalties, exact shortest/most-points routes, backtracking,
   snapshot validation. No duration-based scoring or special cards.
+- `src/easy.js`: Easy's four-card hands, coast-balanced starts, and reachable
+  non-repeating continuations. Easy defaults to 1-point cards; Challenging retains
+  the original 24-card deals. Difficulty is persisted; legacy games are Challenging.
 - `src/sweep.js` / `src/sweep-view.js`: normalized moving deadline, geographic
   frontier collision, panel-wide shading, visibility pause, and persisted pace.
 - `src/sweep-effects.js`: decorative one-time slam/impact and bounded drifting
@@ -72,6 +75,21 @@ for build/test tools), and commit both package files. No global npm packages.
 ## Gameplay invariants
 
 Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
+
+- Easy is the default, with a persisted Easy/Challenging toggle that starts a
+  new game. Easy has four neutral, larger cards: all-coastal starts covering both
+  coasts, then two valid continuations and two invalid choices (one valid/three
+  invalid when necessary). Invalid picks retain the hand. Keep current penalties
+  and deadline speed. Reload preserves the hand; map-chain undo prepares a new
+  appropriate hand. Easy selection cards center full names without abbreviations;
+  map-chain and result cards retain compact abbreviations.
+  Easy hand backgrounds use locally bundled 120px state seals at low image-only
+  opacity; never fade the whole card or require images to finish loading to play.
+  Easy has no gold bonuses or reference solutions. Its win
+  dialog shows route/points/time/best time and a toggle to try Challenging.
+  Personal records are separate by difficulty, but the daily leaderboard is shared.
+  Clear resets both sets of personal records. The fixed-deal, gold, and reference
+  rules below apply to Challenging; shared mechanics still apply to both.
 
 - Deal 24 unique states with a winning coast-to-coast route from every dealt coastal
   starting card, including scoring fallbacks. Preserve existing saves. No wildcard.
