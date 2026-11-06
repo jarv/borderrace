@@ -11,6 +11,9 @@ top header, left of both the player name and account icon, starts a new game and
 remembers your choice on all screen sizes without making the header taller.
 Desktop shows “Difficulty:” before its compact 28px frame; the native control
 retains a 44px touch target. Mobile uses
+94px width and 8px left padding for the dropdown. Mobile route cards are compact
+(44px wide, up to 48px tall, with 2px gaps) while retaining 44px touch targets;
+desktop route sizing is unchanged. Mobile uses
 one row for Hint, sound, help, theme, and New game, with the score in
 the map's upper-right corner. Narrow phones show New game as a labeled restart
 icon centered using SVG. Easy/Medium selection cards show

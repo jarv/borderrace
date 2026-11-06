@@ -1048,6 +1048,60 @@ test('long routes fit inside the map without scrolling and remain keyboard acces
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test('compact map-route cards retain touch targets, wrap tightly, and resize safely across rotation', async ({
+  page,
+}, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const path = findLongestRoute(deal).slice(0, -1);
+  await seed(page, fixture({ route: path }));
+  for (const [width, height] of [
+    [320, 568],
+    [360, 780],
+    [393, 852],
+    [650, 850],
+    [780, 360],
+    [1440, 1000],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    const compact = await page.evaluate(
+      () =>
+        matchMedia(
+          '(max-width: 760px), (pointer: coarse) and (max-height: 600px) and (orientation: landscape)',
+        ).matches,
+    );
+    const map = await page.locator('.map-wrap').boundingBox();
+    for (const card of await page.locator('[data-chain]').all()) {
+      const bounds = await card.boundingBox();
+      expect(bounds.width).toBeGreaterThanOrEqual(44);
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      if (compact) {
+        expect(bounds.width).toBe(44);
+        expect(bounds.height).toBeLessThanOrEqual(48);
+        await expect(card.locator('strong')).toHaveCSS('font-size', '16px');
+      }
+      expect(bounds.x).toBeGreaterThanOrEqual(map.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(map.x + map.width + 1);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(map.y + map.height + 1);
+    }
+    if (width === 360)
+      await page.screenshot({
+        path: testInfo.outputPath('compact-mobile-route.png'),
+        scale: 'css',
+      });
+    if (width === 1440)
+      await expect(page.locator('[data-chain]').first()).toHaveCSS('width', '56px');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 360, height: 780 });
+  const last = page.locator(`[data-chain="${path.at(-1)}"]`);
+  await last.focus();
+  await last.press('Enter');
+  await expect(page.locator('[data-chain]')).toHaveCount(path.length - 1);
+});
+
 test('clearing scores preserves the current route, hint penalties, and sound setting', async ({
   page,
   isMobile,

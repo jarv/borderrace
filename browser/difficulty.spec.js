@@ -119,10 +119,15 @@ test('compact controls share one touch-sized row and preserve play across rotati
         ].map((selector) => rect(document.querySelector(selector))),
         overflow: document.documentElement.scrollWidth > innerWidth,
         map: rect(document.querySelector('.map-wrap')),
+        dropdown: {
+          width: document.querySelector('#difficulty-select').getBoundingClientRect().width,
+          padding: getComputedStyle(document.querySelector('#difficulty-select')).paddingLeft,
+        },
       };
     });
     expect(geometry.overflow).toBe(false);
     expect(geometry.row.height).toBeLessThanOrEqual(54);
+    expect(geometry.dropdown).toEqual({ width: 94, padding: '8px' });
     let end = geometry.row.x;
     for (const control of geometry.controls) {
       expect(control.width).toBeGreaterThanOrEqual(44);

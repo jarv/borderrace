@@ -445,8 +445,9 @@ dialog {
     gap: 4px;
   }
   #difficulty-select {
-    width: 100px;
-    padding-inline: 2px;
+    width: 94px;
+    padding-left: 8px;
+    padding-right: 2px;
   }
   .difficulty-label {
     display: none;
@@ -503,6 +504,13 @@ dialog {
   }
   .map-card {
     border-width: 1px;
+    padding: 3px;
+  }
+  .map-card strong {
+    font-size: 16px;
+  }
+  .map-card small {
+    margin-top: 5px;
   }
 }
 @media (max-width: 360px) {

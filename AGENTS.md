@@ -52,6 +52,8 @@ for build/test tools), and commit both package files. No global npm packages.
 - `supabase/migrations/`, `supabase/tests/`: schema, RLS, narrow database RPCs,
   permission/scoring tests. Never apply migrations remotely without approval.
 - `src/chain.js`: touch-sized zig-zag route placement; long routes wrap to fit the map.
+  Mobile route cards use 44px width, up to 48px height, 2px gaps, and a smaller
+  zig-zag offset; retain 44px touch targets and unchanged desktop sizing.
 - `src/arena.js`: keyed map-card chain, flying cards, energy bursts, score pops,
   and completion payoff. Bound and clean up transient effects; never block gameplay on animation.
 - `src/audio.js`: lazy, gesture-unlocked Web Audio effects; no audio downloads,
@@ -102,6 +104,7 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
   top header left of both the player name and account icon on all screen sizes,
   without increasing header height. Desktop shows a “Difficulty:” prefix; the
   dropdown's visible frame is 28px tall with a 44px native touch target.
+  Mobile dropdown width is 94px with 8px left padding; desktop stays 112px.
   Difficulty changes start a
   new game. Easy has four neutral, larger cards: all-coastal starts covering both
   coasts, then two valid continuations and two invalid choices (one valid/three

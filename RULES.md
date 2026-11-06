@@ -3,6 +3,8 @@
 Connect the Atlantic and Pacific coasts using bordering state cards.
 
 Cards placed on the map use blue borders: 1px on mobile and 2px on desktop.
+Mobile route cards use compact 44px-wide, up-to-48px-tall frames with 2px gaps,
+preserving 44px touch targets. Desktop route sizing is unchanged.
 Gold hard cards retain their gold borders and stars in both themes.
 
 ## Difficulty

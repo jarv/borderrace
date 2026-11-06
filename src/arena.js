@@ -5,6 +5,9 @@ import { pointsFor } from './game.js';
 import { isHardCard } from './scoring.js';
 
 export function createArena({ map, onPlay, reducedMotion }) {
+  const compactRoute = window.matchMedia(
+    '(max-width: 760px), (pointer: coarse) and (max-height: 600px) and (orientation: landscape)',
+  );
   const layer = document.createElement('div');
   layer.id = 'map-chain';
   layer.setAttribute('role', 'group');
@@ -191,7 +194,9 @@ export function createArena({ map, onPlay, reducedMotion }) {
 
   function positionCards() {
     const bounds = stage.getBoundingClientRect();
-    const positions = layoutChain(currentRoute, bounds.width, bounds.height);
+    const positions = layoutChain(currentRoute, bounds.width, bounds.height, {
+      compact: compactRoute.matches,
+    });
     for (const p of positions) {
       const card = cards.get(p.code);
       Object.assign(card.style, {
@@ -288,6 +293,7 @@ export function createArena({ map, onPlay, reducedMotion }) {
     for (const code of flights.keys()) cancelFlight(code);
     positionCards();
   }).observe(stage);
+  compactRoute.addEventListener('change', positionCards);
   reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) {
       for (const code of flights.keys()) cancelFlight(code);
