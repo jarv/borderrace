@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/jarv/borderrace/compare/v1.21.0...v1.22.0) (2026-11-06)
+
+
+### Features
+
+* refine blue card styling and strengthen the sweep line ([f3265c3](https://github.com/jarv/borderrace/commit/f3265c34499b1b44bb1370f08cff3d1f4c3b11ac))
+
 # [1.21.0](https://github.com/jarv/borderrace/compare/v1.20.0...v1.21.0) (2026-11-06)
 
 
