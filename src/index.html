@@ -30,32 +30,47 @@
     <header class="site-header">
       <nav class="score-links" aria-label="Scores">
         <button class="text-button" id="records-button">Your scores</button>
-        <button class="text-button" id="daily-button" hidden>Daily leaderboard</button>
-      </nav>
-      <div class="account-controls" id="account-controls" hidden>
-        <button class="text-button" id="account-name" aria-haspopup="dialog" hidden></button>
-        <button
-          class="text-button account-button"
-          id="account-button"
-          aria-label="Log in with Google"
-          title="Log in with Google"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path class="account-door" d="M15 3h5v18h-5" />
-            <path d="m10 8 4 4-4 4M14 12H3" />
-          </svg>
-          <span class="account-label">Log in</span>
+        <button class="text-button" id="daily-button" aria-label="Daily leaderboard" hidden>
+          <span class="daily-full">Daily leaderboard</span
+          ><span class="daily-short" aria-hidden="true">Daily</span>
         </button>
+      </nav>
+      <div class="header-controls" id="header-controls">
+        <label class="difficulty-picker" for="difficulty-select">
+          <span class="difficulty-label">Difficulty:</span>
+          <span class="difficulty-box">
+            <select id="difficulty-select" aria-label="Difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="challenging">Challenging</option>
+            </select>
+          </span>
+        </label>
+        <button class="text-button" id="account-name" aria-haspopup="dialog" hidden></button>
+        <div class="account-controls" id="account-controls" hidden>
+          <button
+            class="text-button account-button"
+            id="account-button"
+            aria-label="Log in with Google"
+            title="Log in with Google"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path class="account-door" d="M15 3h5v18h-5" />
+              <path d="m10 8 4 4-4 4M14 12H3" />
+            </svg>
+            <span class="account-label">Log in</span>
+          </button>
+        </div>
       </div>
       <span id="account-status" role="status" aria-live="polite"></span>
       <div class="brand-links">
@@ -81,38 +96,6 @@
     <main>
       <section class="game-shell" aria-label="Border Race game">
         <div class="game-controls">
-          <div class="game-settings">
-            <fieldset id="difficulty" class="difficulty-control">
-              <legend class="sr-only">Difficulty</legend>
-              <label
-                ><input
-                  id="difficulty-easy"
-                  name="difficulty"
-                  type="radio"
-                  value="easy"
-                  checked
-                /><span>Easy</span></label
-              >
-              <label
-                ><input id="difficulty-medium" name="difficulty" type="radio" value="medium" /><span
-                  >Medium</span
-                ></label
-              >
-              <label
-                ><input
-                  id="difficulty-challenging"
-                  name="difficulty"
-                  type="radio"
-                  value="challenging"
-                /><span>Challenging</span></label
-              >
-            </fieldset>
-            <select id="difficulty-select" aria-label="Difficulty">
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="challenging">Challenging</option>
-            </select>
-          </div>
           <div class="game-toolbar">
             <div class="hint-controls">
               <button id="hint-button" class="secondary-button">Hint</button>
@@ -138,7 +121,21 @@
             </nav>
             <div class="game-actions">
               <button id="new-game" class="primary-button" aria-label="New game" title="New game">
-                New game
+                <svg
+                  class="restart-icon"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 7v5h-5" />
+                  <path d="M20 12a8 8 0 1 0-2.34 5.66M20 7v5" /></svg
+                ><span class="new-game-label">New game</span>
               </button>
             </div>
             <div class="trip-stats">

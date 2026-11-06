@@ -231,14 +231,39 @@ test('existing names stay account-bound and the top bar fits small screens', asy
   await page.keyboard.press('Escape');
   for (const width of [320, 360, 650, 820, 1440]) {
     await page.setViewportSize({ width, height: 780 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      `header at ${width}px`,
+    ).toBe(true);
     await expect(page.locator('#daily-button')).toBeInViewport();
     await expect(page.locator('#account-button')).toBeInViewport();
     const name = await page.locator('#account-name').boundingBox();
     const login = await page.locator('#account-button').boundingBox();
+    const difficulty = await page.locator('#difficulty-select').boundingBox();
+    const header = await page.locator('.site-header').boundingBox();
+    const frame = await page.locator('.difficulty-box').evaluate((box) => {
+      const css = getComputedStyle(box, '::before');
+      return box.getBoundingClientRect().height - parseFloat(css.top) - parseFloat(css.bottom);
+    });
+    expect(frame).toBeCloseTo(28, 3);
+    expect(difficulty.height).toBeGreaterThanOrEqual(44);
+    if (width > 760) await expect(page.locator('.difficulty-label')).toBeVisible();
+    else await expect(page.locator('.difficulty-label')).toBeHidden();
+    expect(name.width).toBeGreaterThanOrEqual(44);
+    expect(difficulty.x + difficulty.width).toBeLessThanOrEqual(name.x);
+    expect(name.x - (difficulty.x + difficulty.width)).toBeLessThanOrEqual(4);
     expect(name.x + name.width).toBeLessThanOrEqual(login.x);
+    for (const control of [name, difficulty, login]) {
+      expect(control.y).toBeGreaterThanOrEqual(header.y);
+      expect(control.y + control.height).toBeLessThanOrEqual(header.y + header.height);
+    }
+    const withoutDropdown = await page.locator('#difficulty-select').evaluate((select) => {
+      select.style.display = 'none';
+      const height = document.querySelector('.site-header').getBoundingClientRect().height;
+      select.style.removeProperty('display');
+      return height;
+    });
+    expect(header.height).toBeCloseTo(withoutDropdown, 3);
   }
   await page.locator('#account-name').click();
   await expect(page.locator('#display-name')).toHaveValue('A very long player name!!');

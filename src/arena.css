@@ -78,57 +78,6 @@
   color: var(--blue);
   transform-origin: left center;
 }
-.difficulty-control {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 0 8px;
-  margin: 0;
-  border: 0;
-  min-width: 0;
-  min-height: 44px;
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 12px;
-  width: fit-content;
-}
-.difficulty-control label {
-  position: relative;
-  cursor: pointer;
-}
-.difficulty-control input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  cursor: pointer;
-}
-.difficulty-control span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 700;
-}
-.difficulty-control input:checked + span {
-  color: #fff;
-  background: var(--button-blue);
-  border-color: var(--line);
-}
-.difficulty-control input:focus-visible + span {
-  outline: 2px solid var(--blue);
-  outline-offset: -2px;
-}
-.difficulty-control input:disabled + span {
-  opacity: 0.65;
-}
 .try-challenging {
   display: flex;
   align-items: center;

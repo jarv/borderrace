@@ -285,7 +285,6 @@ function changeDifficulty(event) {
   save = { ...save, difficulty: event.target.value };
   fresh();
 }
-$('#difficulty').addEventListener('change', changeDifficulty);
 $('#difficulty-select').addEventListener('change', changeDifficulty);
 $('#result-challenging').addEventListener('change', () => {
   if (!$('#result-challenging').checked) return;
@@ -428,8 +427,6 @@ function render(dealAnimation = false, arrival) {
   const easy = isChoiceMode(game); // Shared large-card layout for Easy and Medium.
   $('.game-shell').classList.toggle('easy', easy);
   $('.game-shell').classList.toggle('medium', game.difficulty === 'medium');
-  $(`#difficulty-${difficultyOf(game)}`).checked = true;
-  $('#difficulty').disabled = lost;
   $('#difficulty-select').value = difficultyOf(game);
   $('#difficulty-select').disabled = lost;
   $('#hand-count').textContent = easy ? `${handSize(game)} STATES` : '24 STATES';
@@ -488,7 +485,7 @@ function render(dealAnimation = false, arrival) {
     '#theme-button',
   ])
     $(id).disabled = lost;
-  $('#account-controls').inert = lost;
+  $('#header-controls').inert = lost;
   arena.sync(game.route, ended, arrival, game.zeroCards, game.cardPoints, game.scoring);
   if (dealAnimation) arena.deal();
   coastalIntro.sync(easy ? null : game);

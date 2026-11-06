@@ -95,8 +95,11 @@ for build/test tools), and commit both package files. No global npm packages.
 
 Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 
-- Easy is the default, with persisted Easy/Medium/Challenging desktop radio-style buttons
-  and a mobile dropdown that start a
+- Easy is the default, with a persisted Easy/Medium/Challenging dropdown in the
+  top header left of both the player name and account icon on all screen sizes,
+  without increasing header height. Desktop shows a “Difficulty:” prefix; the
+  dropdown's visible frame is 28px tall with a 44px native touch target.
+  Difficulty changes start a
   new game. Easy has four neutral, larger cards: all-coastal starts covering both
   coasts, then two valid continuations and two invalid choices (one valid/three
   invalid when necessary). Invalid picks retain the hand. Keep current penalties
@@ -196,8 +199,8 @@ Read `RULES.md`. Preserve these unless explicitly asked to change the rules:
 ## UI and deployment requirements
 
 - Mobile is a first-class target. Check 320px–650px phones, tablets, and desktop.
-  Mobile combines difficulty dropdown, Hint, sound, help, theme, and New game in
-  one 44px-target row; narrow phones use an accessible New game restart icon.
+  Mobile combines Hint, sound, help, theme, and New game in one 44px-target row;
+  narrow phones use an accessible, centered SVG New game restart icon.
   The mobile score sits in the map's upper-right corner without adding a row.
   Preserve 44px+ primary touch targets, the always-visible phone map, single-row
   controls, safe-area padding, and lack of page-level horizontal overflow.

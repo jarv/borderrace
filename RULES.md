@@ -7,7 +7,7 @@ Gold hard cards retain their gold borders and stars in both themes.
 
 ## Difficulty
 
-**Easy** is the default. Desktop radio buttons or a mobile dropdown select **Easy**, **Medium**, or
+**Easy** is the default. A dropdown in the top header selects **Easy**, **Medium**, or
 **Challenging**, immediately starting a new game and remembering the choice.
 Existing games without a difficulty remain Challenging.
 

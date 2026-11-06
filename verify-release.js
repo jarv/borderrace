@@ -165,7 +165,7 @@ try {
     assert.equal(assetResponse.headers()['cache-control'], 'public, max-age=31536000, immutable');
     assert.deepEqual(errors, []);
     await page.locator('#result-dialog').evaluate((dialog) => dialog.close());
-    await page.locator('#difficulty-easy').check();
+    await page.locator('#difficulty-select').selectOption('easy');
     await page.waitForFunction(() => {
       const images = [...document.querySelectorAll('.state-card .card-seal')];
       return (

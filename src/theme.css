@@ -80,17 +80,56 @@ html {
 body {
   background: radial-gradient(ellipse at 50% 0, var(--page-glow), transparent 70%);
 }
-.game-settings {
+.header-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 44px;
+  justify-content: flex-end;
+  min-width: 0;
+  gap: 4px;
+}
+.header-controls .account-controls {
   flex-shrink: 0;
-  padding-right: 8px;
-  background: var(--surface-soft);
-  border-top: 2px solid var(--line);
 }
 #difficulty-select {
+  position: relative;
+  width: 112px;
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--blue);
+  background: transparent;
+  border: 0;
+}
+#difficulty-select option {
+  color: var(--ink);
+  background: var(--surface-raised);
+}
+.difficulty-picker {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.difficulty-box {
+  position: relative;
+  display: flex;
+}
+.difficulty-box::before {
+  content: '';
+  position: absolute;
+  inset: 8px 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface-raised);
+  pointer-events: none;
+}
+.daily-short,
+.restart-icon {
   display: none;
 }
 .theme-button {
@@ -99,9 +138,6 @@ body {
   width: 44px;
   height: 44px;
   padding: 0;
-}
-.difficulty-control {
-  padding-inline: 12px;
 }
 .text-button,
 dialog p,
@@ -336,7 +372,7 @@ dialog {
 .mode-guide,
 .result-stats,
 .result-art,
-#difficulty,
+#difficulty-select,
 .try-challenging input {
   border-radius: 3px;
 }
@@ -387,26 +423,8 @@ dialog {
     background: var(--surface-soft);
     border-bottom: 1px solid var(--line);
   }
-  .game-settings,
   .game-shell .game-toolbar {
     display: contents;
-  }
-  #difficulty {
-    display: none;
-  }
-  #difficulty-select {
-    display: block;
-    flex: 1;
-    width: 90px;
-    min-width: 0;
-    height: 44px;
-    padding: 0 2px;
-    font: inherit;
-    font-size: 11px;
-    color: var(--blue);
-    background: var(--surface-raised);
-    border: 1px solid var(--line);
-    border-radius: 3px;
   }
   .game-controls .hint-controls,
   .game-controls nav,
@@ -415,6 +433,34 @@ dialog {
     gap: 0;
     flex-shrink: 0;
     margin: 0;
+  }
+  .game-controls .game-actions {
+    margin-left: auto;
+  }
+  .header-controls {
+    flex: 1;
+    gap: 2px;
+  }
+  .site-header {
+    gap: 4px;
+  }
+  #difficulty-select {
+    width: 100px;
+    padding-inline: 2px;
+  }
+  .difficulty-label {
+    display: none;
+  }
+  #account-name {
+    min-width: 44px;
+    max-width: 120px;
+    flex-shrink: 1;
+  }
+  .account-label {
+    display: none;
+  }
+  .site-header .brand-links {
+    display: none;
   }
   .game-controls button {
     min-width: 44px;
@@ -464,8 +510,31 @@ dialog {
     width: 44px;
     font-size: 0;
   }
-  .game-controls #new-game::before {
-    content: '↻';
-    font-size: 24px;
+  .game-controls #new-game .new-game-label {
+    display: none;
+  }
+  .game-controls #new-game .restart-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 400px) {
+  .site-header {
+    padding-inline: 4px;
+  }
+  .site-header .text-button {
+    font-size: 10px;
+  }
+  .score-links {
+    gap: 4px;
+  }
+  .score-links .text-button span {
+    margin: 0;
+  }
+  .daily-full {
+    display: none;
+  }
+  .daily-short {
+    display: inline;
   }
 }

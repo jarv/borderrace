@@ -98,7 +98,11 @@ test('both palettes keep full names readable, the phone controls compact, and di
     for (const selector of ['.game-shell', '.state-card', '#hint-button']) {
       await expect(page.locator(selector).first()).toHaveCSS('border-top-color', border);
     }
-    await expect(page.locator('.game-settings')).toHaveCSS('border-top-color', border);
+    expect(
+      await page
+        .locator('.difficulty-box')
+        .evaluate((box) => getComputedStyle(box, '::before').borderTopColor),
+    ).toBe(border);
     await expect(page.locator('.map-wrap')).toHaveCSS('border-top-width', '0px');
     await expect(page.locator('.map-wrap')).toHaveCSS('border-right-width', '0px');
     await expect(page.locator('.map-wrap')).toHaveCSS('border-bottom-width', '0px');
@@ -222,7 +226,12 @@ test('map-route cards have solid blue borders in both themes, including after un
         theme === 'light' ? 'rgb(36, 117, 223)' : 'rgb(57, 140, 255)',
       );
       await expect(card).toHaveCSS('border-top-style', 'solid');
-      const mobile = await page.locator('#difficulty-select').isVisible();
+      const mobile = await page.evaluate(
+        () =>
+          matchMedia(
+            '(max-width: 760px), (pointer: coarse) and (max-height: 600px) and (orientation: landscape)',
+          ).matches,
+      );
       await expect(card).toHaveCSS('border-top-width', mobile ? '1px' : '2px');
       await expect(card).toHaveCSS('opacity', '1');
     }

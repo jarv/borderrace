@@ -22,7 +22,7 @@ test('Easy defaults to four neutral cards, persists selection, and switches both
   page,
 }) => {
   await page.goto('/');
-  await expect(page.locator('#difficulty-easy')).toBeChecked();
+  await expect(page.locator('#difficulty-select')).toHaveValue('easy');
   await expect(page.locator('.state-card')).toHaveCount(4);
   await expect(page.locator('#cards')).not.toContainText('COAST');
   await expect(page.locator('.state-card.coastal, .state-card.hard')).toHaveCount(0);
@@ -32,7 +32,7 @@ test('Easy defaults to four neutral cards, persists selection, and switches both
   await selectDifficulty(page, 'challenging');
   await expect(page.locator('.state-card')).toHaveCount(24);
   await page.reload();
-  await expect(page.locator('#difficulty-challenging')).toBeChecked();
+  await expect(page.locator('#difficulty-select')).toHaveValue('challenging');
   await selectDifficulty(page, 'easy');
   await expect(page.locator('.state-card')).toHaveCount(4);
   await page.locator('#new-game').click();
@@ -140,11 +140,11 @@ test('Easy win omits reference solutions and switches to Challenging from the re
   await expect(page.getByRole('switch', { name: /Finding this too easy/ })).toBeVisible();
   await page.getByRole('switch', { name: /Finding this too easy/ }).check();
   await expect(page.locator('#result-dialog')).not.toBeVisible();
-  await expect(page.locator('#difficulty-challenging')).toBeChecked();
+  await expect(page.locator('#difficulty-select')).toHaveValue('challenging');
   await expect(page.locator('.state-card')).toHaveCount(24);
   expect((await saved(page)).difficulty).toBe('challenging');
   await page.reload();
-  await expect(page.locator('#difficulty-challenging')).toBeChecked();
+  await expect(page.locator('#difficulty-select')).toHaveValue('challenging');
 });
 
 test('Easy cards and map stay usable without horizontal overflow at phone and tablet widths', async ({
