@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/jarv/borderrace/compare/v1.19.3...v1.20.0) (2026-11-06)
+
+
+### Features
+
+* add easy difficulty with four-state choices and seal cards ([84f31fe](https://github.com/jarv/borderrace/commit/84f31fe654813c29a0ec14f265919660ca39b220))
+
 ## [1.19.3](https://github.com/jarv/borderrace/compare/v1.19.2...v1.19.3) (2026-11-02)
 
 
