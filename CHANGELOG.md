@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/jarv/borderrace/compare/v1.24.0...v1.24.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* compact mobile route cards and refine difficulty spacing ([67db71d](https://github.com/jarv/borderrace/commit/67db71d00c2547af5bffc9b34092a1d074d4874f))
+
 # [1.24.0](https://github.com/jarv/borderrace/compare/v1.23.2...v1.24.0) (2026-11-06)
 
 
