@@ -1,3 +1,10 @@
+## [1.23.2](https://github.com/jarv/borderrace/compare/v1.23.1...v1.23.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* move compact difficulty dropdown into header and center restart icon ([0044c92](https://github.com/jarv/borderrace/commit/0044c92769224cb61c9ad9f5ed4301f4bd7a7252))
+
 ## [1.23.1](https://github.com/jarv/borderrace/compare/v1.23.0...v1.23.1) (2026-11-06)
 
 
